@@ -1,0 +1,34 @@
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Merriweather", "Roboto", "Helvetica", "Arial", sans-serif;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+#root {
+  height: 100%;
+}
+
+/* Animações personalizadas */
+@keyframes pulse {
+  0% { opacity: 0.1; }
+  100% { opacity: 0.9; }
+}
+
+/* Suporte para preferências de movimento reduzido */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
