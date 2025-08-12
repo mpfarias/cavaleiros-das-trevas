@@ -130,7 +130,7 @@ function App() {
               content: '""',
               position: 'absolute',
               inset: 0,
-              background: 'url("/images/img01.png") center center no-repeat black',
+              background: 'url("/images/img01.svg") center center no-repeat black',
               backgroundSize: 'contain',
               animation: 'pulse 10s ease-in-out infinite alternate',
               willChange: 'opacity',

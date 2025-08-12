@@ -9,6 +9,11 @@ import {
   Chip,
   Stack,
   Alert,
+  Snackbar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import {
   Casino as CasinoIcon,
@@ -27,7 +32,11 @@ interface CharacterSheetProps {
 }
 
 const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange }) => {
-  const [showAlert, setShowAlert] = useState(false);
+  type Severity = 'success' | 'info' | 'warning' | 'error';
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<Severity>('success');
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const d6 = () => Math.floor(Math.random() * 6) + 1;
 
@@ -73,37 +82,46 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
 
   const salvar = () => {
     localStorage.setItem('cavaleiro:ficha', JSON.stringify(ficha));
-    setShowAlert(true);
-    setTimeout(() => setShowAlert(false), 2000);
+    setSnackbarMessage('Ficha salva com sucesso!');
+    setSnackbarSeverity('success');
+    setSnackbarOpen(true);
   };
 
   const carregar = () => {
     const data = localStorage.getItem('cavaleiro:ficha');
     if (!data) {
-      alert('Nenhum save encontrado.');
+      setSnackbarMessage('Nenhum save encontrado.');
+      setSnackbarSeverity('warning');
+      setSnackbarOpen(true);
       return;
     }
     try {
       const obj = JSON.parse(data);
       updateFicha(obj);
-      alert('Ficha carregada.');
-    } catch (error) {
-      alert('Erro ao carregar ficha.');
+      setSnackbarMessage('Ficha carregada.');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+    } catch {
+      setSnackbarMessage('Erro ao carregar ficha.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
     }
   };
 
   const resetar = () => {
-    if (!confirm('Apagar ficha?')) return;
-    localStorage.removeItem('cavaleiro:ficha');
-    window.location.reload();
+    setConfirmOpen(true);
   };
 
   const comecarAventura = () => {
     if (!ficha.pericia.inicial || !ficha.forca.inicial || !ficha.sorte.inicial) {
-      alert('Role PERÍCIA, FORÇA e SORTE antes de começar.');
+      setSnackbarMessage('Role PERÍCIA, FORÇA e SORTE antes de começar.');
+      setSnackbarSeverity('warning');
+      setSnackbarOpen(true);
       return;
     }
-    alert('A aventura começa! (Próximo passo: leitor de seções e motor de combate.)');
+    setSnackbarMessage('A aventura começa! (Próximo passo: leitor de seções e motor de combate.)');
+    setSnackbarSeverity('info');
+    setSnackbarOpen(true);
   };
 
   const StatCard = ({ 
@@ -174,6 +192,20 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
     </Card>
   );
 
+  const handleConfirmReset = () => {
+    setConfirmOpen(false);
+    localStorage.removeItem('cavaleiro:ficha');
+    window.location.reload();
+  };
+
+  const handleCancelReset = () => {
+    setConfirmOpen(false);
+  };
+
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
+  };
+
   return (
     <Box
       sx={{
@@ -187,11 +219,16 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
         backdropFilter: 'blur(3px)',
       }}
     >
-      {showAlert && (
-        <Alert severity="success" sx={{ mb: 2 }}>
-          Ficha salva com sucesso!
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={2000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
+          {snackbarMessage}
         </Alert>
-      )}
+      </Snackbar>
 
       <Typography variant="h2" sx={{ mb: 2 }}>
         Ficha do Personagem
@@ -415,11 +452,26 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
             },
           }}
         >
-          Começar aventura
+                    Começar aventura
         </Button>
       </Stack>
-    </Box>
-  );
+
+      <Dialog open={confirmOpen} onClose={handleCancelReset}>
+        <DialogTitle>Apagar ficha?</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2">
+            Esta ação removerá sua ficha salva do dispositivo. Deseja continuar?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelReset}>Cancelar</Button>
+          <Button color="error" variant="contained" onClick={handleConfirmReset} startIcon={<DeleteIcon />}>
+            Apagar
+          </Button>
+        </DialogActions>
+      </Dialog>
+      </Box>
+    );
 };
 
 export default CharacterSheet;

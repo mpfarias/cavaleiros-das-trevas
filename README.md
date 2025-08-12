@@ -4,9 +4,9 @@ Um jogo-livro de terror gótico convertido para React + Material UI + TypeScript
 
 ## 🚀 Tecnologias
 
-- **React 18** - Biblioteca para interfaces de usuário
+- **React 19** - Biblioteca para interfaces de usuário
 - **TypeScript** - Superset tipado do JavaScript
-- **Material UI (MUI)** - Biblioteca de componentes React
+- **Material UI (MUI) 7** - Biblioteca de componentes React
 - **Vite** - Build tool rápida e moderna
 - **Emotion** - CSS-in-JS para estilização
 

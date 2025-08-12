@@ -28,7 +28,7 @@ const Home: React.FC<HomeProps> = ({ onStart }) => {
           textShadow: '0 6px 22px rgba(0,0,0,0.7)',
         }}
       >
-        A Lenda do Cavaleiro das Trevas
+        A Lenda dos Cavaleiros das Trevas
       </Typography>
       
       <Typography
