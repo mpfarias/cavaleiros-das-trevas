@@ -24,6 +24,7 @@ import {
   PlayArrow as PlayArrowIcon,
 } from '@mui/icons-material';
 import type { Ficha } from '../types';
+import { FichaSchema, createEmptyFicha } from '../types';
 
 interface CharacterSheetProps {
   ficha: Ficha;
@@ -67,7 +68,11 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
 
 
   const salvar = () => {
-    localStorage.setItem('cavaleiro:ficha', JSON.stringify(ficha));
+    try {
+      localStorage.setItem('cavaleiro:ficha', JSON.stringify(ficha));
+    } catch (e) {
+      console.error('Falha ao salvar no localStorage:', e);
+    }
     const blob = new Blob([JSON.stringify(ficha, null, 2)], { type: 'application/json' });
     const nomeSanitizado = (ficha.nome || 'personagem').trim().replace(/[^\p{L}\p{N}_\- ]+/gu, '').replace(/\s+/g, '_');
     const url = URL.createObjectURL(blob);
@@ -93,9 +98,15 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
     }
     try {
       const obj = JSON.parse(data);
-      updateFicha(obj);
-      setSnackbarMessage('Ficha carregada.');
-      setSnackbarSeverity('success');
+      const validated = FichaSchema.safeParse(obj);
+      if (validated.success) {
+        updateFicha(validated.data);
+        setSnackbarMessage('Ficha carregada.');
+        setSnackbarSeverity('success');
+      } else {
+        setSnackbarMessage('Save inválido.');
+        setSnackbarSeverity('error');
+      }
       setSnackbarOpen(true);
     } catch {
       setSnackbarMessage('Erro ao carregar ficha.');
@@ -115,7 +126,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
       setSnackbarOpen(true);
       return;
     }
-    setSnackbarMessage('A aventura começa! (Próximo passo: leitor de seções e motor de combate.)');
+    setSnackbarMessage('Aventura iniciada!');
     setSnackbarSeverity('info');
     setSnackbarOpen(true);
   };
@@ -158,6 +169,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
             size="small"
             onClick={onRoll}
             startIcon={<CasinoIcon />}
+            aria-label={`Rolar ${title}`}
           >
             {rollText}
           </Button>
@@ -174,8 +186,15 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
 
   const handleConfirmReset = () => {
     setConfirmOpen(false);
-    localStorage.removeItem('cavaleiro:ficha');
-    window.location.reload();
+    try {
+      localStorage.removeItem('cavaleiro:ficha');
+    } catch (e) {
+      console.error('Falha ao limpar localStorage:', e);
+    }
+    onFichaChange(createEmptyFicha());
+    setSnackbarMessage('Ficha apagada.');
+    setSnackbarSeverity('success');
+    setSnackbarOpen(true);
   };
 
   const handleCancelReset = () => {
@@ -211,15 +230,15 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
         </Alert>
       </Snackbar>
 
-      <Typography variant="h2" sx={{ mb: 2 }}>
-        Crie seu Personagem
+      <Typography variant="h2" sx={{ mb: 2 }} id="heading-ficha">
+        Ficha do Personagem
       </Typography>
 
       <Box sx={{ mb: 2 }}>
         <Card>
           <CardContent>
-            <Typography variant="h6" component="strong" sx={{ mb: 1, display: 'block' }}>
-              Nome
+            <Typography variant="h6" component="strong" sx={{ mb: 1, display: 'block' }} id="label-nome">
+              Nome do personagem
             </Typography>
             <TextField
               fullWidth
@@ -227,12 +246,13 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
               value={ficha.nome}
               onChange={(e) => updateFicha({ nome: e.target.value })}
               placeholder="Ex.: Sir Alden, Lady Marla..."
+              aria-labelledby="label-nome"
             />
           </CardContent>
         </Card>
       </Box>
 
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 2, mb: 2 }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 2, mb: 2 }} aria-labelledby="heading-stats">
         <StatCard
           title="PERÍCIA"
           attr="pericia"
@@ -256,7 +276,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 2, mb: 2 }}>
         <Card>
           <CardContent>
-            <Typography variant="h6" component="strong" sx={{ mb: 1, display: 'block' }}>
+            <Typography variant="h6" component="strong" sx={{ mb: 1, display: 'block' }} id="label-armaduras">
               Armaduras
             </Typography>
             <TextField
@@ -265,12 +285,13 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
               value={ficha.armaduras}
               onChange={(e) => updateFicha({ armaduras: e.target.value })}
               placeholder="Ex.: gibão de couro, escudo pequeno"
+              aria-labelledby="label-armaduras"
             />
           </CardContent>
         </Card>
         <Card>
           <CardContent>
-            <Typography variant="h6" component="strong" sx={{ mb: 1, display: 'block' }}>
+            <Typography variant="h6" component="strong" sx={{ mb: 1, display: 'block' }} id="label-provisoes">
               Provisões
             </Typography>
             <TextField
@@ -281,12 +302,13 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
               onChange={(e) => updateFicha({ provisoes: Number(e.target.value) || 0 })}
               placeholder="Quantidade"
               inputProps={{ min: 0, step: 1 }}
+              aria-labelledby="label-provisoes"
             />
           </CardContent>
         </Card>
         <Card>
           <CardContent>
-            <Typography variant="h6" component="strong" sx={{ mb: 1, display: 'block' }}>
+            <Typography variant="h6" component="strong" sx={{ mb: 1, display: 'block' }} id="label-armas">
               Armas
             </Typography>
               <TextField
@@ -295,12 +317,13 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
                 value={ficha.armas}
                 onChange={(e) => updateFicha({ armas: e.target.value })}
                 placeholder="Ex.: espada de aço"
+                aria-labelledby="label-armas"
               />
             </CardContent>
           </Card>
         <Card>
           <CardContent>
-            <Typography variant="h6" component="strong" sx={{ mb: 1, display: 'block' }}>
+            <Typography variant="h6" component="strong" sx={{ mb: 1, display: 'block' }} id="label-ouro">
               Moedas de ouro
             </Typography>
             <TextField
@@ -311,13 +334,14 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
               onChange={(e) => updateFicha({ ouro: Number(e.target.value) || 0 })}
               placeholder="0"
               inputProps={{ min: 0, step: 1 }}
+              aria-labelledby="label-ouro"
             />
           </CardContent>
         </Card>
         <Box sx={{ gridColumn: '1 / -1' }}>
           <Card>
             <CardContent>
-              <Typography variant="h6" component="strong" sx={{ mb: 1, display: 'block' }}>
+              <Typography variant="h6" component="strong" sx={{ mb: 1, display: 'block' }} id="label-equip">
                 Equipamento
               </Typography>
               <TextField
@@ -326,6 +350,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
                 value={ficha.equip}
                 onChange={(e) => updateFicha({ equip: e.target.value })}
                 placeholder="Tocha, corda, chave enferrujada..."
+                aria-labelledby="label-equip"
               />
             </CardContent>
           </Card>
@@ -333,7 +358,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
         <Box sx={{ gridColumn: '1 / -1' }}>
           <Card>
             <CardContent>
-              <Typography variant="h6" component="strong" sx={{ mb: 1, display: 'block' }}>
+              <Typography variant="h6" component="strong" sx={{ mb: 1, display: 'block' }} id="label-notas">
                 Notas
               </Typography>
               <TextField
@@ -343,6 +368,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
                 value={ficha.notas}
                 onChange={(e) => updateFicha({ notas: e.target.value })}
                 placeholder="Pistas, mapas, NPCs, códigos..."
+                aria-labelledby="label-notas"
               />
             </CardContent>
           </Card>
@@ -384,9 +410,15 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
                 reader.onload = () => {
                   try {
                     const data = JSON.parse(String(reader.result || '{}'));
-                    updateFicha(data);
-                    setSnackbarMessage('Ficha importada do arquivo.');
-                    setSnackbarSeverity('success');
+                    const validated = FichaSchema.safeParse(data);
+                    if (validated.success) {
+                      updateFicha(validated.data);
+                      setSnackbarMessage('Ficha importada do arquivo.');
+                      setSnackbarSeverity('success');
+                    } else {
+                      setSnackbarMessage('Arquivo inválido.');
+                      setSnackbarSeverity('error');
+                    }
                     setSnackbarOpen(true);
                   } catch {
                     setSnackbarMessage('Arquivo inválido.');
@@ -439,13 +471,14 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
               boxShadow: '0 12px 36px rgba(182,123,3,0.35)',
             },
           }}
+          aria-describedby="heading-ficha"
         >
                     Começar aventura
         </Button>
       </Stack>
 
-      <Dialog open={confirmOpen} onClose={handleCancelReset}>
-        <DialogTitle>Apagar ficha?</DialogTitle>
+      <Dialog open={confirmOpen} onClose={handleCancelReset} aria-labelledby="dialog-reset-title">
+        <DialogTitle id="dialog-reset-title">Apagar ficha?</DialogTitle>
         <DialogContent>
           <Typography variant="body2">
             Esta ação removerá sua ficha salva do dispositivo. Deseja continuar?

@@ -4,6 +4,7 @@ import { CssBaseline, Box } from '@mui/material';
 import Home from './components/Home';
 import CharacterSheet from './components/CharacterSheet';
 import type { Ficha } from './types';
+import { FichaSchema, createEmptyFicha } from './types';
 import './index.css';
 
 const darkTheme = createTheme({
@@ -126,27 +127,19 @@ const darkTheme = createTheme({
 
 function App() {
   const [currentView, setCurrentView] = useState<'home' | 'sheet'>('home');
-  const [ficha, setFicha] = useState<Ficha>({
-    nome: '',
-    pericia: { inicial: 0, atual: 0 },
-    forca: { inicial: 0, atual: 0 },
-    sorte: { inicial: 0, atual: 0 },
-    armaduras: '',
-    provisoes: 0,
-    armas: '',
-    ouro: 0,
-    equip: '',
-    notas: '',
-
-  });
+  const [ficha, setFicha] = useState<Ficha>(createEmptyFicha());
 
   useEffect(() => {
-    // Carregar ficha salva automaticamente
     const savedData = localStorage.getItem('cavaleiro:ficha');
     if (savedData) {
       try {
-        const parsedData = JSON.parse(savedData);
-        setFicha(parsedData);
+        const parsed = JSON.parse(savedData);
+        const validated = FichaSchema.safeParse(parsed);
+        if (validated.success) {
+          setFicha({ ...createEmptyFicha(), ...validated.data });
+        } else {
+          console.warn('Ficha salva inválida. Usando defaults.');
+        }
       } catch (error) {
         console.error('Erro ao carregar ficha:', error);
       }
@@ -159,7 +152,11 @@ function App() {
 
   const handleFichaChange = (newFicha: Ficha) => {
     setFicha(newFicha);
-    localStorage.setItem('cavaleiro:ficha', JSON.stringify(newFicha));
+    try {
+      localStorage.setItem('cavaleiro:ficha', JSON.stringify(newFicha));
+    } catch (e) {
+      console.error('Falha ao salvar no localStorage:', e);
+    }
   };
 
   return (
@@ -197,7 +194,11 @@ function App() {
               position: 'absolute',
               inset: 0,
               backgroundColor: 'black',
-              backgroundImage: 'url("/images/img01.png")',
+              backgroundImage: `image-set(
+                url('/images/img01.avif') type('image/avif') 1x,
+                url('/images/img01.webp') type('image/webp') 1x,
+                url('/images/img01.png') type('image/png') 1x
+              )`,
               backgroundRepeat: 'no-repeat',
               backgroundPosition: 'center',
               backgroundSize: 'cover',
@@ -207,6 +208,11 @@ function App() {
             '@keyframes fadePulse': {
               '0%': { opacity: 0 },
               '100%': { opacity: 1 },
+            },
+            '@media (prefers-reduced-motion: reduce)': {
+              '&::after': {
+                animation: 'none',
+              },
             },
           }}
           aria-hidden="true"
