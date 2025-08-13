@@ -390,7 +390,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
             startIcon={<SaveIcon />}
             sx={{ background: '#123b26', borderColor: '#216547' }}
           >
-            Salvar (baixar)
+            Salvar ficha
           </Button>
 
           <Button
