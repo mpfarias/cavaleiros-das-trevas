@@ -93,6 +93,14 @@ const darkTheme = createTheme({
         },
       },
     },
+    MuiTab: {
+      styleOverrides: {
+        root: {
+          fontFamily: '"Spectral", serif',
+          textTransform: 'none',
+        },
+      },
+    },
     MuiButton: {
       styleOverrides: {
         root: {
