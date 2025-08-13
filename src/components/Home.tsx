@@ -28,7 +28,7 @@ const Home: React.FC<HomeProps> = ({ onStart }) => {
           textShadow: '0 6px 22px rgba(0,0,0,0.7)',
         }}
       >
-        A Lenda dos Cavaleiros das Trevas
+        A Lenda do Cavaleiro das Trevas
       </Typography>
       
       <Typography
@@ -39,7 +39,7 @@ const Home: React.FC<HomeProps> = ({ onStart }) => {
           fontSize: { xs: '14px', sm: '16px', md: '18px' },
         }}
       >
-        um jogo‑livro de terror gótico
+        Um jogo de terror gótico
       </Typography>
 
       <Divider
@@ -61,7 +61,7 @@ const Home: React.FC<HomeProps> = ({ onStart }) => {
         }}
       >
         Sob a lua sem brilho, um sussurro percorre os campos encharcados.
-        Falam de um cavaleiro com cabeça de abóbora ardente, condenado a rondar a noite e a cobrar dívidas antigas.
+        Falam de um cavaleiro sombrio, vindo das trevas, condenado a rondar a noite e a cobrar dívidas antigas.
         Alguns juram tê‑lo visto. Poucos voltaram para contar.
       </Typography>
 

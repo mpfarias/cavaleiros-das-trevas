@@ -1,4 +1,4 @@
-# A Lenda dos Cavaleiros das Trevas
+# A Lenda do Cavaleiro das Trevas
 
 Um jogo-livro de terror gótico convertido para React + Material UI + TypeScript.
 
@@ -78,4 +78,4 @@ src/
 
 ## 📝 Licença
 
-Este projeto é uma conversão do jogo-livro original "A Lenda dos Cavaleiros das Trevas".
+Este projeto é uma conversão do jogo-livro original "A Lenda do Cavaleiro das Trevas".
