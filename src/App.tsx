@@ -198,12 +198,12 @@ function App() {
               inset: 0,
               background: 'url("/images/img01.svg") center center no-repeat black',
               backgroundSize: 'contain',
-              animation: 'pulse 10s ease-in-out infinite alternate',
+              animation: 'fadePulse 5s ease-in-out infinite alternate',
               willChange: 'opacity',
             },
-            '@keyframes pulse': {
-              '0%': { opacity: 0.1 },
-              '100%': { opacity: 0.9 },
+            '@keyframes fadePulse': {
+              '0%': { opacity: 0 },
+              '100%': { opacity: 1 },
             },
           }}
           aria-hidden="true"
