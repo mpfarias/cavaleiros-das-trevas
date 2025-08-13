@@ -221,7 +221,11 @@ function App() {
         {currentView === 'home' ? (
           <Home onStart={handleStartAdventure} />
         ) : (
-          <CharacterSheet ficha={ficha} onFichaChange={handleFichaChange} />
+          <CharacterSheet 
+            ficha={ficha} 
+            onFichaChange={handleFichaChange} 
+            onVoltar={() => setCurrentView('home')}
+          />
         )}
       </Box>
     </ThemeProvider>
