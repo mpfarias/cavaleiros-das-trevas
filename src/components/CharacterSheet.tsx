@@ -25,7 +25,6 @@ import {
 import {
   Casino as CasinoIcon,
   Save as SaveIcon,
-  Download as DownloadIcon,
   Upload as UploadIcon,
   Delete as DeleteIcon,
   PlayArrow as PlayArrowIcon,
@@ -104,7 +103,6 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
     setSnackbarOpen(true);
   };
 
-  
   const salvar = () => {
     localStorage.setItem('cavaleiro:ficha', JSON.stringify(ficha));
     const blob = new Blob([JSON.stringify(ficha, null, 2)], { type: 'application/json' });
@@ -120,8 +118,6 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
     setSnackbarSeverity('success');
     setSnackbarOpen(true);
   };
-
-
 
   const resetar = () => {
     setConfirmOpen(true);
@@ -154,6 +150,64 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
     setSnackbarMessage('Aventura iniciada! (Próximo passo: leitor de seções e motor de combate.)');
     setSnackbarSeverity('info');
     setSnackbarOpen(true);
+  };
+const adicionarItensExemplo = () => {
+    let novaFicha = ficha;
+    
+    // Adiciona espada obrigatória à bolsa (sempre)
+    const espadaExistente = novaFicha.bolsa.find(item => item.nome === 'Espada de Aço');
+    if (!espadaExistente) {
+      novaFicha = adicionarItem(novaFicha, {
+        nome: 'Espada de Aço',
+        tipo: 'arma',
+        descricao: 'Espada básica de aço, arma padrão de todo cavaleiro',
+        adquiridoEm: 'Criação do Personagem'
+      });
+    }
+    
+    // Adiciona alguns itens de exemplo para demonstrar a funcionalidade
+    novaFicha = adicionarItem(novaFicha, {
+      ...exemplosItens.armaduras[0],
+      adquiridoEm: 'Seção 1 - Início da Aventura'
+    });
+    
+    novaFicha = adicionarItem(novaFicha, {
+      ...exemplosItens.equipamentos[0],
+      adquiridoEm: 'Seção 1 - Início da Aventura'
+    });
+    
+    novaFicha = adicionarItem(novaFicha, {
+      ...exemplosItens.ouro[0],
+      adquiridoEm: 'Seção 1 - Início da Aventura'
+    });
+    
+    novaFicha = adicionarItem(novaFicha, {
+      ...exemplosItens.provisoes[0],
+      adquiridoEm: 'Seção 1 - Início da Aventura'
+    });
+
+    updateFicha(novaFicha);
+    setSnackbarMessage('Itens de exemplo adicionados à bolsa! (Incluindo Espada de Aço obrigatória)');
+    setSnackbarSeverity('success');
+    setSnackbarOpen(true);
+  };
+
+  // Função para garantir que a espada esteja sempre na bolsa
+  const garantirEspadaObrigatoria = () => {
+    const espadaExistente = ficha.bolsa.find(item => item.nome === 'Espada de Aço');
+    if (!espadaExistente) {
+      let novaFicha = ficha;
+      novaFicha = adicionarItem(novaFicha, {
+        nome: 'Espada de Aço',
+        tipo: 'arma',
+        descricao: 'Espada básica de aço, arma padrão de todo cavaleiro',
+        adquiridoEm: 'Criação do Personagem'
+      });
+      updateFicha(novaFicha);
+      setSnackbarMessage('Espada de Aço obrigatória adicionada à bolsa!');
+      setSnackbarSeverity('info');
+      setSnackbarOpen(true);
+    }
   };
 
   const StatCard = ({ 
@@ -267,18 +321,60 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
           </Typography>
         ) : (
           <Box>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
               {ficha.bolsa.length} item(s) na bolsa
             </Typography>
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={() => setBolsaModalOpen(true)}
-              startIcon={<InventoryIcon />}
-              fullWidth
-            >
-              Ver todos os itens
-            </Button>
+            {/* Mostra os 2 primeiros itens */}
+            <List dense sx={{ mb: 2 }}>
+              {ficha.bolsa.slice(0, 2).map((item, index) => (
+                <Box key={item.id}>
+                  <ListItem sx={{ px: 0 }}>
+                    <ListItemIcon sx={{ minWidth: 36 }}>
+                      {getItemIcon(item.tipo)}
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Typography variant="body2" component="span">
+                            {item.nome}
+                          </Typography>
+                          {item.quantidade && item.quantidade > 1 && (
+                            <Chip
+                              label={`x${item.quantidade}`}
+                              size="small"
+                              sx={{ 
+                                backgroundColor: getItemColor(item.tipo),
+                                color: 'white',
+                                fontSize: '0.75rem'
+                              }}
+                            />
+                          )}
+                        </Box>
+                      }
+                      secondary={
+                        <Box>
+                          <Typography variant="caption" color="text.secondary">
+                            {item.tipo.charAt(0).toUpperCase() + item.tipo.slice(1)}
+                          </Typography>
+                          {item.descricao && (
+                            <Typography variant="caption" display="block" color="text.secondary">
+                              {item.descricao}
+                            </Typography>
+                          )}
+                        </Box>
+                      }
+                    />
+                  </ListItem>
+                  {index < Math.min(2, ficha.bolsa.length) - 1 && <Divider />}
+                </Box>
+              ))}
+            </List>
+            
+            {ficha.bolsa.length > 2 && (
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, fontStyle: 'italic' }}>
+                +{ficha.bolsa.length - 2} item(s) restante(s)
+              </Typography>
+            )}
           </Box>
         )}
       </CardContent>
@@ -388,6 +484,46 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
 
       <Box sx={{ mb: 3 }}>
         <BolsaCard />
+        {/* Botões de teste para demonstrar a funcionalidade */}
+        <Box sx={{ mt: 2, textAlign: 'center' }}>
+          <Stack direction="row" spacing={2} justifyContent="center" flexWrap="wrap">
+            <Button
+              variant="outlined"
+              onClick={adicionarItensExemplo}
+              startIcon={<AddIcon />}
+              sx={{ 
+                borderColor: 'rgba(255,255,255,0.3)',
+                color: 'text.secondary',
+                '&:hover': {
+                  borderColor: 'rgba(255,255,255,0.5)',
+                  color: 'text.primary',
+                }
+              }}
+            >
+              Adicionar Itens de Exemplo
+            </Button>
+            
+            <Button
+              variant="outlined"
+              onClick={garantirEspadaObrigatoria}
+              startIcon={<LocalOfferIcon />}
+              sx={{ 
+                borderColor: 'rgba(179,18,18,0.5)',
+                color: '#B31212',
+                '&:hover': {
+                  borderColor: 'rgba(179,18,18,0.7)',
+                  color: '#B31212',
+                }
+              }}
+            >
+              Garantir Espada Obrigatória
+            </Button>
+          </Stack>
+          
+          <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 1 }}>
+            Estes botões demonstram como os itens serão adicionados automaticamente durante o jogo
+          </Typography>
+        </Box>
       </Box>
 
       <Stack
