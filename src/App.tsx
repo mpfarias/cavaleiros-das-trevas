@@ -124,7 +124,7 @@ function App() {
     ouro: 0,
     equip: '',
     notas: '',
-    encontros: Array.from({ length: 12 }, () => ({ pericia: '', forca: '' })),
+
   });
 
   useEffect(() => {

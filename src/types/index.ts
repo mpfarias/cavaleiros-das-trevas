@@ -18,13 +18,6 @@ export interface Ficha {
   ouro: number;
   equip: string;
   notas: string;
-  encontros: Array<{
-    pericia: string;
-    forca: string;
-  }>;
+
 }
 
-export interface Encontro {
-  pericia: string;
-  forca: string;
-}

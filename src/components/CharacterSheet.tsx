@@ -75,11 +75,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
     });
   };
 
-  const setEncontro = (index: number, campo: 'pericia' | 'forca', valor: string) => {
-    const novosEncontros = [...ficha.encontros];
-    novosEncontros[index] = { ...novosEncontros[index], [campo]: valor.trim() };
-    updateFicha({ encontros: novosEncontros });
-  };
+
 
   const salvar = () => {
     localStorage.setItem('cavaleiro:ficha', JSON.stringify(ficha));
@@ -380,51 +376,6 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
         </Box>
       </Box>
 
-      <Card sx={{ mb: 2 }}>
-        <CardContent>
-          <Typography variant="h6" component="strong" sx={{ mb: 1, display: 'block' }}>
-            Encontros com Monstros
-          </Typography>
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, gap: 1, mb: 1 }}>
-            {ficha.encontros.map((encontro, index) => (
-              <Box
-                key={index}
-                sx={{
-                  background: '#0e1013',
-                  border: '1px dashed rgba(255,255,255,0.12)',
-                  borderRadius: '10px',
-                  padding: '10px',
-                  minHeight: '72px',
-                }}
-              >
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                  Perícia =
-                </Typography>
-                <TextField
-                  size="small"
-                  value={encontro.pericia}
-                  onChange={(e) => setEncontro(index, 'pericia', e.target.value)}
-                  inputProps={{ inputMode: 'numeric' }}
-                  sx={{ mb: 1, width: '100%' }}
-                />
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                  Força =
-                </Typography>
-                <TextField
-                  size="small"
-                  value={encontro.forca}
-                  onChange={(e) => setEncontro(index, 'forca', e.target.value)}
-                  inputProps={{ inputMode: 'numeric' }}
-                  sx={{ width: '100%' }}
-                />
-              </Box>
-            ))}
-          </Box>
-          <Typography variant="caption" color="text.secondary">
-            Use para registrar PERÍCIA e FORÇA de inimigos que enfrentar.
-          </Typography>
-        </CardContent>
-      </Card>
 
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
