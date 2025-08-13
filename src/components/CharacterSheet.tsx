@@ -32,7 +32,7 @@ import {
   Build as BuildIcon,
 } from '@mui/icons-material';
 import type { Ficha, Item } from '../types';
-import { adicionarItem, exemplosItens } from '../utils/inventory';
+import { adicionarItem } from '../utils/inventory';
 
 interface CharacterSheetProps {
   ficha: Ficha;
@@ -125,7 +125,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
     setSnackbarSeverity('success');
     setSnackbarOpen(true);
   };
-
+>>>>>>> 0b4b1e7cdb1a362b0ebbf5125a73bcc189e848f2
   const salvar = () => {
     localStorage.setItem('cavaleiro:ficha', JSON.stringify(ficha));
     const blob = new Blob([JSON.stringify(ficha, null, 2)], { type: 'application/json' });
@@ -248,7 +248,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
     switch (tipo) {
       case 'arma': return '#B31212';
       case 'armadura': return '#B67B03';
-      case 'ouro': return '#FFD700';
+      case 'ouro': return '#dFc810';
       case 'provisao': return '#4CAF50';
       case 'equipamento': return '#2196F3';
       default: return '#757575';
@@ -290,7 +290,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
                             sx={{ 
                               backgroundColor: getItemColor(item.tipo),
                               color: 'white',
-                              fontSize: '0.75rem'
+                              fontSize: '0.8rem'
                             }}
                           />
                         )}
@@ -395,7 +395,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
               <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                 <Chip
                   label={ficha.bolsa.find(item => item.nome === 'Moedas de Ouro')?.quantidade || '–'}
-                  sx={{ minWidth: 64, fontWeight: 700, backgroundColor: '#FFD700', color: 'black' }}
+                  sx={{ minWidth: 64, fontWeight: 700, backgroundColor: '#eAD700', color: 'black' }}
                 />
               </Box>
             </Box>
