@@ -197,7 +197,7 @@ function App() {
               position: 'absolute',
               inset: 0,
               background: `center center / cover no-repeat black`,
-              backgroundImage: `image-set(url("/images/img01.png") type("image/png"), url("/images/img01.svg") type("image/svg+xml"))`,
+              backgroundImage: `image-set(url("/images/img01.png") type("image/png"))`,
               animation: 'fadePulse 5s ease-in-out infinite alternate',
               willChange: 'opacity',
             },

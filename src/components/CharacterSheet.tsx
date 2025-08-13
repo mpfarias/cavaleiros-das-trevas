@@ -172,22 +172,6 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
           >
             {rollText}
           </Button>
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={() => alterar(attr, 1)}
-            startIcon={<AddIcon />}
-          >
-            +1
-          </Button>
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={() => alterar(attr, -1)}
-            startIcon={<RemoveIcon />}
-          >
-            -1
-          </Button>
         </Stack>
         
         <Typography variant="caption" color="text.secondary">
@@ -264,19 +248,19 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
           title="PERÍCIA"
           attr="pericia"
           onRoll={rolarPericia}
-          rollText="Rolar (1d6 + 6)"
+          rollText="1 D6 + 6"
         />
         <StatCard
           title="FORÇA"
           attr="forca"
           onRoll={rolarForca}
-          rollText="Rolar (2d6 + 12)"
+          rollText="2 D6 + 12"
         />
         <StatCard
           title="SORTE"
           attr="sorte"
           onRoll={rolarSorte}
-          rollText="Rolar (1d6 + 6)"
+          rollText="1 D6 + 6"
         />
       </Box>
 
