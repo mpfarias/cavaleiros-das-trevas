@@ -114,6 +114,7 @@ const darkTheme = createTheme({
 function App() {
   const [currentView, setCurrentView] = useState<'home' | 'sheet'>('home');
   const [ficha, setFicha] = useState<Ficha>({
+    nome: '',
     pericia: { inicial: 0, atual: 0 },
     forca: { inicial: 0, atual: 0 },
     sorte: { inicial: 0, atual: 0 },

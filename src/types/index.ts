@@ -1,4 +1,5 @@
 export interface Ficha {
+  nome: string;
   pericia: {
     inicial: number;
     atual: number;

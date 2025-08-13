@@ -21,6 +21,7 @@ import {
   Remove as RemoveIcon,
   Save as SaveIcon,
   Download as DownloadIcon,
+  Upload as UploadIcon,
   Delete as DeleteIcon,
   PlayArrow as PlayArrowIcon,
 } from '@mui/icons-material';
@@ -82,7 +83,17 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
 
   const salvar = () => {
     localStorage.setItem('cavaleiro:ficha', JSON.stringify(ficha));
-    setSnackbarMessage('Ficha salva com sucesso!');
+    const blob = new Blob([JSON.stringify(ficha, null, 2)], { type: 'application/json' });
+    const nomeSanitizado = (ficha.nome || 'personagem').trim().replace(/[^\p{L}\p{N}_\- ]+/gu, '').replace(/\s+/g, '_');
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${nomeSanitizado || 'personagem'}.cavaleiro.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    setSnackbarMessage('Ficha salva e baixada como arquivo.');
     setSnackbarSeverity('success');
     setSnackbarOpen(true);
   };
@@ -234,6 +245,23 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
       <Typography variant="h2" sx={{ mb: 2 }}>
         Ficha do Personagem
       </Typography>
+
+      <Box sx={{ mb: 2 }}>
+        <Card>
+          <CardContent>
+            <Typography variant="h6" component="strong" sx={{ mb: 1, display: 'block' }}>
+              Nome do personagem
+            </Typography>
+            <TextField
+              fullWidth
+              size="small"
+              value={ficha.nome}
+              onChange={(e) => updateFicha({ nome: e.target.value })}
+              placeholder="Ex.: Sir Alden, Lady Marla..."
+            />
+          </CardContent>
+        </Card>
+      </Box>
 
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 2, mb: 2 }}>
         <StatCard
@@ -412,15 +440,50 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
             startIcon={<SaveIcon />}
             sx={{ background: '#123b26', borderColor: '#216547' }}
           >
-            Salvar
+            Salvar (baixar)
           </Button>
+
+          <Button
+            component="label"
+            variant="outlined"
+            startIcon={<UploadIcon />}
+          >
+            Importar
+            <input
+              type="file"
+              accept="application/json,.json,.cavaleiro.json"
+              hidden
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = () => {
+                  try {
+                    const data = JSON.parse(String(reader.result || '{}'));
+                    updateFicha(data);
+                    setSnackbarMessage('Ficha importada do arquivo.');
+                    setSnackbarSeverity('success');
+                    setSnackbarOpen(true);
+                  } catch {
+                    setSnackbarMessage('Arquivo inválido.');
+                    setSnackbarSeverity('error');
+                    setSnackbarOpen(true);
+                  }
+                };
+                reader.readAsText(file);
+                e.currentTarget.value = '';
+              }}
+            />
+          </Button>
+
           <Button
             variant="outlined"
             onClick={carregar}
             startIcon={<DownloadIcon />}
           >
-            Carregar
+            Carregar (local)
           </Button>
+
           <Button
             variant="contained"
             color="error"
