@@ -6,7 +6,7 @@ export interface Item {
   tipo: 'arma' | 'armadura' | 'ouro' | 'provisao' | 'equipamento';
   quantidade?: number;
   descricao?: string;
-  adquiridoEm?: string; // Seção onde foi obtido
+  adquiridoEm?: string;
 }
 
 export interface Ficha {
