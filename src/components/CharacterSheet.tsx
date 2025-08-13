@@ -18,10 +18,14 @@ import {
   ListItemText,
   ListItemIcon,
   Divider,
+  Tabs,
+  Tab,
+  IconButton,
 } from '@mui/material';
 import {
   Casino as CasinoIcon,
   Save as SaveIcon,
+  Download as DownloadIcon,
   Upload as UploadIcon,
   Delete as DeleteIcon,
   PlayArrow as PlayArrowIcon,
@@ -30,9 +34,11 @@ import {
   LocalOffer as LocalOfferIcon,
   Restaurant as RestaurantIcon,
   Build as BuildIcon,
+  Add as AddIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
 import type { Ficha, Item } from '../types';
-import { adicionarItem } from '../utils/inventory';
+import { adicionarItem, exemplosItens, totalOuro } from '../utils/inventory';
 
 interface CharacterSheetProps {
   ficha: Ficha;
@@ -46,6 +52,8 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<Severity>('success');
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [bolsaModalOpen, setBolsaModalOpen] = useState(false);
+  const [abaAtiva, setAbaAtiva] = useState(0);
 
   const d6 = () => Math.floor(Math.random() * 6) + 1;
 
@@ -133,7 +141,6 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
     setSnackbarSeverity('success');
     setSnackbarOpen(true);
   };
->>>>>>> 0b4b1e7cdb1a362b0ebbf5125a73bcc189e848f2
   const salvar = () => {
     localStorage.setItem('cavaleiro:ficha', JSON.stringify(ficha));
     const blob = new Blob([JSON.stringify(ficha, null, 2)], { type: 'application/json' });
@@ -262,11 +269,32 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
   const BolsaCard = () => (
     <Card>
       <CardContent>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-          <InventoryIcon />
-          <Typography variant="h6" component="strong">
-            Bolsa do Personagem
-          </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <InventoryIcon />
+            <Typography variant="h6" component="strong">
+              Bolsa do Personagem
+            </Typography>
+          </Box>
+          
+          {ficha.bolsa.length > 0 && (
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => setBolsaModalOpen(true)}
+              startIcon={<InventoryIcon />}
+              sx={{ 
+                borderColor: 'rgba(255,255,255,0.3)',
+                color: 'text.secondary',
+                '&:hover': {
+                  borderColor: 'rgba(255,255,255,0.5)',
+                  color: 'text.primary',
+                }
+              }}
+            >
+              Abrir a Bolsa
+            </Button>
+          )}
         </Box>
         
         {ficha.bolsa.length === 0 ? (
@@ -274,55 +302,20 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
             Sua bolsa está vazia. Os itens serão adicionados automaticamente durante a aventura.
           </Typography>
         ) : (
-          <List dense>
-            {ficha.bolsa.map((item, index) => (
-              <Box key={item.id}>
-                <ListItem sx={{ px: 0 }}>
-                  <ListItemIcon sx={{ minWidth: 36 }}>
-                    {getItemIcon(item.tipo)}
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography variant="body2" component="span">
-                          {item.nome}
-                        </Typography>
-                        {item.quantidade && item.quantidade > 1 && (
-                          <Chip
-                            label={`x${item.quantidade}`}
-                            size="small"
-                            sx={{ 
-                              backgroundColor: getItemColor(item.tipo),
-                              color: 'white',
-                              fontSize: '0.8rem'
-                            }}
-                          />
-                        )}
-                      </Box>
-                    }
-                    secondary={
-                      <Box>
-                        <Typography variant="caption" color="text.secondary">
-                          {item.tipo.charAt(0).toUpperCase() + item.tipo.slice(1)}
-                        </Typography>
-                        {item.descricao && (
-                          <Typography variant="caption" display="block" color="text.secondary">
-                            {item.descricao}
-                          </Typography>
-                        )}
-                        {item.adquiridoEm && (
-                          <Typography variant="caption" display="block" color="text.secondary">
-                            Obtido em: {item.adquiridoEm}
-                          </Typography>
-                        )}
-                      </Box>
-                    }
-                  />
-                </ListItem>
-                {index < ficha.bolsa.length - 1 && <Divider />}
-              </Box>
-            ))}
-          </List>
+          <Box>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+              {ficha.bolsa.length} item(s) na bolsa
+            </Typography>
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => setBolsaModalOpen(true)}
+              startIcon={<InventoryIcon />}
+              fullWidth
+            >
+              Ver todos os itens
+            </Button>
+          </Box>
         )}
       </CardContent>
     </Card>
@@ -546,6 +539,315 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
           <Button onClick={handleCancelReset}>Cancelar</Button>
           <Button color="error" variant="contained" onClick={handleConfirmReset} startIcon={<DeleteIcon />}>
             Apagar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Modal da Bolsa */}
+      <Dialog 
+        open={bolsaModalOpen} 
+        onClose={() => setBolsaModalOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <InventoryIcon />
+              <Typography variant="h6">
+                Bolsa do Personagem
+              </Typography>
+            </Box>
+            
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Chip
+                label={`${totalOuro(ficha)} moedas de ouro`}
+                sx={{ 
+                  backgroundColor: '#FFD700', 
+                  color: 'black',
+                  fontWeight: 700
+                }}
+              />
+              <IconButton
+                onClick={() => setBolsaModalOpen(false)}
+                size="small"
+              >
+                <CloseIcon />
+              </IconButton>
+            </Box>
+          </Box>
+        </DialogTitle>
+        
+        <DialogContent>
+          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+            <Tabs 
+              value={abaAtiva} 
+              onChange={(_, newValue) => setAbaAtiva(newValue)}
+              variant="scrollable"
+              scrollButtons="auto"
+            >
+              <Tab label="Armas" />
+              <Tab label="Armaduras" />
+              <Tab label="Equipamentos" />
+              <Tab label="Provisões" />
+              <Tab label="Ouro" />
+            </Tabs>
+          </Box>
+          
+          {/* Conteúdo das abas */}
+          {abaAtiva === 0 && (
+            <Box>
+              <Typography variant="h6" sx={{ mb: 2, color: '#B31212' }}>
+                🗡️ Armas
+              </Typography>
+              {ficha.bolsa.filter(item => item.tipo === 'arma').length === 0 ? (
+                <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                  Nenhuma arma na bolsa.
+                </Typography>
+              ) : (
+                <List>
+                  {ficha.bolsa.filter(item => item.tipo === 'arma').map((item, index) => (
+                    <Box key={item.id}>
+                      <ListItem sx={{ px: 0 }}>
+                        <ListItemIcon sx={{ minWidth: 36 }}>
+                          {getItemIcon(item.tipo)}
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={item.nome}
+                          secondary={
+                            <Box>
+                              {item.descricao && (
+                                <Typography variant="caption" display="block" color="text.secondary">
+                                  {item.descricao}
+                                </Typography>
+                              )}
+                              {item.adquiridoEm && (
+                                <Typography variant="caption" display="block" color="text.secondary">
+                                  Obtido em: {item.adquiridoEm}
+                                </Typography>
+                              )}
+                            </Box>
+                          }
+                        />
+                      </ListItem>
+                      {index < ficha.bolsa.filter(item => item.tipo === 'arma').length - 1 && <Divider />}
+                    </Box>
+                  ))}
+                </List>
+              )}
+            </Box>
+          )}
+          
+          {abaAtiva === 1 && (
+            <Box>
+              <Typography variant="h6" sx={{ mb: 2, color: '#B67B03' }}>
+                🛡️ Armaduras
+              </Typography>
+              {ficha.bolsa.filter(item => item.tipo === 'armadura').length === 0 ? (
+                <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                  Nenhuma armadura na bolsa.
+                </Typography>
+              ) : (
+                <List>
+                  {ficha.bolsa.filter(item => item.tipo === 'armadura').map((item, index) => (
+                    <Box key={item.id}>
+                      <ListItem sx={{ px: 0 }}>
+                        <ListItemIcon sx={{ minWidth: 36 }}>
+                          {getItemIcon(item.tipo)}
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={item.nome}
+                          secondary={
+                            <Box>
+                              {item.descricao && (
+                                <Typography variant="caption" display="block" color="text.secondary">
+                                  {item.descricao}
+                                </Typography>
+                              )}
+                              {item.adquiridoEm && (
+                                <Typography variant="caption" display="block" color="text.secondary">
+                                  Obtido em: {item.adquiridoEm}
+                                </Typography>
+                              )}
+                            </Box>
+                          }
+                        />
+                      </ListItem>
+                      {index < ficha.bolsa.filter(item => item.tipo === 'armadura').length - 1 && <Divider />}
+                    </Box>
+                  ))}
+                </List>
+              )}
+            </Box>
+          )}
+          
+          {abaAtiva === 2 && (
+            <Box>
+              <Typography variant="h6" sx={{ mb: 2, color: '#2196F3' }}>
+                🛠️ Equipamentos
+              </Typography>
+              {ficha.bolsa.filter(item => item.tipo === 'equipamento').length === 0 ? (
+                <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                  Nenhum equipamento na bolsa.
+                </Typography>
+              ) : (
+                <List>
+                  {ficha.bolsa.filter(item => item.tipo === 'equipamento').map((item, index) => (
+                    <Box key={item.id}>
+                      <ListItem sx={{ px: 0 }}>
+                        <ListItemIcon sx={{ minWidth: 36 }}>
+                          {getItemIcon(item.tipo)}
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={item.nome}
+                          secondary={
+                            <Box>
+                              {item.descricao && (
+                                <Typography variant="caption" display="block" color="text.secondary">
+                                  {item.descricao}
+                                </Typography>
+                              )}
+                              {item.adquiridoEm && (
+                                <Typography variant="caption" display="block" color="text.secondary">
+                                  Obtido em: {item.adquiridoEm}
+                                </Typography>
+                              )}
+                            </Box>
+                          }
+                        />
+                      </ListItem>
+                      {index < ficha.bolsa.filter(item => item.tipo === 'equipamento').length - 1 && <Divider />}
+                    </Box>
+                  ))}
+                </List>
+              )}
+            </Box>
+          )}
+          
+          {abaAtiva === 3 && (
+            <Box>
+              <Typography variant="h6" sx={{ mb: 2, color: '#4CAF50' }}>
+                🍖 Provisões
+              </Typography>
+              {ficha.bolsa.filter(item => item.tipo === 'provisao').length === 0 ? (
+                <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                  Nenhuma provisão na bolsa.
+                </Typography>
+              ) : (
+                <List>
+                  {ficha.bolsa.filter(item => item.tipo === 'provisao').map((item, index) => (
+                    <Box key={item.id}>
+                      <ListItem sx={{ px: 0 }}>
+                        <ListItemIcon sx={{ minWidth: 36 }}>
+                          {getItemIcon(item.tipo)}
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Typography variant="body2" component="span">
+                                {item.nome}
+                              </Typography>
+                              {item.quantidade && item.quantidade > 1 && (
+                                <Chip
+                                  label={`x${item.quantidade}`}
+                                  size="small"
+                                  sx={{ 
+                                    backgroundColor: '#4CAF50',
+                                    color: 'white',
+                                    fontSize: '0.75rem'
+                                  }}
+                                />
+                              )}
+                            </Box>
+                          }
+                          secondary={
+                            <Box>
+                              {item.descricao && (
+                                <Typography variant="caption" display="block" color="text.secondary">
+                                  {item.descricao}
+                                </Typography>
+                              )}
+                              {item.adquiridoEm && (
+                                <Typography variant="caption" display="block" color="text.secondary">
+                                  Obtido em: {item.adquiridoEm}
+                                </Typography>
+                              )}
+                            </Box>
+                          }
+                        />
+                      </ListItem>
+                      {index < ficha.bolsa.filter(item => item.tipo === 'provisao').length - 1 && <Divider />}
+                    </Box>
+                  ))}
+                </List>
+              )}
+            </Box>
+          )}
+          
+          {abaAtiva === 4 && (
+            <Box>
+              <Typography variant="h6" sx={{ mb: 2, color: '#FFD700' }}>
+                💰 Ouro
+              </Typography>
+              {ficha.bolsa.filter(item => item.tipo === 'ouro').length === 0 ? (
+                <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                  Nenhum ouro na bolsa.
+                </Typography>
+              ) : (
+                <List>
+                  {ficha.bolsa.filter(item => item.tipo === 'ouro').map((item, index) => (
+                    <Box key={item.id}>
+                      <ListItem sx={{ px: 0 }}>
+                        <ListItemIcon sx={{ minWidth: 36 }}>
+                          {getItemIcon(item.tipo)}
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Typography variant="body2" component="span">
+                                {item.nome}
+                              </Typography>
+                              {item.quantidade && item.quantidade > 1 && (
+                                <Chip
+                                  label={`x${item.quantidade}`}
+                                  size="small"
+                                  sx={{ 
+                                    backgroundColor: '#FFD700',
+                                    color: 'black',
+                                    fontSize: '0.75rem'
+                                  }}
+                                />
+                              )}
+                            </Box>
+                          }
+                          secondary={
+                            <Box>
+                              {item.descricao && (
+                                <Typography variant="caption" display="block" color="text.secondary">
+                                  {item.descricao}
+                                </Typography>
+                              )}
+                              {item.adquiridoEm && (
+                                <Typography variant="caption" display="block" color="text.secondary">
+                                  Obtido em: {item.adquiridoEm}
+                                </Typography>
+                              )}
+                            </Box>
+                          }
+                        />
+                      </ListItem>
+                      {index < ficha.bolsa.filter(item => item.tipo === 'ouro').length - 1 && <Divider />}
+                    </Box>
+                  ))}
+                </List>
+              )}
+            </Box>
+          )}
+        </DialogContent>
+        
+        <DialogActions>
+          <Button onClick={() => setBolsaModalOpen(false)}>
+            Fechar
           </Button>
         </DialogActions>
       </Dialog>
