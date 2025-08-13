@@ -229,36 +229,41 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
               <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
                 Digite um valor entre 0 e {getMaxValue()}:
               </Typography>
-              <input
-                type="number"
-                min="0"
-                max={getMaxValue()}
-                value={ficha[attr].inicial || ''}
-                onChange={(e) => {
-                  const valor = parseInt(e.target.value) || 0;
-                  handleAtributoChange(attr, valor);
-                }}
-                style={{
-                  width: '100%',
-                  padding: '8px 12px',
-                  fontSize: '14px',
-                  fontFamily: '"Spectral", serif',
-                  background: 'rgba(255,255,255,0.08)',
-                  border: '1px solid rgba(179,18,18,0.4)',
-                  borderRadius: '6px',
-                  color: '#E0DFDB',
-                  outline: 'none',
-                  transition: 'all 0.2s ease',
-                }}
-                onFocus={(e) => {
-                  e.target.style.border = '1px solid rgba(179,18,18,0.7)';
-                  e.target.style.background = 'rgba(255,255,255,0.12)';
-                }}
-                onBlur={(e) => {
-                  e.target.style.border = '1px solid rgba(179,18,18,0.4)';
-                  e.target.style.background = 'rgba(255,255,255,0.08)';
-                }}
-              />
+                             <input
+                 type="number"
+                 min="0"
+                 max={getMaxValue()}
+                 defaultValue={ficha[attr].inicial || ''}
+                 onBlur={(e) => {
+                   const valor = parseInt(e.target.value) || 0;
+                   handleAtributoChange(attr, valor);
+                   e.target.style.border = '1px solid rgba(179,18,18,0.4)';
+                   e.target.style.background = 'rgba(255,255,255,0.08)';
+                 }}
+                 onKeyDown={(e) => {
+                   if (e.key === 'Enter') {
+                     const valor = parseInt(e.currentTarget.value) || 0;
+                     handleAtributoChange(attr, valor);
+                     e.currentTarget.blur();
+                   }
+                 }}
+                 style={{
+                   width: '100%',
+                   padding: '8px 12px',
+                   fontSize: '14px',
+                   fontFamily: '"Spectral", serif',
+                   background: 'rgba(255,255,255,0.08)',
+                   border: '1px solid rgba(179,18,18,0.4)',
+                   borderRadius: '6px',
+                   color: '#E0DFDB',
+                   outline: 'none',
+                   transition: 'all 0.2s ease',
+                 }}
+                 onFocus={(e) => {
+                   e.target.style.border = '1px solid rgba(179,18,18,0.7)';
+                   e.target.style.background = 'rgba(255,255,255,0.12)';
+                 }}
+               />
             </Box>
           ) : (
             /* Botão de rolar quando checkbox não está marcado */
@@ -537,89 +542,93 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
         Ficha do Personagem
       </Typography>
 
-             {/* Campo Nome do Personagem */}
-       <Card sx={{ mb: 3 }}>
-         <CardContent>
-           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-             <Typography variant="h6" component="label" sx={{ minWidth: '120px' }}>
-               Nome:
-             </Typography>
-             <input
-               type="text"
-               value={ficha.nome}
-               onChange={(e) => updateFicha({ nome: e.target.value })}
-               placeholder="Digite o nome do personagem"
-               style={{
-                 flex: 1,
-                 padding: '12px 16px',
-                 fontSize: '16px',
-                 fontFamily: '"Spectral", serif',
-                 background: 'rgba(255,255,255,0.05)',
-                 border: '1px solid rgba(255,255,255,0.1)',
-                 borderRadius: '8px',
-                 color: '#E0DFDB',
-                 outline: 'none',
-                 transition: 'all 0.2s ease',
-               }}
-               onFocus={(e) => {
-                 e.target.style.border = '1px solid rgba(179,18,18,0.5)';
-                 e.target.style.background = 'rgba(255,255,255,0.08)';
-               }}
-               onBlur={(e) => {
-                 e.target.style.border = '1px solid rgba(255,255,255,0.1)';
-                 e.target.style.background = 'rgba(255,255,255,0.05)';
-               }}
-             />
-           </Box>
-           
-           {/* Checkbox Usar Meus Dados */}
-           <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
-             <Box
-               onClick={() => setUsarMeusDados(!usarMeusDados)}
-               sx={{
-                 width: '20px',
-                 height: '20px',
-                 border: '2px solid rgba(179,18,18,0.6)',
-                 borderRadius: '4px',
-                 background: usarMeusDados ? 'rgba(179,18,18,0.8)' : 'transparent',
-                 cursor: 'pointer',
-                 display: 'flex',
-                 alignItems: 'center',
-                 justifyContent: 'center',
-                 transition: 'all 0.2s ease',
-                 '&:hover': {
-                   borderColor: 'rgba(179,18,18,0.8)',
-                   background: usarMeusDados ? 'rgba(179,18,18,0.9)' : 'rgba(179,18,18,0.1)',
-                 },
-               }}
-             >
-               {usarMeusDados && (
-                 <Box
-                   sx={{
-                     width: '12px',
-                     height: '12px',
-                     background: 'white',
-                     borderRadius: '2px',
-                     transform: 'rotate(45deg)',
-                   }}
-                 />
-               )}
-             </Box>
-             <Typography 
-               variant="body2" 
-               sx={{ 
-                 color: 'text.secondary',
-                 cursor: 'pointer',
-                 userSelect: 'none',
-                 '&:hover': { color: 'text.primary' }
-               }}
-               onClick={() => setUsarMeusDados(!usarMeusDados)}
-             >
-               Usar meus dados (inserir valores manualmente)
-             </Typography>
-           </Box>
-         </CardContent>
-       </Card>
+                    {/* Campo Nome do Personagem */}
+        <Card sx={{ mb: 2 }}>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Typography variant="h6" component="label" sx={{ minWidth: '120px' }}>
+                Nome:
+              </Typography>
+              <input
+                type="text"
+                value={ficha.nome}
+                onChange={(e) => updateFicha({ nome: e.target.value })}
+                placeholder="Digite o nome do personagem"
+                style={{
+                  flex: 1,
+                  padding: '12px 16px',
+                  fontSize: '16px',
+                  fontFamily: '"Spectral", serif',
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: '8px',
+                  color: '#E0DFDB',
+                  outline: 'none',
+                  transition: 'all 0.2s ease',
+                }}
+                onFocus={(e) => {
+                  e.target.style.border = '1px solid rgba(179,18,18,0.5)';
+                  e.target.style.background = 'rgba(255,255,255,0.08)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.border = '1px solid rgba(255,255,255,0.1)';
+                  e.target.style.background = 'rgba(255,255,255,0.05)';
+                }}
+              />
+            </Box>
+          </CardContent>
+        </Card>
+
+        {/* Checkbox Usar Meus Dados - Separado do campo nome */}
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Box
+                onClick={() => setUsarMeusDados(!usarMeusDados)}
+                sx={{
+                  width: '20px',
+                  height: '20px',
+                  border: '2px solid rgba(179,18,18,0.6)',
+                  borderRadius: '4px',
+                  background: usarMeusDados ? 'rgba(179,18,18,0.8)' : 'transparent',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    borderColor: 'rgba(179,18,18,0.8)',
+                    background: usarMeusDados ? 'rgba(179,18,18,0.9)' : 'rgba(179,18,18,0.1)',
+                  },
+                }}
+              >
+                {usarMeusDados && (
+                  <Box
+                    sx={{
+                      width: '12px',
+                      height: '12px',
+                      background: 'white',
+                      borderRadius: '2px',
+                      transform: 'rotate(45deg)',
+                    }}
+                  />
+                )}
+              </Box>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  color: 'text.secondary',
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                  '&:hover': { color: 'text.primary' }
+                }}
+                onClick={() => setUsarMeusDados(!usarMeusDados)}
+              >
+                Usar meus dados (inserir valores manualmente)
+              </Typography>
+            </Box>
+          </CardContent>
+        </Card>
 
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 2, mb: 3 }}>
         <StatCard
