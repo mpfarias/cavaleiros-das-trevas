@@ -418,7 +418,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
             variant="outlined"
             startIcon={<UploadIcon />}
           >
-            Importar
+            Continuar Aventura
             <input
               type="file"
               accept="application/json,.json,.cavaleiro.json"
