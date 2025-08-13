@@ -17,8 +17,6 @@ import {
 } from '@mui/material';
 import {
   Casino as CasinoIcon,
-  Add as AddIcon,
-  Remove as RemoveIcon,
   Save as SaveIcon,
   Download as DownloadIcon,
   Upload as UploadIcon,
@@ -66,15 +64,6 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
       sorte: { inicial: valor, atual: valor },
     });
   };
-
-  const alterar = (attr: 'pericia' | 'forca' | 'sorte', delta: number) => {
-    const obj = ficha[attr];
-    const novoValor = Math.max(0, Math.min(obj.inicial, obj.atual + delta));
-    updateFicha({
-      [attr]: { ...obj, atual: novoValor },
-    });
-  };
-
 
 
   const salvar = () => {
