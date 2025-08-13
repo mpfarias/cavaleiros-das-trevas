@@ -41,6 +41,10 @@ import {
 import type { Ficha, Item } from '../types';
 import { adicionarItem, totalOuro } from '../utils/inventory';
 
+import AudioControls from './AudioControls';
+import { useAudio } from '../hooks/useAudio';
+import bgmFicha from '../assets/sounds/bgm-ficha.mp3';
+
 interface CharacterSheetProps {
   ficha: Ficha;
   onFichaChange: (ficha: Ficha) => void;
@@ -56,6 +60,22 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
   const [bolsaModalOpen, setBolsaModalOpen] = useState(false);
   const [abaAtiva, setAbaAtiva] = useState(0);
   const [usarMeusDados, setUsarMeusDados] = useState(false);
+  
+  const { changeTrack } = useAudio();
+
+  // Carrega a música específica da ficha quando o componente monta
+  useEffect(() => {
+    const loadMusic = async () => {
+      try {
+        await changeTrack(bgmFicha);
+        console.log('Música de fundo carregada para a ficha do personagem');
+      } catch (error) {
+        console.log('Erro ao carregar música da ficha:', error);
+      }
+    };
+    
+    loadMusic();
+  }, []); // Executa apenas uma vez quando o componente monta
 
   const d6 = () => Math.floor(Math.random() * 6) + 1;
 
@@ -1119,7 +1139,8 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
                  </DialogActions>
        </Dialog>
 
-
+        {/* Controles de música */}
+        <AudioControls />
      </Box>
    );
  };

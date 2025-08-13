@@ -5,6 +5,7 @@ import Home from './components/Home';
 import CharacterSheet from './components/CharacterSheet';
 import type { Ficha } from './types';
 import { FichaSchema, createEmptyFicha } from './types';
+import { AudioProvider } from './contexts/AudioContext';
 import './index.css';
 
 const darkTheme = createTheme({
@@ -162,15 +163,16 @@ function App() {
   return (
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
-      <Box
-        sx={{
-          minHeight: '100vh',
-          background: 'transparent',
-          color: '#E0DFDB',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
+      <AudioProvider>
+        <Box
+          sx={{
+            minHeight: '100vh',
+            background: 'transparent',
+            color: '#E0DFDB',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
         {/* Backdrop */}
         <Box
           sx={{
@@ -227,7 +229,8 @@ function App() {
             onVoltar={() => setCurrentView('home')}
           />
         )}
-      </Box>
+        </Box>
+      </AudioProvider>
     </ThemeProvider>
   );
 }
