@@ -5,7 +5,6 @@ import {
   Card,
   CardContent,
   Button,
-  TextField,
   Chip,
   Stack,
   Alert,
@@ -14,6 +13,11 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  Divider,
 } from '@mui/material';
 import {
   Casino as CasinoIcon,
@@ -22,9 +26,15 @@ import {
   Upload as UploadIcon,
   Delete as DeleteIcon,
   PlayArrow as PlayArrowIcon,
+  Inventory as InventoryIcon,
+  Shield as ShieldIcon,
+  LocalOffer as LocalOfferIcon,
+  Restaurant as RestaurantIcon,
+  Build as BuildIcon,
+  Add as AddIcon,
 } from '@mui/icons-material';
-import type { Ficha } from '../types';
-import { FichaSchema, createEmptyFicha } from '../types';
+import type { Ficha, Item } from '../types';
+import { adicionarItem, exemplosItens } from '../utils/inventory';
 
 interface CharacterSheetProps {
   ficha: Ficha;
@@ -66,19 +76,48 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
     });
   };
 
+  const adicionarItensExemplo = () => {
+    let novaFicha = ficha;
+    
+    // Adiciona alguns itens de exemplo para demonstrar a funcionalidade
+    novaFicha = adicionarItem(novaFicha, {
+      ...exemplosItens.armas[0],
+      adquiridoEm: 'Seção 1 - Início da Aventura'
+    });
+    
+    novaFicha = adicionarItem(novaFicha, {
+      ...exemplosItens.armaduras[0],
+      adquiridoEm: 'Seção 1 - Início da Aventura'
+    });
+    
+    novaFicha = adicionarItem(novaFicha, {
+      ...exemplosItens.equipamentos[0],
+      adquiridoEm: 'Seção 1 - Início da Aventura'
+    });
+    
+    novaFicha = adicionarItem(novaFicha, {
+      ...exemplosItens.ouro[0],
+      adquiridoEm: 'Seção 1 - Início da Aventura'
+    });
+    
+    novaFicha = adicionarItem(novaFicha, {
+      ...exemplosItens.provisoes[0],
+      adquiridoEm: 'Seção 1 - Início da Aventura'
+    });
+
+    updateFicha(novaFicha);
+    setSnackbarMessage('Itens de exemplo adicionados à bolsa!');
+    setSnackbarSeverity('success');
+    setSnackbarOpen(true);
+  };
 
   const salvar = () => {
-    try {
-      localStorage.setItem('cavaleiro:ficha', JSON.stringify(ficha));
-    } catch (e) {
-      console.error('Falha ao salvar no localStorage:', e);
-    }
+    localStorage.setItem('cavaleiro:ficha', JSON.stringify(ficha));
     const blob = new Blob([JSON.stringify(ficha, null, 2)], { type: 'application/json' });
-    const nomeSanitizado = (ficha.nome || 'personagem').trim().replace(/[^\p{L}\p{N}_\- ]+/gu, '').replace(/\s+/g, '_');
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${nomeSanitizado || 'personagem'}.cavaleiro.json`;
+    a.download = 'personagem.cavaleiro.json';
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -98,15 +137,9 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
     }
     try {
       const obj = JSON.parse(data);
-      const validated = FichaSchema.safeParse(obj);
-      if (validated.success) {
-        updateFicha(validated.data);
-        setSnackbarMessage('Ficha carregada.');
-        setSnackbarSeverity('success');
-      } else {
-        setSnackbarMessage('Save inválido.');
-        setSnackbarSeverity('error');
-      }
+      updateFicha(obj);
+      setSnackbarMessage('Ficha carregada.');
+      setSnackbarSeverity('success');
       setSnackbarOpen(true);
     } catch {
       setSnackbarMessage('Erro ao carregar ficha.');
@@ -126,7 +159,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
       setSnackbarOpen(true);
       return;
     }
-    setSnackbarMessage('Aventura iniciada!');
+    setSnackbarMessage('A aventura começa! (Próximo passo: leitor de seções e motor de combate.)');
     setSnackbarSeverity('info');
     setSnackbarOpen(true);
   };
@@ -169,7 +202,6 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
             size="small"
             onClick={onRoll}
             startIcon={<CasinoIcon />}
-            aria-label={`Rolar ${title}`}
           >
             {rollText}
           </Button>
@@ -184,17 +216,101 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
     </Card>
   );
 
+  const getItemIcon = (tipo: Item['tipo']) => {
+    switch (tipo) {
+      case 'arma': return <LocalOfferIcon />;
+      case 'armadura': return <ShieldIcon />;
+      case 'ouro': return <LocalOfferIcon />;
+      case 'provisao': return <RestaurantIcon />;
+      case 'equipamento': return <BuildIcon />;
+      default: return <InventoryIcon />;
+    }
+  };
+
+  const getItemColor = (tipo: Item['tipo']) => {
+    switch (tipo) {
+      case 'arma': return '#B31212';
+      case 'armadura': return '#B67B03';
+      case 'ouro': return '#FFD700';
+      case 'provisao': return '#4CAF50';
+      case 'equipamento': return '#2196F3';
+      default: return '#757575';
+    }
+  };
+
+  const BolsaCard = () => (
+    <Card>
+      <CardContent>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+          <InventoryIcon />
+          <Typography variant="h6" component="strong">
+            Bolsa do Personagem
+          </Typography>
+        </Box>
+        
+        {ficha.bolsa.length === 0 ? (
+          <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+            Sua bolsa está vazia. Os itens serão adicionados automaticamente durante a aventura.
+          </Typography>
+        ) : (
+          <List dense>
+            {ficha.bolsa.map((item, index) => (
+              <Box key={item.id}>
+                <ListItem sx={{ px: 0 }}>
+                  <ListItemIcon sx={{ minWidth: 36 }}>
+                    {getItemIcon(item.tipo)}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="body2" component="span">
+                          {item.nome}
+                        </Typography>
+                        {item.quantidade && item.quantidade > 1 && (
+                          <Chip
+                            label={`x${item.quantidade}`}
+                            size="small"
+                            sx={{ 
+                              backgroundColor: getItemColor(item.tipo),
+                              color: 'white',
+                              fontSize: '0.75rem'
+                            }}
+                          />
+                        )}
+                      </Box>
+                    }
+                    secondary={
+                      <Box>
+                        <Typography variant="caption" color="text.secondary">
+                          {item.tipo.charAt(0).toUpperCase() + item.tipo.slice(1)}
+                        </Typography>
+                        {item.descricao && (
+                          <Typography variant="caption" display="block" color="text.secondary">
+                            {item.descricao}
+                          </Typography>
+                        )}
+                        {item.adquiridoEm && (
+                          <Typography variant="caption" display="block" color="text.secondary">
+                            Obtido em: {item.adquiridoEm}
+                          </Typography>
+                        )}
+                      </Box>
+                    }
+                  />
+                </ListItem>
+                {index < ficha.bolsa.length - 1 && <Divider />}
+              </Box>
+            ))}
+          </List>
+        )}
+      </CardContent>
+    </Card>
+  );
+
   const handleConfirmReset = () => {
     setConfirmOpen(false);
-    try {
-      localStorage.removeItem('cavaleiro:ficha');
-    } catch (e) {
-      console.error('Falha ao limpar localStorage:', e);
-    }
-    onFichaChange(createEmptyFicha());
-    setSnackbarMessage('Ficha apagada.');
-    setSnackbarSeverity('success');
-    setSnackbarOpen(true);
+    localStorage.removeItem('cavaleiro:ficha');
+    window.location.reload();
   };
 
   const handleCancelReset = () => {
@@ -230,29 +346,11 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
         </Alert>
       </Snackbar>
 
-      <Typography variant="h2" sx={{ mb: 2 }} id="heading-ficha">
-        Crie seu Personagem
+      <Typography variant="h2" sx={{ mb: 2 }}>
+        Ficha do Personagem
       </Typography>
 
-      <Box sx={{ mb: 2 }}>
-        <Card>
-          <CardContent>
-            <Typography variant="h6" component="strong" sx={{ mb: 1, display: 'block' }} id="label-nome">
-              Nome
-            </Typography>
-            <TextField
-              fullWidth
-              size="small"
-              value={ficha.nome}
-              onChange={(e) => updateFicha({ nome: e.target.value })}
-              placeholder="Ex.: Sir Alden, Lady Marla..."
-              aria-labelledby="label-nome"
-            />
-          </CardContent>
-        </Card>
-      </Box>
-
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 2, mb: 2 }} aria-labelledby="heading-stats">
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 2, mb: 3 }}>
         <StatCard
           title="PERÍCIA"
           attr="pericia"
@@ -273,108 +371,33 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
         />
       </Box>
 
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 2, mb: 2 }}>
-        <Card>
-          <CardContent>
-            <Typography variant="h6" component="strong" sx={{ mb: 1, display: 'block' }} id="label-armaduras">
-              Armaduras
+      <Box sx={{ mb: 3 }}>
+        <BolsaCard />
+        
+        {/* Botão de teste para demonstrar a funcionalidade */}
+        {ficha.bolsa.length === 0 && (
+          <Box sx={{ mt: 2, textAlign: 'center' }}>
+            <Button
+              variant="outlined"
+              onClick={adicionarItensExemplo}
+              startIcon={<AddIcon />}
+              sx={{ 
+                borderColor: 'rgba(255,255,255,0.3)',
+                color: 'text.secondary',
+                '&:hover': {
+                  borderColor: 'rgba(255,255,255,0.5)',
+                  color: 'text.primary',
+                }
+              }}
+            >
+              Adicionar Itens de Exemplo (Teste)
+            </Button>
+            <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 1 }}>
+              Este botão demonstra como os itens serão adicionados automaticamente durante o jogo
             </Typography>
-            <TextField
-              fullWidth
-              size="small"
-              value={ficha.armaduras}
-              onChange={(e) => updateFicha({ armaduras: e.target.value })}
-              placeholder="Ex.: gibão de couro, escudo pequeno"
-              aria-labelledby="label-armaduras"
-            />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent>
-            <Typography variant="h6" component="strong" sx={{ mb: 1, display: 'block' }} id="label-provisoes">
-              Provisões
-            </Typography>
-            <TextField
-              fullWidth
-              size="small"
-              type="number"
-              value={ficha.provisoes}
-              onChange={(e) => updateFicha({ provisoes: Number(e.target.value) || 0 })}
-              placeholder="Quantidade"
-              inputProps={{ min: 0, step: 1 }}
-              aria-labelledby="label-provisoes"
-            />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent>
-            <Typography variant="h6" component="strong" sx={{ mb: 1, display: 'block' }} id="label-armas">
-              Armas
-            </Typography>
-              <TextField
-                fullWidth
-                size="small"
-                value={ficha.armas}
-                onChange={(e) => updateFicha({ armas: e.target.value })}
-                placeholder="Ex.: espada de aço"
-                aria-labelledby="label-armas"
-              />
-            </CardContent>
-          </Card>
-        <Card>
-          <CardContent>
-            <Typography variant="h6" component="strong" sx={{ mb: 1, display: 'block' }} id="label-ouro">
-              Moedas de ouro
-            </Typography>
-            <TextField
-              fullWidth
-              size="small"
-              type="number"
-              value={ficha.ouro}
-              onChange={(e) => updateFicha({ ouro: Number(e.target.value) || 0 })}
-              placeholder="0"
-              inputProps={{ min: 0, step: 1 }}
-              aria-labelledby="label-ouro"
-            />
-          </CardContent>
-        </Card>
-        <Box sx={{ gridColumn: '1 / -1' }}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" component="strong" sx={{ mb: 1, display: 'block' }} id="label-equip">
-                Equipamento
-              </Typography>
-              <TextField
-                fullWidth
-                size="small"
-                value={ficha.equip}
-                onChange={(e) => updateFicha({ equip: e.target.value })}
-                placeholder="Tocha, corda, chave enferrujada..."
-                aria-labelledby="label-equip"
-              />
-            </CardContent>
-          </Card>
-        </Box>
-        <Box sx={{ gridColumn: '1 / -1' }}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" component="strong" sx={{ mb: 1, display: 'block' }} id="label-notas">
-                Notas
-              </Typography>
-              <TextField
-                fullWidth
-                multiline
-                rows={4}
-                value={ficha.notas}
-                onChange={(e) => updateFicha({ notas: e.target.value })}
-                placeholder="Pistas, mapas, NPCs, códigos..."
-                aria-labelledby="label-notas"
-              />
-            </CardContent>
-          </Card>
-        </Box>
+          </Box>
+        )}
       </Box>
-
 
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
@@ -390,46 +413,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
             startIcon={<SaveIcon />}
             sx={{ background: '#123b26', borderColor: '#216547' }}
           >
-            Salvar ficha
-          </Button>
-
-          <Button
-            component="label"
-            variant="outlined"
-            startIcon={<UploadIcon />}
-          >
-            Importar
-            <input
-              type="file"
-              accept="application/json,.json,.cavaleiro.json"
-              hidden
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = () => {
-                  try {
-                    const data = JSON.parse(String(reader.result || '{}'));
-                    const validated = FichaSchema.safeParse(data);
-                    if (validated.success) {
-                      updateFicha(validated.data);
-                      setSnackbarMessage('Ficha importada do arquivo.');
-                      setSnackbarSeverity('success');
-                    } else {
-                      setSnackbarMessage('Arquivo inválido.');
-                      setSnackbarSeverity('error');
-                    }
-                    setSnackbarOpen(true);
-                  } catch {
-                    setSnackbarMessage('Arquivo inválido.');
-                    setSnackbarSeverity('error');
-                    setSnackbarOpen(true);
-                  }
-                };
-                reader.readAsText(file);
-                e.currentTarget.value = '';
-              }}
-            />
+            Salvar (baixar)
           </Button>
 
           <Button
@@ -471,14 +455,13 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
               boxShadow: '0 12px 36px rgba(182,123,3,0.35)',
             },
           }}
-          aria-describedby="heading-ficha"
         >
-                    Começar aventura
+          Começar aventura
         </Button>
       </Stack>
 
-      <Dialog open={confirmOpen} onClose={handleCancelReset} aria-labelledby="dialog-reset-title">
-        <DialogTitle id="dialog-reset-title">Apagar ficha?</DialogTitle>
+      <Dialog open={confirmOpen} onClose={handleCancelReset}>
+        <DialogTitle>Apagar ficha?</DialogTitle>
         <DialogContent>
           <Typography variant="body2">
             Esta ação removerá sua ficha salva do dispositivo. Deseja continuar?
@@ -491,8 +474,8 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
           </Button>
         </DialogActions>
       </Dialog>
-      </Box>
-    );
+    </Box>
+  );
 };
 
 export default CharacterSheet;
