@@ -101,11 +101,6 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
     
     // Adiciona alguns itens de exemplo para demonstrar a funcionalidade
     novaFicha = adicionarItem(novaFicha, {
-      ...exemplosItens.armas[0],
-      adquiridoEm: 'Seção 1 - Início da Aventura'
-    });
-    
-    novaFicha = adicionarItem(novaFicha, {
       ...exemplosItens.armaduras[0],
       adquiridoEm: 'Seção 1 - Início da Aventura'
     });
@@ -169,8 +164,20 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
       return;
     }
     
-    setSnackbarMessage('A aventura começa! (Próximo passo: leitor de seções e motor de combate.)');
-    setSnackbarSeverity('info');
+    // Adiciona espada obrigatória à bolsa
+    let novaFicha = ficha;
+    novaFicha = adicionarItem(novaFicha, {
+      nome: 'Espada de Aço',
+      tipo: 'arma',
+      descricao: 'Espada básica de aço, arma padrão de todo cavaleiro',
+      adquiridoEm: 'Início da Aventura'
+    });
+    
+    // Atualiza a ficha com a espada na bolsa
+    updateFicha(novaFicha);
+    
+    setSnackbarMessage('Aventura iniciada! Espada de Aço adicionada à bolsa.');
+    setSnackbarSeverity('success');
     setSnackbarOpen(true);
   };
 
@@ -520,7 +527,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
             },
           }}
         >
-          Começar aventura
+          Começar Aventura (+ Espada)
         </Button>
       </Stack>
 
