@@ -75,6 +75,27 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
     });
   };
 
+  const rolarMoedasOuro = () => {
+    const valor = d6() + d6() + 12;
+    
+    // Adiciona as moedas de ouro à bolsa
+    let novaFicha = ficha;
+    novaFicha = adicionarItem(novaFicha, {
+      nome: 'Moedas de Ouro',
+      tipo: 'ouro',
+      quantidade: valor,
+      descricao: 'Moedas de ouro iniciais do personagem',
+      adquiridoEm: 'Criação do Personagem'
+    });
+    
+    // Atualiza a ficha com as moedas na bolsa
+    updateFicha(novaFicha);
+    
+    setSnackbarMessage(`Moedas de ouro roladas: ${valor} moedas adicionadas à bolsa!`);
+    setSnackbarSeverity('success');
+    setSnackbarOpen(true);
+  };
+
   const adicionarItensExemplo = () => {
     let novaFicha = ficha;
     
@@ -139,6 +160,15 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
       setSnackbarOpen(true);
       return;
     }
+    
+    const moedasOuro = ficha.bolsa.find(item => item.nome === 'Moedas de Ouro');
+    if (!moedasOuro) {
+      setSnackbarMessage('Role as MOEDAS DE OURO antes de começar.');
+      setSnackbarSeverity('warning');
+      setSnackbarOpen(true);
+      return;
+    }
+    
     setSnackbarMessage('A aventura começa! (Próximo passo: leitor de seções e motor de combate.)');
     setSnackbarSeverity('info');
     setSnackbarOpen(true);
@@ -330,7 +360,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
         Ficha do Personagem
       </Typography>
 
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 2, mb: 3 }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 2, mb: 3 }}>
         <StatCard
           title="PERÍCIA"
           attr="pericia"
@@ -349,6 +379,43 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
           onRoll={rolarSorte}
           rollText="1 D6 + 6"
         />
+        <Card>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, mb: 1 }}>
+              <Typography variant="h6" component="strong">
+                Moedas de Ouro
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                <Chip
+                  label={ficha.bolsa.find(item => item.nome === 'Moedas de Ouro')?.quantidade || '–'}
+                  sx={{ minWidth: 64, fontWeight: 700, backgroundColor: '#FFD700', color: 'black' }}
+                />
+              </Box>
+            </Box>
+            
+            <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={rolarMoedasOuro}
+                startIcon={<CasinoIcon />}
+                disabled={!!ficha.bolsa.find(item => item.nome === 'Moedas de Ouro')}
+                sx={{
+                  '&:disabled': {
+                    opacity: 0.6,
+                    cursor: 'not-allowed'
+                  }
+                }}
+              >
+                2 D6 + 12
+              </Button>
+            </Stack>
+            
+            <Typography variant="caption" color="text.secondary">
+              Moedas iniciais do personagem. Role apenas uma vez.
+            </Typography>
+          </CardContent>
+        </Card>
       </Box>
 
       <Box sx={{ mb: 3 }}>
