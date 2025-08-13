@@ -217,6 +217,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
         boxShadow: '0 30px 80px rgba(0,0,0,0.6), inset 0 0 120px rgba(255,255,255,0.03)',
         borderRadius: '24px',
         backdropFilter: 'blur(3px)',
+        fontFamily: '"Spectral", serif',
       }}
     >
       <Snackbar

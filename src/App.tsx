@@ -26,6 +26,9 @@ const darkTheme = createTheme({
   },
   typography: {
     fontFamily: '"Spectral", serif',
+    allVariants: {
+      fontFamily: '"Spectral", serif',
+    },
     h1: {
       fontFamily: '"Cinzel", "Spectral", serif',
       fontWeight: 900,
@@ -59,11 +62,40 @@ const darkTheme = createTheme({
         },
       },
     },
+    MuiTypography: {
+      styleOverrides: {
+        root: {
+          fontFamily: '"Spectral", serif',
+        },
+      },
+    },
+    MuiFormLabel: {
+      styleOverrides: {
+        root: {
+          fontFamily: '"Spectral", serif',
+        },
+      },
+    },
+    MuiInputLabel: {
+      styleOverrides: {
+        root: {
+          fontFamily: '"Spectral", serif',
+        },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          fontFamily: '"Spectral", serif',
+        },
+      },
+    },
     MuiButton: {
       styleOverrides: {
         root: {
           textTransform: 'none',
           borderRadius: '999px',
+          fontFamily: '"Spectral", serif',
         },
       },
     },
