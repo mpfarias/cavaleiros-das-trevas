@@ -39,9 +39,10 @@ import { adicionarItem, exemplosItens } from '../utils/inventory';
 interface CharacterSheetProps {
   ficha: Ficha;
   onFichaChange: (ficha: Ficha) => void;
+  onVoltar: () => void;
 }
 
-const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange }) => {
+const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, onVoltar }) => {
   type Severity = 'success' | 'info' | 'warning' | 'error';
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -127,26 +128,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
     setSnackbarOpen(true);
   };
 
-  const carregar = () => {
-    const data = localStorage.getItem('cavaleiro:ficha');
-    if (!data) {
-      setSnackbarMessage('Nenhum save encontrado.');
-      setSnackbarSeverity('warning');
-      setSnackbarOpen(true);
-      return;
-    }
-    try {
-      const obj = JSON.parse(data);
-      updateFicha(obj);
-      setSnackbarMessage('Ficha carregada.');
-      setSnackbarSeverity('success');
-      setSnackbarOpen(true);
-    } catch {
-      setSnackbarMessage('Erro ao carregar ficha.');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
-    }
-  };
+
 
   const resetar = () => {
     setConfirmOpen(true);
@@ -407,6 +389,21 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
       >
         <Stack direction="row" spacing={1} flexWrap="wrap">
           <Button
+            variant="outlined"
+            onClick={onVoltar}
+            sx={{ 
+              borderColor: 'rgba(255,255,255,0.3)',
+              color: 'text.secondary',
+              '&:hover': {
+                borderColor: 'rgba(255,255,255,0.5)',
+                color: 'text.primary',
+              }
+            }}
+          >
+            Voltar
+          </Button>
+          
+          <Button
             variant="contained"
             color="success"
             onClick={salvar}
@@ -417,11 +414,36 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
           </Button>
 
           <Button
+            component="label"
             variant="outlined"
-            onClick={carregar}
-            startIcon={<DownloadIcon />}
+            startIcon={<UploadIcon />}
           >
-            Carregar (local)
+            Importar
+            <input
+              type="file"
+              accept="application/json,.json,.cavaleiro.json"
+              hidden
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = () => {
+                  try {
+                    const data = JSON.parse(String(reader.result || '{}'));
+                    updateFicha(data);
+                    setSnackbarMessage('Ficha importada do arquivo.');
+                    setSnackbarSeverity('success');
+                    setSnackbarOpen(true);
+                  } catch {
+                    setSnackbarMessage('Arquivo inválido.');
+                    setSnackbarSeverity('error');
+                    setSnackbarOpen(true);
+                  }
+                };
+                reader.readAsText(file);
+                e.currentTarget.value = '';
+              }}
+            />
           </Button>
 
           <Button
