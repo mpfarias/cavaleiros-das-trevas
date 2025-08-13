@@ -22,7 +22,6 @@ import {
 import {
   Casino as CasinoIcon,
   Save as SaveIcon,
-  Download as DownloadIcon,
   Upload as UploadIcon,
   Delete as DeleteIcon,
   PlayArrow as PlayArrowIcon,
@@ -31,7 +30,6 @@ import {
   LocalOffer as LocalOfferIcon,
   Restaurant as RestaurantIcon,
   Build as BuildIcon,
-  Add as AddIcon,
 } from '@mui/icons-material';
 import type { Ficha, Item } from '../types';
 import { adicionarItem, exemplosItens } from '../utils/inventory';
@@ -355,30 +353,6 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
 
       <Box sx={{ mb: 3 }}>
         <BolsaCard />
-        
-        {/* Botão de teste para demonstrar a funcionalidade */}
-        {ficha.bolsa.length === 0 && (
-          <Box sx={{ mt: 2, textAlign: 'center' }}>
-            <Button
-              variant="outlined"
-              onClick={adicionarItensExemplo}
-              startIcon={<AddIcon />}
-              sx={{ 
-                borderColor: 'rgba(255,255,255,0.3)',
-                color: 'text.secondary',
-                '&:hover': {
-                  borderColor: 'rgba(255,255,255,0.5)',
-                  color: 'text.primary',
-                }
-              }}
-            >
-              Adicionar Itens de Exemplo (Teste)
-            </Button>
-            <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 1 }}>
-              Este botão demonstra como os itens serão adicionados automaticamente durante o jogo
-            </Typography>
-          </Box>
-        )}
       </Box>
 
       <Stack
@@ -388,20 +362,6 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
         alignItems={{ xs: 'stretch', sm: 'center' }}
       >
         <Stack direction="row" spacing={1} flexWrap="wrap">
-          <Button
-            variant="outlined"
-            onClick={onVoltar}
-            sx={{ 
-              borderColor: 'rgba(255,255,255,0.3)',
-              color: 'text.secondary',
-              '&:hover': {
-                borderColor: 'rgba(255,255,255,0.5)',
-                color: 'text.primary',
-              }
-            }}
-          >
-            Voltar
-          </Button>
           
           <Button
             variant="contained"
@@ -410,7 +370,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
             startIcon={<SaveIcon />}
             sx={{ background: '#123b26', borderColor: '#216547' }}
           >
-            Salvar (baixar)
+            Salvar
           </Button>
 
           <Button
@@ -455,6 +415,21 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
           >
             Limpar
           </Button>
+          <Button
+            variant="outlined"
+            onClick={onVoltar}
+            sx={{ 
+              borderColor: 'rgba(255,255,255,0.3)',
+              color: 'text.secondary',
+              '&:hover': {
+                borderColor: 'rgba(255,255,255,0.5)',
+                color: 'text.primary',
+              }
+            }}
+          >
+            Voltar
+          </Button>
+          
         </Stack>
         
         <Button
