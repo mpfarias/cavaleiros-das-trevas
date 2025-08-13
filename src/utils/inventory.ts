@@ -22,6 +22,15 @@ export const adicionarItem = (ficha: Ficha, item: Omit<Item, 'id'>): Ficha => {
     }
   }
 
+  // Se for arma ou armadura, remove a existente antes de adicionar a nova
+  if (item.tipo === 'arma' || item.tipo === 'armadura') {
+    const novaBolsa = ficha.bolsa.filter(i => i.tipo !== item.tipo);
+    return {
+      ...ficha,
+      bolsa: [...novaBolsa, novoItem],
+    };
+  }
+
   return {
     ...ficha,
     bolsa: [...ficha.bolsa, novoItem],

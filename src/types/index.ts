@@ -53,6 +53,14 @@ export const createEmptyFicha = (): Ficha => ({
   pericia: { inicial: 0, atual: 0 },
   forca: { inicial: 0, atual: 0 },
   sorte: { inicial: 0, atual: 0 },
-  bolsa: [],
+  bolsa: [
+    {
+      id: 'espada_inicial',
+      nome: 'Espada de Aço',
+      tipo: 'arma',
+      descricao: 'Espada básica de aço, arma padrão de todo cavaleiro',
+      adquiridoEm: 'Criação do Personagem'
+    }
+  ],
 })
 

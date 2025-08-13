@@ -33,11 +33,10 @@ import {
   LocalOffer as LocalOfferIcon,
   Restaurant as RestaurantIcon,
   Build as BuildIcon,
-  Add as AddIcon,
   Close as CloseIcon,
 } from '@mui/icons-material';
 import type { Ficha, Item } from '../types';
-import { adicionarItem, exemplosItens, totalOuro } from '../utils/inventory';
+import { adicionarItem, totalOuro } from '../utils/inventory';
 
 interface CharacterSheetProps {
   ficha: Ficha;
@@ -69,7 +68,9 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
   };
 
   const rolarForca = () => {
-    const valor = d6() + d6() + 12;
+    const dado1 = d6();
+    const dado2 = d6();
+    const valor = dado1 + dado2 + 12;
     updateFicha({
       forca: { inicial: valor, atual: valor },
     });
@@ -83,7 +84,9 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
   };
 
   const rolarMoedasOuro = () => {
-    const valor = d6() + d6() + 12;
+    const dado1 = d6();
+    const dado2 = d6();
+    const valor = dado1 + dado2 + 12;
     
     // Adiciona as moedas de ouro à bolsa
     let novaFicha = ficha;
@@ -98,7 +101,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
     // Atualiza a ficha com as moedas na bolsa
     updateFicha(novaFicha);
     
-    setSnackbarMessage(`Moedas de ouro roladas: ${valor} moedas adicionadas à bolsa!`);
+    setSnackbarMessage(`Moedas de ouro roladas: ${dado1} + ${dado2} + 12 = ${valor} moedas adicionadas à bolsa!`);
     setSnackbarSeverity('success');
     setSnackbarOpen(true);
   };
@@ -139,76 +142,13 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
       return;
     }
     
-    const espada = ficha.bolsa.find(item => item.nome === 'Espada de Aço');
-    if (!espada) {
-      setSnackbarMessage('Adicione itens de exemplo para obter a Espada de Aço obrigatória.');
-      setSnackbarSeverity('warning');
-      setSnackbarOpen(true);
-      return;
-    }
-    
     setSnackbarMessage('Aventura iniciada! (Próximo passo: leitor de seções e motor de combate.)');
     setSnackbarSeverity('info');
     setSnackbarOpen(true);
   };
-const adicionarItensExemplo = () => {
-    let novaFicha = ficha;
-    
-    // Adiciona espada obrigatória à bolsa (sempre)
-    const espadaExistente = novaFicha.bolsa.find(item => item.nome === 'Espada de Aço');
-    if (!espadaExistente) {
-      novaFicha = adicionarItem(novaFicha, {
-        nome: 'Espada de Aço',
-        tipo: 'arma',
-        descricao: 'Espada básica de aço, arma padrão de todo cavaleiro',
-        adquiridoEm: 'Criação do Personagem'
-      });
-    }
-    
-    // Adiciona alguns itens de exemplo para demonstrar a funcionalidade
-    novaFicha = adicionarItem(novaFicha, {
-      ...exemplosItens.armaduras[0],
-      adquiridoEm: 'Seção 1 - Início da Aventura'
-    });
-    
-    novaFicha = adicionarItem(novaFicha, {
-      ...exemplosItens.equipamentos[0],
-      adquiridoEm: 'Seção 1 - Início da Aventura'
-    });
-    
-    novaFicha = adicionarItem(novaFicha, {
-      ...exemplosItens.ouro[0],
-      adquiridoEm: 'Seção 1 - Início da Aventura'
-    });
-    
-    novaFicha = adicionarItem(novaFicha, {
-      ...exemplosItens.provisoes[0],
-      adquiridoEm: 'Seção 1 - Início da Aventura'
-    });
 
-    updateFicha(novaFicha);
-    setSnackbarMessage('Itens de exemplo adicionados à bolsa! (Incluindo Espada de Aço obrigatória)');
-    setSnackbarSeverity('success');
-    setSnackbarOpen(true);
-  };
 
-  // Função para garantir que a espada esteja sempre na bolsa
-  const garantirEspadaObrigatoria = () => {
-    const espadaExistente = ficha.bolsa.find(item => item.nome === 'Espada de Aço');
-    if (!espadaExistente) {
-      let novaFicha = ficha;
-      novaFicha = adicionarItem(novaFicha, {
-        nome: 'Espada de Aço',
-        tipo: 'arma',
-        descricao: 'Espada básica de aço, arma padrão de todo cavaleiro',
-        adquiridoEm: 'Criação do Personagem'
-      });
-      updateFicha(novaFicha);
-      setSnackbarMessage('Espada de Aço obrigatória adicionada à bolsa!');
-      setSnackbarSeverity('info');
-      setSnackbarOpen(true);
-    }
-  };
+
 
   const StatCard = ({ 
     title, 
@@ -484,46 +424,7 @@ const adicionarItensExemplo = () => {
 
       <Box sx={{ mb: 3 }}>
         <BolsaCard />
-        {/* Botões de teste para demonstrar a funcionalidade */}
-        <Box sx={{ mt: 2, textAlign: 'center' }}>
-          <Stack direction="row" spacing={2} justifyContent="center" flexWrap="wrap">
-            <Button
-              variant="outlined"
-              onClick={adicionarItensExemplo}
-              startIcon={<AddIcon />}
-              sx={{ 
-                borderColor: 'rgba(255,255,255,0.3)',
-                color: 'text.secondary',
-                '&:hover': {
-                  borderColor: 'rgba(255,255,255,0.5)',
-                  color: 'text.primary',
-                }
-              }}
-            >
-              Adicionar Itens de Exemplo
-            </Button>
-            
-            <Button
-              variant="outlined"
-              onClick={garantirEspadaObrigatoria}
-              startIcon={<LocalOfferIcon />}
-              sx={{ 
-                borderColor: 'rgba(179,18,18,0.5)',
-                color: '#B31212',
-                '&:hover': {
-                  borderColor: 'rgba(179,18,18,0.7)',
-                  color: '#B31212',
-                }
-              }}
-            >
-              Garantir Espada Obrigatória
-            </Button>
-          </Stack>
-          
-          <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 1 }}>
-            Estes botões demonstram como os itens serão adicionados automaticamente durante o jogo
-          </Typography>
-        </Box>
+
       </Box>
 
       <Stack
