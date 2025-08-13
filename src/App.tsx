@@ -25,15 +25,15 @@ const darkTheme = createTheme({
     },
   },
   typography: {
-    fontFamily: '"Merriweather", "Roboto", "Helvetica", "Arial", sans-serif',
+    fontFamily: '"Spectral", "Merriweather", "Georgia", "Times New Roman", serif',
     h1: {
-      fontFamily: '"Cinzel", "Roboto", "Helvetica", "Arial", sans-serif',
+      fontFamily: '"Cinzel", "Spectral", "Georgia", serif',
       fontWeight: 900,
       letterSpacing: '0.06em',
       textTransform: 'uppercase',
     },
     h2: {
-      fontFamily: '"Cinzel", "Roboto", "Helvetica", "Arial", sans-serif',
+      fontFamily: '"Cinzel", "Spectral", "Georgia", serif',
       fontWeight: 700,
       letterSpacing: '0.04em',
     },
