@@ -141,6 +141,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
     setSnackbarSeverity('success');
     setSnackbarOpen(true);
   };
+>>>>>>> 03786350f04fa962fe0d4f3c891241561fbdcbea
   const salvar = () => {
     localStorage.setItem('cavaleiro:ficha', JSON.stringify(ficha));
     const blob = new Blob([JSON.stringify(ficha, null, 2)], { type: 'application/json' });
