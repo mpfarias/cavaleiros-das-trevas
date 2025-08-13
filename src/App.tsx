@@ -30,7 +30,7 @@ const darkTheme = createTheme({
       fontFamily: '"Spectral", serif',
     },
     button: {
-      fontFamily: '"Spectral", serif',
+      fontFamily: '"Cinzel", "Spectral", serif',
     },
     h1: {
       fontFamily: '"Cinzel", "Spectral", serif',
@@ -106,7 +106,9 @@ const darkTheme = createTheme({
         root: {
           textTransform: 'none',
           borderRadius: '999px',
-          fontFamily: '"Spectral", serif',
+          fontFamily: '"Cinzel", "Spectral", serif',
+          letterSpacing: '0.04em',
+          fontWeight: 700,
         },
       },
     },
