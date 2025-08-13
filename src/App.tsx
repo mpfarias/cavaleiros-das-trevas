@@ -29,6 +29,9 @@ const darkTheme = createTheme({
     allVariants: {
       fontFamily: '"Spectral", serif',
     },
+    button: {
+      fontFamily: '"Spectral", serif',
+    },
     h1: {
       fontFamily: '"Cinzel", "Spectral", serif',
       fontWeight: 900,
