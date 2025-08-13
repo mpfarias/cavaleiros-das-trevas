@@ -9,9 +9,13 @@ html, body {
 }
 
 body {
-  font-family: "Spectral", "Georgia", "Times New Roman", serif;
+  font-family: "Spectral", serif;
   line-height: 1.6;
   overflow-x: hidden;
+}
+
+input, textarea, button, select {
+  font-family: inherit;
 }
 
 #root {

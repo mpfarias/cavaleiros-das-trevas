@@ -25,20 +25,40 @@ const darkTheme = createTheme({
     },
   },
   typography: {
-    fontFamily: '"Spectral", "Merriweather", "Georgia", "Times New Roman", serif',
+    fontFamily: '"Spectral", serif',
     h1: {
-      fontFamily: '"Cinzel", "Spectral", "Georgia", serif',
+      fontFamily: '"Cinzel", "Spectral", serif',
       fontWeight: 900,
       letterSpacing: '0.06em',
       textTransform: 'uppercase',
     },
     h2: {
-      fontFamily: '"Cinzel", "Spectral", "Georgia", serif',
+      fontFamily: '"Cinzel", "Spectral", serif',
       fontWeight: 700,
       letterSpacing: '0.04em',
     },
   },
   components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          fontFamily: '"Spectral", serif',
+        },
+        'input, textarea, button, select': {
+          fontFamily: 'inherit',
+        },
+      },
+    },
+    MuiInputBase: {
+      styleOverrides: {
+        input: {
+          fontFamily: '"Spectral", serif',
+        },
+        root: {
+          fontFamily: '"Spectral", serif',
+        },
+      },
+    },
     MuiButton: {
       styleOverrides: {
         root: {
