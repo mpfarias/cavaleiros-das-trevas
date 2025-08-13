@@ -1,5 +1,13 @@
-export interface Ficha {
+export interface Item {
+  id: string;
   nome: string;
+  tipo: 'arma' | 'armadura' | 'ouro' | 'provisao' | 'equipamento';
+  quantidade?: number;
+  descricao?: string;
+  adquiridoEm?: string; // Seção onde foi obtido
+}
+
+export interface Ficha {
   pericia: {
     inicial: number;
     atual: number;
@@ -12,12 +20,6 @@ export interface Ficha {
     inicial: number;
     atual: number;
   };
-  armaduras: string;
-  provisoes: number;
-  armas: string;
-  ouro: number;
-  equip: string;
-  notas: string;
-
+  bolsa: Item[];
 }
 

@@ -13,8 +13,9 @@ Um jogo-livro de terror gótico convertido para React + Material UI + TypeScript
 ## 🎯 Funcionalidades
 
 - **Tela Inicial**: Apresentação do jogo com design gótico
-- **Ficha de Personagem**: Sistema completo de atributos (Perícia, Força, Sorte)
+- **Ficha de Personagem**: Sistema simplificado de atributos (Perícia, Força, Sorte)
 - **Sistema de Rolagem**: Dados virtuais para gerar atributos
+- **Bolsa Automática**: Sistema de inventário que recebe itens automaticamente durante o jogo
 - **Persistência**: Salvamento automático no localStorage
 - **Design Responsivo**: Funciona em dispositivos móveis e desktop
 - **Tema Escuro**: Interface gótica com cores apropriadas
@@ -24,6 +25,23 @@ Um jogo-livro de terror gótico convertido para React + Material UI + TypeScript
 - **PERÍCIA**: Habilidade em combate (1d6 + 6)
 - **FORÇA**: Resistência física (2d6 + 12)
 - **SORTE**: Fortuna do personagem (1d6 + 6)
+
+## 🎒 Sistema de Bolsa
+
+A bolsa do personagem é gerenciada automaticamente durante o jogo:
+
+- **Armas**: Espadas, machados, adagas, etc.
+- **Armaduras**: Gibões, escudos, elmos, etc.
+- **Ouro**: Moedas e joias valiosas
+- **Provisões**: Comida e água para sobrevivência
+- **Equipamentos**: Itens úteis como tochas, cordas, chaves, poções
+
+**Características:**
+- ✅ Adição automática de itens durante o jogo
+- ✅ Agrupamento inteligente de ouro e provisões
+- ✅ Rastreamento de onde cada item foi obtido
+- ✅ Interface visual organizada por tipo
+- ✅ Sistema preparado para futuras funcionalidades
 
 ## 🛠️ Como Executar
 
@@ -56,6 +74,8 @@ src/
 │   └── CharacterSheet.tsx  # Ficha do personagem
 ├── types/              # Definições TypeScript
 │   └── index.ts        # Interfaces e tipos
+├── utils/              # Utilitários
+│   └── inventory.ts    # Sistema de gerenciamento da bolsa
 ├── App.tsx             # Componente principal
 ├── main.tsx            # Ponto de entrada
 └── index.css           # Estilos globais
@@ -70,9 +90,10 @@ src/
 
 ## 🔮 Próximos Passos
 
+- [x] ~~Sistema de bolsa automática~~
 - [ ] Leitor de seções do jogo-livro
 - [ ] Motor de combate
-- [ ] Sistema de inventário avançado
+- [ ] Sistema de testes de habilidade
 - [ ] Múltiplos personagens
 - [ ] Modo offline com Service Worker
 
