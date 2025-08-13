@@ -96,44 +96,6 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
     setSnackbarOpen(true);
   };
 
-  const adicionarItensExemplo = () => {
-    let novaFicha = ficha;
-    
-    // Adiciona espada obrigatória à bolsa
-    novaFicha = adicionarItem(novaFicha, {
-      nome: 'Espada de Aço',
-      tipo: 'arma',
-      descricao: 'Espada básica de aço, arma padrão de todo cavaleiro',
-      adquiridoEm: 'Criação do Personagem'
-    });
-    
-    // Adiciona alguns itens de exemplo para demonstrar a funcionalidade
-    novaFicha = adicionarItem(novaFicha, {
-      ...exemplosItens.armaduras[0],
-      adquiridoEm: 'Seção 1 - Início da Aventura'
-    });
-    
-    novaFicha = adicionarItem(novaFicha, {
-      ...exemplosItens.equipamentos[0],
-      adquiridoEm: 'Seção 1 - Início da Aventura'
-    });
-    
-    novaFicha = adicionarItem(novaFicha, {
-      ...exemplosItens.ouro[0],
-      adquiridoEm: 'Seção 1 - Início da Aventura'
-    });
-    
-    novaFicha = adicionarItem(novaFicha, {
-      ...exemplosItens.provisoes[0],
-      adquiridoEm: 'Seção 1 - Início da Aventura'
-    });
-
-    updateFicha(novaFicha);
-    setSnackbarMessage('Itens de exemplo adicionados à bolsa! (Incluindo Espada de Aço obrigatória)');
-    setSnackbarSeverity('success');
-    setSnackbarOpen(true);
-  };
->>>>>>> 0b4b1e7cdb1a362b0ebbf5125a73bcc189e848f2
   const salvar = () => {
     localStorage.setItem('cavaleiro:ficha', JSON.stringify(ficha));
     const blob = new Blob([JSON.stringify(ficha, null, 2)], { type: 'application/json' });
