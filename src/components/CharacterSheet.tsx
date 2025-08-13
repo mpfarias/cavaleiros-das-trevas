@@ -231,14 +231,14 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange })
       </Snackbar>
 
       <Typography variant="h2" sx={{ mb: 2 }} id="heading-ficha">
-        Ficha do Personagem
+        Crie seu Personagem
       </Typography>
 
       <Box sx={{ mb: 2 }}>
         <Card>
           <CardContent>
             <Typography variant="h6" component="strong" sx={{ mb: 1, display: 'block' }} id="label-nome">
-              Nome do personagem
+              Nome
             </Typography>
             <TextField
               fullWidth
