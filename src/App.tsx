@@ -168,7 +168,7 @@ function App() {
       <Box
         sx={{
           minHeight: '100vh',
-          background: '#0B0B0D',
+          background: 'transparent',
           color: '#E0DFDB',
           position: 'relative',
           overflow: 'hidden',
@@ -179,7 +179,7 @@ function App() {
           sx={{
             position: 'fixed',
             inset: 0,
-            zIndex: -2,
+            zIndex: 0,
             '&::before': {
               content: '""',
               position: 'absolute',
@@ -196,8 +196,11 @@ function App() {
               content: '""',
               position: 'absolute',
               inset: 0,
-              background: `center center / cover no-repeat black`,
-              backgroundImage: `image-set(url("/images/img01.png") type("image/png"))`,
+              backgroundColor: 'black',
+              backgroundImage: 'url("/images/img01.png")',
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'center',
+              backgroundSize: 'cover',
               animation: 'fadePulse 5s ease-in-out infinite alternate',
               willChange: 'opacity',
             },
