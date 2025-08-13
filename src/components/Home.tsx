@@ -1,4 +1,14 @@
-import { Box, Typography, Button, Divider } from '@mui/material';
+import { useState } from 'react';
+import {
+  Box,
+  Typography,
+  Button,
+  Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 
 interface HomeProps {
@@ -6,6 +16,17 @@ interface HomeProps {
 }
 
 const Home: React.FC<HomeProps> = ({ onStart }) => {
+  const [modalExplicativoOpen, setModalExplicativoOpen] = useState(false);
+
+  const handleIniciarAventura = () => {
+    setModalExplicativoOpen(true);
+  };
+
+  const handleCiente = () => {
+    setModalExplicativoOpen(false);
+    onStart(); // Chama a função original para ir para a ficha
+  };
+
   return (
     <Box
       sx={{
@@ -30,7 +51,7 @@ const Home: React.FC<HomeProps> = ({ onStart }) => {
       >
         A Lenda do Cavaleiro das Trevas
       </Typography>
-      
+
       <Typography
         variant="subtitle1"
         sx={{
@@ -68,7 +89,7 @@ const Home: React.FC<HomeProps> = ({ onStart }) => {
       <Button
         variant="contained"
         size="large"
-        onClick={onStart}
+        onClick={handleIniciarAventura}
         startIcon={<PlayArrowIcon />}
         sx={{
           background: 'linear-gradient(180deg, rgba(179,18,18,0.85), rgba(179,18,18,0.7))',
@@ -88,6 +109,178 @@ const Home: React.FC<HomeProps> = ({ onStart }) => {
       >
         Iniciar aventura
       </Button>
+
+      {/* Modal Explicativo - Como Jogar */}
+      <Dialog
+        open={modalExplicativoOpen}
+        onClose={() => setModalExplicativoOpen(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            background: 'linear-gradient(135deg, rgba(15,17,20,0.98), rgba(25,27,30,0.98))',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: '20px',
+            boxShadow: '0 25px 80px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.05)',
+            backdropFilter: 'blur(20px)',
+          }
+        }}
+      >
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box
+              sx={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #B31212, #8B0000)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 8px 24px rgba(179,18,18,0.4)',
+              }}
+            >
+              <PlayArrowIcon sx={{ color: 'white', fontSize: '28px' }} />
+            </Box>
+            <Typography variant="h5" sx={{
+              color: 'text.primary',
+              fontWeight: 700,
+              fontFamily: '"Spectral", serif',
+              background: 'linear-gradient(135deg, #E0DFDB, #B8B5B0)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}>
+              Bem-vindo, aventureiro!
+            </Typography>
+          </Box>
+        </DialogTitle>
+
+        <DialogContent>
+          <Box sx={{ py: 2 }}>
+            <Typography variant="body1" sx={{
+              mb: 3,
+              lineHeight: 1.8,
+              color: 'text.primary',
+              fontSize: '16px',
+              fontFamily: '"Spectral", serif',
+            }}>
+              O mundo à sua frente é sombrio, repleto de perigos ocultos e mistérios antigos. Você está prestes a caminhar por florestas densas onde sombras sussurram, explorar ruínas esquecidas onde o ar é pesado de histórias e enfrentar criaturas que só existem nos piores pesadelos.
+            </Typography>
+
+            <Typography variant="body1" sx={{
+              mb: 3,
+              lineHeight: 1.8,
+              color: 'text.secondary',
+              fontSize: '15px',
+              fontFamily: '"Spectral", serif',
+            }}>
+              Antes que sua jornada tenha início, há rituais que todo herói deve cumprir. Não tema — tudo será revelado passo a passo, conforme você avança. Mas, por agora, sua missão é forjar a essência do seu personagem.
+            </Typography>
+
+            <Typography variant="body1" sx={{
+              mb: 3,
+              lineHeight: 1.8,
+              color: 'text.secondary',
+              fontSize: '15px',
+              fontFamily: '"Spectral", serif',
+            }}>
+              Na sua <b>Ficha do Personagem</b>, você definirá seus atributos mais importantes:
+            </Typography>
+
+            <Typography variant="body1" sx={{
+              mb: 3,
+              lineHeight: 1.8,
+              color: 'text.secondary',
+              fontSize: '16px',
+              fontFamily: '"Spectral", serif',
+            }}>
+              <b>Perícia</b> – sua habilidade e destreza.<br />
+
+              <b>Força</b> – o vigor que sustentará sua espada e sua coragem.<br />
+
+              <b>Sorte</b> – o capricho do destino que poderá salvar sua vida... ou condená-la.
+            </Typography>
+
+            <Typography variant="body1" sx={{
+              mb: 3,
+              lineHeight: 1.8,
+              color: 'text.secondary',
+              fontSize: '15px',
+              fontFamily: '"Spectral", serif',
+            }}>
+              Para determinar cada atributo, clique no botão com o símbolo de um dado.
+              Se preferir sentir o peso do destino em suas próprias mãos, tenha à disposição <b>dois dados de seis lados</b> e role-os para decidir seus valores, conforme instruções abaixo:<br />
+              1 - Para definir sua <b>PERÍCIA</b>, role 1 dado e some 6 ao resultado.<br />
+              2 - Para definir sua <b>FORÇA</b>, role 2 dados e some 12 ao resultado.<br />
+              3 - Para definir sua <b>SORTE</b>, role 1 dado e some 6 ao resultado.<br />
+            </Typography>
+
+            <Typography variant="body1" sx={{
+              mb: 3,
+              lineHeight: 1.8,
+              color: 'text.secondary',
+              fontSize: '16px',
+              fontFamily: '"Spectral", serif',
+            }}>
+              Sua aventura começará de forma humilde: apenas uma <b>espada simples</b> será sua companheira inicial. Não se deixe enganar pela sua aparência modesta; ela pode ser tudo o que separa sua vida da morte nos primeiros passos. Com o tempo, novos equipamentos, artefatos e tesouros cruzarão seu caminho... se você sobreviver tempo suficiente para encontrá-los.
+            </Typography>
+
+                        <Typography variant="body1" sx={{
+              mb: 3,
+              lineHeight: 1.8,
+              color: 'text.secondary',
+              fontSize: '16px',
+              fontFamily: '"Spectral", serif',
+            }}>
+              Agora, respire fundo, saque sua espada, firme suas mãos e dê o primeiro passo. As sombras aguardam.
+            </Typography>
+
+
+            <Box sx={{
+              p: 3,
+              background: 'rgba(179,18,18,0.1)',
+              border: '1px solid rgba(179,18,18,0.2)',
+              borderRadius: '12px',
+              borderLeft: '4px solid #B31212',
+            }}>
+              <Typography variant="body2" sx={{
+                color: 'text.primary',
+                fontStyle: 'italic',
+                fontWeight: 500,
+                fontSize: '14px',
+              }}>
+                💡 <strong>Dica:</strong> Lembre-se de salvar sua ficha após definir todos os atributos para não perder seu progresso!
+              </Typography>
+            </Box>
+          </Box>
+        </DialogContent>
+
+        <DialogActions sx={{ p: 3, pt: 1 }}>
+          <Button
+            onClick={handleCiente}
+            variant="contained"
+            size="large"
+            sx={{
+              background: 'linear-gradient(135deg, #B31212, #8B0000)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              padding: '12px 32px',
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase',
+              boxShadow: '0 8px 24px rgba(179,18,18,0.4)',
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                background: 'linear-gradient(135deg, #8B0000, #B31212)',
+                transform: 'translateY(-2px)',
+                boxShadow: '0 12px 32px rgba(179,18,18,0.6)',
+              },
+            }}
+          >
+            Ciente
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

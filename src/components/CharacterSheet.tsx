@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -7,8 +7,6 @@ import {
   Button,
   Chip,
   Stack,
-  Alert,
-  Snackbar,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -21,6 +19,7 @@ import {
   Tabs,
   Tab,
   IconButton,
+  Fade,
 } from '@mui/material';
 import {
   Casino as CasinoIcon,
@@ -34,6 +33,10 @@ import {
   Restaurant as RestaurantIcon,
   Build as BuildIcon,
   Close as CloseIcon,
+  CheckCircle as CheckCircleIcon,
+  Info as InfoIcon,
+  Warning as WarningIcon,
+  Error as ErrorIcon,
 } from '@mui/icons-material';
 import type { Ficha, Item } from '../types';
 import { adicionarItem, totalOuro } from '../utils/inventory';
@@ -52,6 +55,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [bolsaModalOpen, setBolsaModalOpen] = useState(false);
   const [abaAtiva, setAbaAtiva] = useState(0);
+  const [usarMeusDados, setUsarMeusDados] = useState(false);
 
   const d6 = () => Math.floor(Math.random() * 6) + 1;
 
@@ -83,6 +87,19 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
     });
   };
 
+  const handleAtributoChange = (attr: 'pericia' | 'forca' | 'sorte', valor: number) => {
+    // Validação dos limites
+    let valorValidado = valor;
+    if (attr === 'pericia' && valor > 12) valorValidado = 12;
+    if (attr === 'forca' && valor > 24) valorValidado = 24;
+    if (attr === 'sorte' && valor > 12) valorValidado = 12;
+    if (valorValidado < 0) valorValidado = 0;
+
+    updateFicha({
+      [attr]: { inicial: valorValidado, atual: valorValidado },
+    });
+  };
+
   const rolarMoedasOuro = () => {
     const dado1 = d6();
     const dado2 = d6();
@@ -107,17 +124,24 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
   };
 
   const salvar = () => {
+    if (!ficha.nome.trim()) {
+      setSnackbarMessage('Digite um nome para o personagem antes de salvar.');
+      setSnackbarSeverity('warning');
+      setSnackbarOpen(true);
+      return;
+    }
+    
     localStorage.setItem('cavaleiro:ficha', JSON.stringify(ficha));
     const blob = new Blob([JSON.stringify(ficha, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'personagem.cavaleiro.json';
+    a.download = `${ficha.nome.trim()}.cavaleiro.json`;
     document.body.appendChild(a);
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
-    setSnackbarMessage('Ficha salva e baixada como arquivo.');
+    setSnackbarMessage(`Ficha de ${ficha.nome} salva e baixada como arquivo.`);
     setSnackbarSeverity('success');
     setSnackbarOpen(true);
   };
@@ -127,6 +151,13 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
   };
 
   const comecarAventura = () => {
+    if (!ficha.nome.trim()) {
+      setSnackbarMessage('Digite um nome para o personagem antes de começar.');
+      setSnackbarSeverity('warning');
+      setSnackbarOpen(true);
+      return;
+    }
+    
     if (!ficha.pericia.inicial || !ficha.forca.inicial || !ficha.sorte.inicial) {
       setSnackbarMessage('Role PERÍCIA, FORÇA e SORTE antes de começar.');
       setSnackbarSeverity('warning');
@@ -142,7 +173,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
       return;
     }
     
-    setSnackbarMessage('Aventura iniciada! (Próximo passo: leitor de seções e motor de combate.)');
+    setSnackbarMessage(`Aventura de ${ficha.nome} iniciada! (Próximo passo: leitor de seções e motor de combate.)`);
     setSnackbarSeverity('info');
     setSnackbarOpen(true);
   };
@@ -160,47 +191,98 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
     attr: 'pericia' | 'forca' | 'sorte'; 
     onRoll: () => void; 
     rollText: string;
-  }) => (
-    <Card>
-      <CardContent>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, mb: 1 }}>
-          <Typography variant="h6" component="strong">
-            {title}
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-            <Chip
-              label={ficha[attr].atual || '–'}
-              sx={{ minWidth: 64, fontWeight: 700 }}
-            />
-            <Typography variant="caption" color="text.secondary">
-              Inicial:
+  }) => {
+    const getMaxValue = () => {
+      switch (attr) {
+        case 'pericia': return 12;
+        case 'forca': return 24;
+        case 'sorte': return 12;
+        default: return 12;
+      }
+    };
+
+    return (
+      <Card>
+        <CardContent>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, mb: 1 }}>
+            <Typography variant="h6" component="strong">
+              {title}
             </Typography>
-            <Chip
-              label={ficha[attr].inicial || '–'}
-              sx={{ minWidth: 64, fontWeight: 700 }}
-            />
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+              <Chip
+                label={ficha[attr].atual || '–'}
+                sx={{ minWidth: 64, fontWeight: 700 }}
+              />
+              <Typography variant="caption" color="text.secondary">
+                Inicial:
+              </Typography>
+              <Chip
+                label={ficha[attr].inicial || '–'}
+                sx={{ minWidth: 64, fontWeight: 700 }}
+              />
+            </Box>
           </Box>
-        </Box>
-        
-        <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={onRoll}
-            startIcon={<CasinoIcon />}
-          >
-            {rollText}
-          </Button>
-        </Stack>
-        
-        <Typography variant="caption" color="text.secondary">
-          {attr === 'pericia' && 'Representa sua habilidade em combate.'}
-          {attr === 'forca' && 'Resistência física e capacidade de sobreviver.'}
-          {attr === 'sorte' && 'Quanto a fortuna costuma estar do seu lado.'}
-        </Typography>
-      </CardContent>
-    </Card>
-  );
+          
+          {usarMeusDados ? (
+            /* Campo editável quando checkbox está marcado */
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                Digite um valor entre 0 e {getMaxValue()}:
+              </Typography>
+              <input
+                type="number"
+                min="0"
+                max={getMaxValue()}
+                value={ficha[attr].inicial || ''}
+                onChange={(e) => {
+                  const valor = parseInt(e.target.value) || 0;
+                  handleAtributoChange(attr, valor);
+                }}
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  fontSize: '14px',
+                  fontFamily: '"Spectral", serif',
+                  background: 'rgba(255,255,255,0.08)',
+                  border: '1px solid rgba(179,18,18,0.4)',
+                  borderRadius: '6px',
+                  color: '#E0DFDB',
+                  outline: 'none',
+                  transition: 'all 0.2s ease',
+                }}
+                onFocus={(e) => {
+                  e.target.style.border = '1px solid rgba(179,18,18,0.7)';
+                  e.target.style.background = 'rgba(255,255,255,0.12)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.border = '1px solid rgba(179,18,18,0.4)';
+                  e.target.style.background = 'rgba(255,255,255,0.08)';
+                }}
+              />
+            </Box>
+          ) : (
+            /* Botão de rolar quando checkbox não está marcado */
+            <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={onRoll}
+                startIcon={<CasinoIcon />}
+              >
+                {rollText}
+              </Button>
+            </Stack>
+          )}
+          
+          <Typography variant="caption" color="text.secondary">
+            {attr === 'pericia' && 'Representa sua habilidade em combate.'}
+            {attr === 'forca' && 'Resistência física e capacidade de sobreviver.'}
+            {attr === 'sorte' && 'Quanto a fortuna costuma estar do seu lado.'}
+          </Typography>
+        </CardContent>
+      </Card>
+    );
+  };
 
   const getItemIcon = (tipo: Item['tipo']) => {
     switch (tipo) {
@@ -335,6 +417,17 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
     setSnackbarOpen(false);
   };
 
+  // Timer automático para fechar notificações
+  useEffect(() => {
+    if (snackbarOpen) {
+      const timer = setTimeout(() => {
+        setSnackbarOpen(false);
+      }, 4000); // 4 segundos
+
+      return () => clearTimeout(timer);
+    }
+  }, [snackbarOpen]);
+
   return (
     <Box
       sx={{
@@ -349,20 +442,184 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
         fontFamily: '"Spectral", serif',
       }}
     >
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={2000}
-        onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
+      {/* Notificação Personalizada */}
+      <Fade in={snackbarOpen} timeout={300}>
+        <Box
+          sx={{
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            zIndex: 9999,
+            display: snackbarOpen ? 'flex' : 'none',
+            alignItems: 'center',
+            gap: 2,
+            padding: '16px 24px',
+            background: 'linear-gradient(135deg, rgba(15,17,20,0.95), rgba(25,27,30,0.95))',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: '16px',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.05)',
+            backdropFilter: 'blur(20px)',
+            minWidth: '300px',
+            maxWidth: '500px',
+            animation: snackbarOpen ? 'notificationSlideIn 0.3s ease-out' : 'none',
+            '@keyframes notificationSlideIn': {
+              '0%': {
+                opacity: 0,
+                transform: 'translate(-50%, -50%) scale(0.8)',
+              },
+              '100%': {
+                opacity: 1,
+                transform: 'translate(-50%, -50%) scale(1)',
+              },
+            },
+          }}
+        >
+          {/* Ícone baseado no tipo */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              background: () => {
+                switch (snackbarSeverity) {
+                  case 'success': return 'linear-gradient(135deg, #4CAF50, #45a049)';
+                  case 'info': return 'linear-gradient(135deg, #2196F3, #1976D2)';
+                  case 'warning': return 'linear-gradient(135deg, #FF9800, #F57C00)';
+                  case 'error': return 'linear-gradient(135deg, #f44336, #d32f2f)';
+                  default: return 'linear-gradient(135deg, #757575, #616161)';
+                }
+              },
+              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+            }}
+          >
+            {snackbarSeverity === 'success' && <CheckCircleIcon sx={{ color: 'white', fontSize: '24px' }} />}
+            {snackbarSeverity === 'info' && <InfoIcon sx={{ color: 'white', fontSize: '24px' }} />}
+            {snackbarSeverity === 'warning' && <WarningIcon sx={{ color: 'white', fontSize: '24px' }} />}
+            {snackbarSeverity === 'error' && <ErrorIcon sx={{ color: 'white', fontSize: '24px' }} />}
+          </Box>
+
+          {/* Mensagem */}
+          <Typography
+            variant="body1"
+            sx={{
+              color: 'text.primary',
+              fontWeight: 500,
+              flex: 1,
+              textAlign: 'center',
+              fontSize: '16px',
+            }}
+          >
+            {snackbarMessage}
+          </Typography>
+
+          {/* Botão de fechar */}
+          <IconButton
+            onClick={handleSnackbarClose}
+            size="small"
+            sx={{
+              color: 'text.secondary',
+              '&:hover': {
+                color: 'text.primary',
+                background: 'rgba(255,255,255,0.1)',
+              },
+            }}
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      </Fade>
 
       <Typography variant="h2" sx={{ mb: 2 }}>
         Ficha do Personagem
       </Typography>
+
+             {/* Campo Nome do Personagem */}
+       <Card sx={{ mb: 3 }}>
+         <CardContent>
+           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+             <Typography variant="h6" component="label" sx={{ minWidth: '120px' }}>
+               Nome:
+             </Typography>
+             <input
+               type="text"
+               value={ficha.nome}
+               onChange={(e) => updateFicha({ nome: e.target.value })}
+               placeholder="Digite o nome do personagem"
+               style={{
+                 flex: 1,
+                 padding: '12px 16px',
+                 fontSize: '16px',
+                 fontFamily: '"Spectral", serif',
+                 background: 'rgba(255,255,255,0.05)',
+                 border: '1px solid rgba(255,255,255,0.1)',
+                 borderRadius: '8px',
+                 color: '#E0DFDB',
+                 outline: 'none',
+                 transition: 'all 0.2s ease',
+               }}
+               onFocus={(e) => {
+                 e.target.style.border = '1px solid rgba(179,18,18,0.5)';
+                 e.target.style.background = 'rgba(255,255,255,0.08)';
+               }}
+               onBlur={(e) => {
+                 e.target.style.border = '1px solid rgba(255,255,255,0.1)';
+                 e.target.style.background = 'rgba(255,255,255,0.05)';
+               }}
+             />
+           </Box>
+           
+           {/* Checkbox Usar Meus Dados */}
+           <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+             <Box
+               onClick={() => setUsarMeusDados(!usarMeusDados)}
+               sx={{
+                 width: '20px',
+                 height: '20px',
+                 border: '2px solid rgba(179,18,18,0.6)',
+                 borderRadius: '4px',
+                 background: usarMeusDados ? 'rgba(179,18,18,0.8)' : 'transparent',
+                 cursor: 'pointer',
+                 display: 'flex',
+                 alignItems: 'center',
+                 justifyContent: 'center',
+                 transition: 'all 0.2s ease',
+                 '&:hover': {
+                   borderColor: 'rgba(179,18,18,0.8)',
+                   background: usarMeusDados ? 'rgba(179,18,18,0.9)' : 'rgba(179,18,18,0.1)',
+                 },
+               }}
+             >
+               {usarMeusDados && (
+                 <Box
+                   sx={{
+                     width: '12px',
+                     height: '12px',
+                     background: 'white',
+                     borderRadius: '2px',
+                     transform: 'rotate(45deg)',
+                   }}
+                 />
+               )}
+             </Box>
+             <Typography 
+               variant="body2" 
+               sx={{ 
+                 color: 'text.secondary',
+                 cursor: 'pointer',
+                 userSelect: 'none',
+                 '&:hover': { color: 'text.primary' }
+               }}
+               onClick={() => setUsarMeusDados(!usarMeusDados)}
+             >
+               Usar meus dados (inserir valores manualmente)
+             </Typography>
+           </Box>
+         </CardContent>
+       </Card>
 
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 2, mb: 3 }}>
         <StatCard
@@ -525,7 +782,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
             },
           }}
         >
-          Começar Aventura
+          Começar
         </Button>
       </Stack>
 
@@ -850,10 +1107,12 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
           <Button onClick={() => setBolsaModalOpen(false)}>
             Fechar
           </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
-  );
-};
+                 </DialogActions>
+       </Dialog>
+
+
+     </Box>
+   );
+ };
 
 export default CharacterSheet;

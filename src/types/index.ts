@@ -10,6 +10,7 @@ export interface Item {
 }
 
 export interface Ficha {
+  nome: string;
   pericia: {
     inicial: number;
     atual: number;
@@ -27,6 +28,7 @@ export interface Ficha {
 
 // Validação e saneamento de Ficha
 export const FichaSchema = z.object({
+  nome: z.string().min(1, 'Nome é obrigatório').default(''),
   pericia: z.object({
     inicial: z.number().int().nonnegative().default(0),
     atual: z.number().int().nonnegative().default(0),
@@ -50,6 +52,7 @@ export const FichaSchema = z.object({
 }).strict()
 
 export const createEmptyFicha = (): Ficha => ({
+  nome: '',
   pericia: { inicial: 0, atual: 0 },
   forca: { inicial: 0, atual: 0 },
   sorte: { inicial: 0, atual: 0 },
