@@ -50,8 +50,10 @@ import AudioControls from './AudioControls';
 import AttributeCard from './character/AttributeCard';
 import CustomCheckbox from './ui/CustomCheckbox';
 import NotificationToast from './ui/NotificationToast';
+import IntroCinematic from './IntroCinematic';
 
 import bgmFicha from '../assets/sounds/bgm-ficha.mp3';
+import screamWoman from '../assets/sounds/scream-woman.mp3';
 
 interface CharacterSheetProps {
   ficha: Ficha;
@@ -64,9 +66,11 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
   const [bolsaModalOpen, setBolsaModalOpen] = useState(false);
   const [abaAtiva, setAbaAtiva] = useState(0);
   const [usarMeusDados, setUsarMeusDados] = useState(false);
+  const [showCinematic, setShowCinematic] = useState(false);
+  const [confirmStartOpen, setConfirmStartOpen] = useState(false);
   
   // Hooks
-  const { changeTrack, tryStartMusic, autoplayBlocked } = useAudio();
+  const { changeTrack, tryStartMusic, autoplayBlocked, pause } = useAudio();
   const { notification, showNotification, hideNotification } = useNotification();
   const { validateForStart } = useCharacterValidation();
   const { rollAttribute, rollWithDetails } = useDiceRoller();
@@ -168,8 +172,46 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
       return;
     }
     
-    showNotification(`Aventura de ${ficha.nome} iniciada! (Próximo passo: leitor de seções e motor de combate.)`, 'info');
+    // Abrir modal de confirmação
+    setConfirmStartOpen(true);
   }, [ficha, validateForStart, showNotification]);
+
+  const handleCinematicFinish = useCallback(async () => {
+    setShowCinematic(false);
+    
+    // Recarregar música da ficha
+    try {
+      await changeTrack(bgmFicha);
+    } catch (error) {
+      console.log('Erro ao recarregar música da ficha:', error);
+    }
+    
+    showNotification(`Aventura de ${ficha.nome} iniciada! (Próximo passo: leitor de seções e motor de combate.)`, 'info');
+  }, [ficha.nome, showNotification, changeTrack]);
+
+  const handleConfirmStart = useCallback(async () => {
+    setConfirmStartOpen(false);
+    
+    // Tocar som de grito
+    try {
+      const screamAudio = new Audio(screamWoman);
+      screamAudio.volume = 0.7;
+      await screamAudio.play();
+    } catch (error) {
+      console.log('Erro ao tocar som de grito:', error);
+    }
+    
+    // Pequeno delay para o som e depois abrir cinematográfica
+    setTimeout(() => {
+      // Pausar música da ficha antes de iniciar cinematográfica
+      pause();
+      setShowCinematic(true);
+    }, 500);
+  }, [pause]);
+
+  const handleCancelStart = useCallback(() => {
+    setConfirmStartOpen(false);
+  }, []);
 
 
 
@@ -459,7 +501,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
         alignItems={{ xs: 'stretch', sm: 'center' }}
       >
         <Stack direction="row" spacing={1} flexWrap="wrap">
-          
+
           <Button
             component="label"
             variant="outlined"
@@ -850,8 +892,59 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
                  </DialogActions>
        </Dialog>
 
+      {/* Modal de confirmação para começar aventura */}
+      <Dialog open={confirmStartOpen} onClose={handleCancelStart}>
+        <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold' }}>
+          🎭 Cavaleiros das Trevas
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body1" sx={{ textAlign: 'center', mb: 2 }}>
+            Está pronto para começar a aventura de <strong>{ficha.nome}</strong>?
+          </Typography>
+          <Typography variant="body2" sx={{ textAlign: 'center', color: 'text.secondary' }}>
+            Uma vez iniciada, você entrará no mundo sombrio dos Cavaleiros das Trevas...
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: 'center', gap: 2 }}>
+          <Button onClick={handleCancelStart} variant="outlined">
+            Não, ainda não
+          </Button>
+          <Button 
+            onClick={handleConfirmStart} 
+            variant="contained" 
+            color="error"
+            startIcon={<PlayArrowIcon />}
+            sx={{
+              background: 'linear-gradient(180deg, rgba(179,18,18,0.85), rgba(179,18,18,0.7))',
+              '&:hover': {
+                background: 'linear-gradient(180deg, rgba(182,123,3,0.95), rgba(179,18,18,0.85))',
+              },
+            }}
+          >
+            Sim, começar!
+          </Button>
+                 </DialogActions>
+       </Dialog>
+
         {/* Controles de música */}
         <AudioControls />
+
+        {/* Cinematográfica de introdução */}
+        {showCinematic && (
+          <Box
+            sx={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 10000,
+              backgroundColor: '#000'
+            }}
+          >
+            <IntroCinematic onFinish={handleCinematicFinish} />
+          </Box>
+        )}
      </Box>
    );
  };

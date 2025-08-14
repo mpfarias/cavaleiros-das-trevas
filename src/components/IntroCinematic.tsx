@@ -1,6 +1,12 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Box, Button, Card, CardContent, Dialog, Typography } from "@mui/material";
 import { styled, keyframes } from "@mui/material/styles";
+
+// Imports dos arquivos de áudio
+import bgmIntro from '../assets/sounds/bgm-intro.mp3';
+import bgmModal from '../assets/sounds/bgm-modal.mp3';
+import rainSound from '../assets/sounds/rain.wav';
+import laughSound from '../assets/sounds/laugh.wav';
 
 /**
  * IntroCinematic.tsx — Abertura cinematográfica (TypeScript + React + MUI)
@@ -12,23 +18,31 @@ import { styled, keyframes } from "@mui/material/styles";
  *
  * Como usar:
  * <IntroCinematic
- *   audioSources={{
- *     music: "/assets/audio/musica.mp3",
- *     tavern: "/assets/audio/taverna.mp3",
- *     wind: "/assets/audio/vento.ogg",
- *     battle: "/assets/audio/batalha.ogg",
- *     steps: "/assets/audio/passos.ogg",
- *     mug: "/assets/audio/caneca.ogg",
- *     thunder: "/assets/audio/trovao.ogg",
- *     sword: "/assets/audio/espada.ogg",
- *   }}
  *   onFinish={() => navigate("/ficha-personagem")}
  * />
+ * 
+ * Áudios mapeados automaticamente:
+ * - bgm-intro.mp3: Música de fundo principal
+ * - bgm-modal.mp3: Música de taverna/ambiente
+ * - rain.wav: Chuva/vento para atmosfera
+ * - laugh.wav: Risadas de taverna
  */
 
 // ==========================
 // Tipos & Timeline narrativa
 // ==========================
+
+// Mapeamento automático dos áudios do projeto
+const PROJECT_AUDIO_MAP: Record<string, string> = {
+  music: bgmIntro,     // Música de fundo principal
+  tavern: bgmModal,    // Música de taverna/ambiente
+  wind: rainSound,     // Som de chuva/vento para atmosfera
+  battle: bgmIntro,    // Usa a mesma música principal para batalha
+  steps: rainSound,    // Improvisa passos com chuva baixa
+  mug: laughSound,     // Som de taverna
+  thunder: rainSound,  // Usa chuva para trovão
+  sword: laughSound,   // Improvisa com áudio disponível
+};
 
 type AudioMap = Partial<Record<
   | "music"
@@ -58,9 +72,9 @@ const TIMELINE: Scene[] = [
       ["mid", "Pronto para empunhar sua espada por qualquer um… quase."],
     ],
     sfx: (s) => {
+      console.log('🎬 Cena 1: Iniciando aventura');
       s.wind(true);
-      s.playTag("music", 0.35, true);
-      s.playTag("tavern", 0.5, true);
+      s.playTag("music", 0.7, true);  // Música principal mais alta
     },
   },
   {
@@ -76,7 +90,11 @@ const TIMELINE: Scene[] = [
       ["mid", "Já lutou com muitos exércitos…"],
       ["mid", "e fez longas expedições a terras desconhecidas."],
     ],
-    sfx: (s) => s.battle(),
+    sfx: (s) => {
+      console.log('🎬 Cena 3: Memórias de guerra');
+      s.battle();
+      s.fade("music", 0.4, 500); // Diminui música para dar destaque à batalha
+    },
   },
   {
     t: 18,
@@ -84,7 +102,11 @@ const TIMELINE: Scene[] = [
       ["mid", "Durante a Guerra dos Quatro Reinos,"],
       ["mid", "lutou por Gallantaria, sua pátria."],
     ],
-    sfx: (s) => s.boom(),
+    sfx: (s) => {
+      console.log('🎬 Cena 4: Guerra épica');
+      s.boom();
+      s.thunder(); // Efeito dramático adicional
+    },
   },
   {
     t: 24,
@@ -99,7 +121,10 @@ const TIMELINE: Scene[] = [
       ["mid", "Terminada a guerra, deixou a fama para trás…"],
       ["mid", "e partiu em busca de novas aventuras."],
     ],
-    sfx: (s) => s.fade("tavern", 0, 800),
+    sfx: (s) => {
+      console.log('🎬 Cena 6: Fim da guerra');
+      s.fade("music", 0.7, 1000); // Música volta ao normal
+    },
   },
   {
     t: 36,
@@ -107,7 +132,10 @@ const TIMELINE: Scene[] = [
       ["mid", "Cinco anos se passaram."],
       ["mid", "Agora, você está em Royal Lendle."],
     ],
-    sfx: (s) => s.wind(true),
+    sfx: (s) => {
+      console.log('🎬 Cena 7: Royal Lendle');
+      s.wind(true); // Vento da cidade
+    },
   },
   {
     t: 42,
@@ -116,8 +144,10 @@ const TIMELINE: Scene[] = [
       ["mid", "Então, vai até a taverna Primeiro Passo."],
     ],
     sfx: (s) => {
-      s.playTag("tavern", 0.45, true);
+      console.log('🎬 Cena 8: Entrando na taverna');
+      s.playTag("tavern", 0.6, true); // Música de taverna
       s.steps();
+      s.fade("wind", 0.2, 800); // Diminui vento ao entrar
     },
   },
   {
@@ -126,7 +156,10 @@ const TIMELINE: Scene[] = [
       ["mid", "Ao terminar a segunda caneca de Lendale,"],
       ["mid", "alguém bate em seu ombro."],
     ],
-    sfx: (s) => s.mug(),
+    sfx: (s) => {
+      console.log('🎬 Cena 9: Na taverna');
+      s.mug(); // Som de taverna (laugh.wav)
+    },
   },
   {
     t: 54,
@@ -145,7 +178,11 @@ const TIMELINE: Scene[] = [
       ["mid", "Ele fala de saques… mortes…"],
       ["mid", "E de um inimigo impossível: os Cavaleiros das Trevas."],
     ],
-    sfx: (s) => s.thunder(),
+    sfx: (s) => {
+      console.log('🎬 Cena 11: Cavaleiros das Trevas mencionados');
+      s.thunder(); // Efeito dramático (rain.wav)
+      s.fade("tavern", 0.3, 600); // Diminui música de taverna para criar tensão
+    },
   },
   {
     t: 72,
@@ -161,7 +198,11 @@ const TIMELINE: Scene[] = [
   {
     t: 82,
     lines: [["mid", "E então você decide:"]],
-    sfx: (s) => s.sword(),
+    sfx: (s) => {
+      console.log('🎬 Cena 13: Decisão tomada');
+      s.sword(); // Efeito de decisão
+      s.fade("tavern", 0.6, 800); // Música volta um pouco
+    },
   },
   {
     t: 86,
@@ -170,10 +211,11 @@ const TIMELINE: Scene[] = [
       ["mid", "para enfrentar o que quer que esteja nas sombras."],
     ],
     sfx: (s) => {
-      s.wind(false);
-      s.boom();
-      s.fade("tavern", 0, 1200);
-      s.fade("music", 0.25, 1200);
+      console.log('🎬 Cena 14: Partindo para Karnstein');
+      s.wind(false); // Para o vento
+      s.boom(); // Efeito épico final
+      s.fade("tavern", 0, 1200); // Fade out da taverna
+      s.fade("music", 0.4, 1200); // Música principal continua mais baixa
     },
   },
 ];
@@ -195,6 +237,10 @@ type SfxAPI = {
 };
 
 function useAudioManager(audioSources: AudioMap | undefined) {
+  // Usa áudios do projeto se não fornecidos via props
+  const finalAudioSources = useMemo(() => {
+    return audioSources || PROJECT_AUDIO_MAP;
+  }, [audioSources]);
   const audioTags = useRef<Record<string, HTMLAudioElement>>({});
   const AC = useRef<AudioContext | null>(null);
   const master = useRef<GainNode | null>(null);
@@ -205,13 +251,20 @@ function useAudioManager(audioSources: AudioMap | undefined) {
 
   // carrega HTMLAudio quando URLs são fornecidas
   const loadTags = async () => {
-    if (!audioSources) return;
-    for (const [k, url] of Object.entries(audioSources)) {
+    if (!finalAudioSources) return;
+    console.log('🎵 Carregando áudios da cinematográfica:', finalAudioSources);
+    for (const [k, url] of Object.entries(finalAudioSources)) {
       const a = new Audio(url);
       a.preload = "auto";
       a.crossOrigin = "anonymous";
       a.loop = ["music", "tavern", "wind", "battle"].includes(k);
-      a.volume = k === "music" ? 0.4 : k === "tavern" ? 0.5 : 0.9;
+      // Volumes otimizados para os áudios do projeto
+      a.volume = k === "music" ? 0.7 :     // bgm-intro mais alto
+                 k === "tavern" ? 0.6 :    // bgm-modal para taverna
+                 k === "wind" ? 0.4 :      // rain.wav mais suave para vento
+                 k === "mug" ? 0.8 :       // laugh.wav para taverna
+                 k === "thunder" ? 0.7 :   // rain.wav para trovão
+                 0.9;
       audioTags.current[k] = a;
       await new Promise<void>((res) => {
         const done = () => res();
@@ -426,7 +479,7 @@ const fadeInUp = keyframes`
   to   { opacity: 1; transform: translateY(0); }
 `;
 
-const Screen = styled(Box)(({ theme }) => ({
+const Screen = styled(Box)(() => ({
   position: "relative",
   width: "100%",
   height: "100vh",
@@ -462,7 +515,7 @@ const ParticlesWrap = styled(Box)({
   pointerEvents: "none",
 });
 
-const Particle = styled("i")<{ duration: number; top: number; left: number; opacity: number }>
+const Particle = styled("i")<{ duration: number; top: number; left: number; opacity: number }>(
   ({ duration, top, left, opacity }) => ({
     position: "absolute",
     width: 2,
@@ -474,7 +527,7 @@ const Particle = styled("i")<{ duration: number; top: number; left: number; opac
     top: `${top}vh`,
     left: `${left}vw`,
     opacity,
-  });
+  }));
 
 const Center = styled(Box)({
   position: "relative",
@@ -563,7 +616,7 @@ function Particles() {
 // =========
 
 export interface IntroCinematicProps {
-  audioSources?: AudioMap; // mapeamento dos seus arquivos
+  audioSources?: AudioMap; // mapeamento personalizado (opcional - usa áudios do projeto por padrão)
   onFinish?: () => void;   // chamado ao final ou no botão "Iniciar Aventura"
 }
 
@@ -610,9 +663,9 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
 
   const replay = () => {
     stopTimeline();
-    // Reinicia música/ambiente se estiver usando tags reais
-    api.playTag("music", 0.35, true);
-    api.playTag("tavern", 0.5, true);
+    console.log('🔄 Reiniciando cinematográfica');
+    // Reinicia música principal
+    api.playTag("music", 0.7, true);
     playTimeline();
   };
 
@@ -627,11 +680,11 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
   // Gate para habilitar áudio por gesto do usuário
   const begin = async () => {
     setGateOpen(false);
+    console.log('🎬 Iniciando cinematográfica com áudios do projeto');
     ensureAudioContext();
-    await loadTags().catch(() => {});
-    // Dar play inicial (se houver áudio real)
-    api.playTag("music", 0.35, true);
-    api.playTag("tavern", 0.5, true);
+    await loadTags().catch((err) => {
+      console.warn('Erro ao carregar áudios:', err);
+    });
     playTimeline();
   };
 
@@ -670,7 +723,7 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
       <Center aria-live="polite" aria-atomic="true">
         <Box>
           {lines.map(([kind, html], i) => (
-            <Line key={i} kind={kind} component="div" dangerouslySetInnerHTML={{ __html: html }} />
+            <Line key={i} kind={kind} dangerouslySetInnerHTML={{ __html: html }} />
           ))}
         </Box>
         <Box sx={{ mt: 2, opacity: ended ? 1 : 0, transform: `translateY(${ended ? 0 : 10}px)`, transition: ".6s ease all" }}>
@@ -695,7 +748,7 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
           <CardContent sx={{ textAlign: "center", p: 4 }}>
             <Typography variant="h5" gutterBottom>Introdução</Typography>
             <Typography variant="body1" sx={{ color: "#d6d4cf", mb: 2 }}>
-              Ative o áudio e comece a narrativa de Royal Lendle.
+              Prepare-se para adentrar o mundo sombrio dos Cavaleiros das Trevas.
             </Typography>
             <Button variant="contained" onClick={begin} sx={{ textTransform: "none", borderRadius: 999 }}>
               Começar
