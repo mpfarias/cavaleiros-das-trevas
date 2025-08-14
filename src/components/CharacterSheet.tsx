@@ -23,7 +23,7 @@ import {
 } from '@mui/material';
 import {
   Casino as CasinoIcon,
-  Save as SaveIcon,
+
   Upload as UploadIcon,
   Delete as DeleteIcon,
   PlayArrow as PlayArrowIcon,
@@ -68,9 +68,9 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
   // Hooks
   const { changeTrack, tryStartMusic, autoplayBlocked } = useAudio();
   const { notification, showNotification, hideNotification } = useNotification();
-  const { validateForSave, validateForStart } = useCharacterValidation();
+  const { validateForStart } = useCharacterValidation();
   const { rollAttribute, rollWithDetails } = useDiceRoller();
-  const { isLoading, saveToFile, loadFromFile, clearLocalStorage } = useFileOperations();
+  const { isLoading, loadFromFile, clearLocalStorage } = useFileOperations();
 
   // Carrega a música específica da ficha quando o componente monta
   useEffect(() => {
@@ -155,16 +155,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
     );
   }, [rollWithDetails, ficha, updateFicha, showNotification]);
 
-  const salvar = useCallback(() => {
-    const validation = validateForSave(ficha);
-    if (!validation.isValid) {
-      showNotification(validation.message!, 'warning');
-      return;
-    }
-    
-    const result = saveToFile(ficha);
-    showNotification(result.message, result.severity);
-  }, [ficha, validateForSave, saveToFile, showNotification]);
+
 
   const resetar = () => {
     setConfirmOpen(true);
@@ -469,17 +460,6 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
       >
         <Stack direction="row" spacing={1} flexWrap="wrap">
           
-          <Button
-            variant="contained"
-            color="success"
-            onClick={salvar}
-            startIcon={isLoading ? <CircularProgress size={16} color="inherit" /> : <SaveIcon />}
-            disabled={isLoading}
-            sx={{ background: '#123b26', borderColor: '#216547' }}
-          >
-            {isLoading ? 'Salvando...' : 'Salvar'}
-          </Button>
-
           <Button
             component="label"
             variant="outlined"
