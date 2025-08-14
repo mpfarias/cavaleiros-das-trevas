@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Box, Button, Card, CardContent, Dialog, Typography } from "@mui/material";
 import { styled, keyframes } from "@mui/material/styles";
 
 // Imports dos arquivos de áudio
 import bgmIntro from '../assets/sounds/bgm-intro.mp3';
 import bgmModal from '../assets/sounds/bgm-modal.mp3';
-import rainSound from '../assets/sounds/rain.wav';
+import rainSound from '../assets/sounds/rainning.mp3';
 import laughSound from '../assets/sounds/laugh.wav';
 
 /**
@@ -176,10 +176,10 @@ const TIMELINE: Scene[] = [
     t: 65,
     lines: [
       ["mid", "Ele fala de saques… mortes…"],
-      ["mid", "E de um inimigo impossível: os Cavaleiros das Trevas."],
+      ["mid", "E de um inimigo impossível: o Cavaleiro das Trevas."],
     ],
     sfx: (s) => {
-      console.log('🎬 Cena 11: Cavaleiros das Trevas mencionados');
+      console.log('🎬 Cena 11: Cavaleiro das Trevas mencionados');
       s.thunder(); // Efeito dramático (rain.wav)
       s.fade("tavern", 0.3, 600); // Diminui música de taverna para criar tensão
     },
@@ -486,10 +486,18 @@ const Screen = styled(Box)(() => ({
   display: "grid",
   placeItems: "center",
   background:
-    "radial-gradient(1200px 600px at 50% 20%, #151822 0%, #0a0b0f 40%, #07080b 100%)",
+    "radial-gradient(1200px 600px at 50% 20%, #151822 0%, #0a0b0f 40%, #07080b 100%) !important",
+  backgroundImage: "none !important",
+  backgroundColor: "#07080b !important",
   color: "#e8e6e3",
   overflow: "hidden",
   userSelect: "none",
+  "&::before": {
+    display: "none !important"
+  },
+  "&::after": {
+    display: "none !important"
+  }
 }));
 
 const Vignette = styled(Box)({
@@ -629,8 +637,14 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
 
   const { ensureAudioContext, loadTags, api } = useAudioManager(audioSources);
 
-  // Tick da timeline
-  const playTimeline = () => {
+  // Controles da timeline
+  const stopTimeline = useCallback(() => {
+    running.current = false;
+    if (raf.current) cancelAnimationFrame(raf.current);
+  }, []);
+
+  const playTimeline = useCallback(() => {
+    console.log('🎬 Iniciando timeline da cinematográfica');
     setEnded(false);
     setLines([]);
     running.current = true;
@@ -648,37 +662,36 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
       if (idx >= TIMELINE.length) {
         running.current = false;
         setEnded(true);
+        console.log('🎬 Timeline finalizada');
         return;
       }
       raf.current = requestAnimationFrame(step);
     };
-
     raf.current = requestAnimationFrame(step);
-  };
+  }, [api]);
 
-  const stopTimeline = () => {
-    running.current = false;
-    if (raf.current) cancelAnimationFrame(raf.current);
-  };
-
-  const replay = () => {
-    stopTimeline();
+  const replay = useCallback(() => {
     console.log('🔄 Reiniciando cinematográfica');
+    setGateOpen(false); // Fecha modal se estiver aberto
+    stopTimeline();
     // Reinicia música principal
     api.playTag("music", 0.7, true);
-    playTimeline();
-  };
+    setTimeout(() => playTimeline(), 100); // Pequeno delay para garantir que parou
+  }, [stopTimeline, playTimeline, api]);
 
-  const skip = () => {
+  const skip = useCallback(() => {
+    console.log('⏭️ Pulando cinematográfica');
+    setGateOpen(false); // Fecha modal se estiver aberto
     stopTimeline();
     api.wind(false);
     api.boom();
     setLines([["big", "Você parte para Karnstein… as sombras aguardam."]]);
     setEnded(true);
-  };
+  }, [stopTimeline, api]);
 
   // Gate para habilitar áudio por gesto do usuário
   const begin = async () => {
+    console.log('🔓 Fechando modal e habilitando botões');
     setGateOpen(false);
     console.log('🎬 Iniciando cinematográfica com áudios do projeto');
     ensureAudioContext();
@@ -709,13 +722,85 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
 
   return (
     <Screen>
-      <TopBar>
-        <Button variant="contained" color="inherit" onClick={skip} sx={{ bgcolor: "rgba(255,255,255,.08)", textTransform: "none" }}>
+        <TopBar>
+        <button
+          onClick={skip}
+          style={{
+            padding: '12px 24px',
+            background: 'linear-gradient(135deg, rgba(11,11,13,0.95) 0%, rgba(23,23,27,0.85) 50%, rgba(15,15,18,0.95) 100%)',
+            color: '#d6d4cf',
+            border: '1px solid rgba(179,18,18,0.4)',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontSize: '13px',
+            fontFamily: '"Cinzel", serif',
+            fontWeight: '600',
+            textTransform: 'uppercase',
+            letterSpacing: '1px',
+            transition: 'all 0.3s ease',
+            backdropFilter: 'blur(8px)',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1)',
+            textShadow: '0 1px 2px rgba(0,0,0,0.8)',
+            position: 'relative',
+            overflow: 'hidden',
+            zIndex: 1000
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(179,18,18,0.2) 0%, rgba(139,0,0,0.3) 50%, rgba(179,18,18,0.2) 100%)';
+            e.currentTarget.style.borderColor = 'rgba(179,18,18,0.8)';
+            e.currentTarget.style.color = '#ffffff';
+            e.currentTarget.style.boxShadow = '0 6px 20px rgba(179,18,18,0.4), inset 0 1px 0 rgba(255,255,255,0.2)';
+            e.currentTarget.style.transform = 'translateY(-1px)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(11,11,13,0.95) 0%, rgba(23,23,27,0.85) 50%, rgba(15,15,18,0.95) 100%)';
+            e.currentTarget.style.borderColor = 'rgba(179,18,18,0.4)';
+            e.currentTarget.style.color = '#d6d4cf';
+            e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1)';
+            e.currentTarget.style.transform = 'translateY(0)';
+          }}
+        >
           Pular
-        </Button>
-        <Button variant="contained" color="inherit" onClick={replay} sx={{ bgcolor: "rgba(255,255,255,.08)", textTransform: "none" }}>
+        </button>
+        <button
+          onClick={replay}
+          style={{
+            padding: '12px 24px',
+            background: 'linear-gradient(135deg, rgba(11,11,13,0.95) 0%, rgba(23,23,27,0.85) 50%, rgba(15,15,18,0.95) 100%)',
+            color: '#d6d4cf',
+            border: '1px solid rgba(182,123,3,0.4)',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontSize: '13px',
+            fontFamily: '"Cinzel", serif',
+            fontWeight: '600',
+            textTransform: 'uppercase',
+            letterSpacing: '1px',
+            transition: 'all 0.3s ease',
+            backdropFilter: 'blur(8px)',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1)',
+            textShadow: '0 1px 2px rgba(0,0,0,0.8)',
+            position: 'relative',
+            overflow: 'hidden',
+            zIndex: 1000
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(182,123,3,0.2) 0%, rgba(218,165,32,0.3) 50%, rgba(182,123,3,0.2) 100%)';
+            e.currentTarget.style.borderColor = 'rgba(182,123,3,0.8)';
+            e.currentTarget.style.color = '#ffffff';
+            e.currentTarget.style.boxShadow = '0 6px 20px rgba(182,123,3,0.4), inset 0 1px 0 rgba(255,255,255,0.2)';
+            e.currentTarget.style.transform = 'translateY(-1px)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(11,11,13,0.95) 0%, rgba(23,23,27,0.85) 50%, rgba(15,15,18,0.95) 100%)';
+            e.currentTarget.style.borderColor = 'rgba(182,123,3,0.4)';
+            e.currentTarget.style.color = '#d6d4cf';
+            e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1)';
+            e.currentTarget.style.transform = 'translateY(0)';
+          }}
+        >
           Rever
-        </Button>
+        </button>
       </TopBar>
 
       <Particles />
@@ -748,10 +833,10 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
           <CardContent sx={{ textAlign: "center", p: 4 }}>
             <Typography variant="h5" gutterBottom>Introdução</Typography>
             <Typography variant="body1" sx={{ color: "#d6d4cf", mb: 2 }}>
-              Prepare-se para adentrar o mundo sombrio dos Cavaleiros das Trevas.
+              Prepare-se para adentrar o mundo sombrio do Cavaleiro das Trevas.
             </Typography>
             <Button variant="contained" onClick={begin} sx={{ textTransform: "none", borderRadius: 999 }}>
-              Começar
+              Ok
             </Button>
           </CardContent>
         </Card>

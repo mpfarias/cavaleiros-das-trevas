@@ -3,6 +3,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CssBaseline, Box } from '@mui/material';
 import Home from './components/Home';
 import CharacterSheet from './components/CharacterSheet';
+import IntroCinematic from './components/IntroCinematic';
 import type { Ficha } from './types';
 import { FichaSchema, createEmptyFicha } from './types';
 import { AudioProvider } from './contexts/AudioContext';
@@ -127,7 +128,7 @@ const darkTheme = createTheme({
 });
 
 function App() {
-  const [currentView, setCurrentView] = useState<'home' | 'sheet'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'sheet' | 'cinematic'>('home');
   const [ficha, setFicha] = useState<Ficha>(createEmptyFicha());
 
   useEffect(() => {
@@ -222,12 +223,31 @@ function App() {
 
         {currentView === 'home' ? (
           <Home onStart={handleStartAdventure} />
-        ) : (
+        ) : currentView === 'sheet' ? (
           <CharacterSheet 
             ficha={ficha} 
             onFichaChange={handleFichaChange} 
             onVoltar={() => setCurrentView('home')}
+            onStartCinematic={() => setCurrentView('cinematic')}
           />
+        ) : (
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 10,
+              '&::after': {
+                display: 'none !important'
+              }
+            }}
+          >
+            <IntroCinematic 
+              onFinish={() => setCurrentView('sheet')} 
+            />
+          </Box>
         )}
         </Box>
       </AudioProvider>

@@ -50,7 +50,7 @@ import AudioControls from './AudioControls';
 import AttributeCard from './character/AttributeCard';
 import CustomCheckbox from './ui/CustomCheckbox';
 import NotificationToast from './ui/NotificationToast';
-import IntroCinematic from './IntroCinematic';
+
 
 import bgmFicha from '../assets/sounds/bgm-ficha.mp3';
 import screamWoman from '../assets/sounds/scream-woman.mp3';
@@ -59,16 +59,16 @@ interface CharacterSheetProps {
   ficha: Ficha;
   onFichaChange: (ficha: Ficha) => void;
   onVoltar: () => void;
+  onStartCinematic: () => void;
 }
 
-const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, onVoltar }) => {
+const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, onVoltar, onStartCinematic }) => {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [bolsaModalOpen, setBolsaModalOpen] = useState(false);
   const [abaAtiva, setAbaAtiva] = useState(0);
   const [usarMeusDados, setUsarMeusDados] = useState(false);
-  const [showCinematic, setShowCinematic] = useState(false);
   const [confirmStartOpen, setConfirmStartOpen] = useState(false);
-  
+
   // Hooks
   const { changeTrack, tryStartMusic, autoplayBlocked, pause } = useAudio();
   const { notification, showNotification, hideNotification } = useNotification();
@@ -86,7 +86,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
         console.log('Erro ao carregar música da ficha:', error);
       }
     };
-    
+
     loadMusic();
   }, []); // Executa apenas uma vez quando monta
 
@@ -99,7 +99,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
     };
 
     document.addEventListener('click', handleFirstInteraction, { once: true });
-    
+
     return () => {
       document.removeEventListener('click', handleFirstInteraction);
     };
@@ -139,7 +139,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
 
   const rolarMoedasOuro = useCallback(() => {
     const rollResult = rollWithDetails('ouro');
-    
+
     // Adiciona as moedas de ouro à bolsa
     let novaFicha = ficha;
     novaFicha = adicionarItem(novaFicha, {
@@ -149,10 +149,10 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
       descricao: 'Moedas de ouro iniciais do personagem',
       adquiridoEm: 'Criação do Personagem'
     });
-    
+
     // Atualiza a ficha com as moedas na bolsa
     updateFicha(novaFicha);
-    
+
     showNotification(
       `Moedas de ouro roladas: ${rollResult.dice.join(' + ')} + ${rollResult.bonus} = ${rollResult.total} moedas adicionadas à bolsa!`,
       'success'
@@ -171,25 +171,14 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
       showNotification(validation.message!, 'warning');
       return;
     }
-    
+
     // Abrir modal de confirmação
     setConfirmStartOpen(true);
   }, [ficha, validateForStart, showNotification]);
 
-  const handleCinematicFinish = useCallback(async () => {
-    setShowCinematic(false);
-    
-    // Recarregar música da ficha
-    try {
-      await changeTrack(bgmFicha);
-    } catch (error) {
-      console.log('Erro ao recarregar música da ficha:', error);
-    }
-    
-    showNotification(`Aventura de ${ficha.nome} iniciada! (Próximo passo: leitor de seções e motor de combate.)`, 'info');
-  }, [ficha.nome, showNotification, changeTrack]);
+  
 
-  const handleConfirmStart = useCallback(async () => {
+    const handleConfirmStart = useCallback(async () => {
     setConfirmStartOpen(false);
     
     // Tocar som de grito
@@ -201,13 +190,13 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
       console.log('Erro ao tocar som de grito:', error);
     }
     
-    // Pequeno delay para o som e depois abrir cinematográfica
+    // Pequeno delay para o som e depois navegar para cinematográfica
     setTimeout(() => {
-      // Pausar música da ficha antes de iniciar cinematográfica
+      // Pausar música da ficha antes de navegar
       pause();
-      setShowCinematic(true);
+      onStartCinematic();
     }, 500);
-  }, [pause]);
+  }, [pause, onStartCinematic]);
 
   const handleCancelStart = useCallback(() => {
     setConfirmStartOpen(false);
@@ -216,7 +205,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
 
 
 
-    // Memoized handlers for attribute cards
+  // Memoized handlers for attribute cards
   const attributeCards = useMemo(() => [
     { title: 'PERÍCIA', attr: 'pericia' as const, onRoll: rolarPericia },
     { title: 'FORÇA', attr: 'forca' as const, onRoll: rolarForca },
@@ -248,14 +237,14 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
               Bolsa do Personagem
             </Typography>
           </Box>
-          
+
           {ficha.bolsa.length > 0 && (
             <Button
               variant="outlined"
               size="small"
               onClick={() => setBolsaModalOpen(true)}
               startIcon={<InventoryIcon />}
-              sx={{ 
+              sx={{
                 borderColor: 'rgba(255,255,255,0.3)',
                 color: 'text.secondary',
                 '&:hover': {
@@ -268,7 +257,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
             </Button>
           )}
         </Box>
-        
+
         {ficha.bolsa.length === 0 ? (
           <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
             Sua bolsa está vazia. Os itens serão adicionados automaticamente durante a aventura.
@@ -296,7 +285,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
                             <Chip
                               label={`x${item.quantidade}`}
                               size="small"
-                              sx={{ 
+                              sx={{
                                 backgroundColor: getItemColor(item.tipo),
                                 color: 'white',
                                 fontSize: '0.75rem'
@@ -323,7 +312,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
                 </Box>
               ))}
             </List>
-            
+
             {ficha.bolsa.length > 2 && (
               <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, fontStyle: 'italic' }}>
                 +{ficha.bolsa.length - 2} item(s) restante(s)
@@ -351,14 +340,14 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
   const handleFileUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     const result = await loadFromFile(file);
     showNotification(result.message, result.severity);
-    
+
     if (result.success && result.data) {
       updateFicha(result.data);
     }
-    
+
     // Reset input
     e.currentTarget.value = '';
   }, [loadFromFile, showNotification, updateFicha]);
@@ -389,54 +378,54 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
         Ficha do Personagem
       </Typography>
 
-                    {/* Campo Nome do Personagem */}
-        <Card sx={{ mb: 2 }}>
-          <CardContent>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Typography variant="h6" component="label" sx={{ minWidth: '120px' }}>
-                Nome:
-              </Typography>
-              <input
-                type="text"
-                value={ficha.nome}
-                onChange={(e) => updateFicha({ nome: e.target.value })}
-                placeholder="Digite o nome do personagem"
-                style={{
-                  flex: 1,
-                  padding: '12px 16px',
-                  fontSize: '16px',
-                  fontFamily: '"Spectral", serif',
-                  background: 'rgba(255,255,255,0.05)',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  borderRadius: '8px',
-                  color: '#E0DFDB',
-                  outline: 'none',
-                  transition: 'all 0.2s ease',
-                }}
-                onFocus={(e) => {
-                  e.target.style.border = '1px solid rgba(179,18,18,0.5)';
-                  e.target.style.background = 'rgba(255,255,255,0.08)';
-                }}
-                onBlur={(e) => {
-                  e.target.style.border = '1px solid rgba(255,255,255,0.1)';
-                  e.target.style.background = 'rgba(255,255,255,0.05)';
-                }}
-              />
-            </Box>
-          </CardContent>
-        </Card>
-
-        {/* Checkbox Usar Meus Dados */}
-        <Card sx={{ mb: 3 }}>
-          <CardContent>
-            <CustomCheckbox
-              checked={usarMeusDados}
-              onChange={setUsarMeusDados}
-              label="Usar meus dados (inserir valores manualmente)"
-              id="usar-meus-dados"
+      {/* Campo Nome do Personagem */}
+      <Card sx={{ mb: 2 }}>
+        <CardContent>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Typography variant="h6" component="label" sx={{ minWidth: '120px' }}>
+              Nome:
+            </Typography>
+            <input
+              type="text"
+              value={ficha.nome}
+              onChange={(e) => updateFicha({ nome: e.target.value })}
+              placeholder="Digite o nome do personagem"
+              style={{
+                flex: 1,
+                padding: '12px 16px',
+                fontSize: '16px',
+                fontFamily: '"Spectral", serif',
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: '8px',
+                color: '#E0DFDB',
+                outline: 'none',
+                transition: 'all 0.2s ease',
+              }}
+              onFocus={(e) => {
+                e.target.style.border = '1px solid rgba(179,18,18,0.5)';
+                e.target.style.background = 'rgba(255,255,255,0.08)';
+              }}
+              onBlur={(e) => {
+                e.target.style.border = '1px solid rgba(255,255,255,0.1)';
+                e.target.style.background = 'rgba(255,255,255,0.05)';
+              }}
             />
-          </CardContent>
-        </Card>
+          </Box>
+        </CardContent>
+      </Card>
+
+      {/* Checkbox Usar Meus Dados */}
+      <Card sx={{ mb: 3 }}>
+        <CardContent>
+          <CustomCheckbox
+            checked={usarMeusDados}
+            onChange={setUsarMeusDados}
+            label="Usar meus dados (inserir valores manualmente)"
+            id="usar-meus-dados"
+          />
+        </CardContent>
+      </Card>
 
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 2, mb: 3 }}>
         {attributeCards.map(({ title, attr, onRoll }) => (
@@ -463,7 +452,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
                 />
               </Box>
             </Box>
-            
+
             <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
               <Button
                 variant="outlined"
@@ -481,7 +470,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
                 {isLoading ? <CircularProgress size={16} /> : DICE_FORMULAS.ouro.text}
               </Button>
             </Stack>
-            
+
             <Typography variant="caption" color="text.secondary">
               Moedas iniciais do personagem. Role apenas uma vez.
             </Typography>
@@ -529,7 +518,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
           <Button
             variant="outlined"
             onClick={onVoltar}
-            sx={{ 
+            sx={{
               borderColor: 'rgba(255,255,255,0.3)',
               color: 'text.secondary',
               '&:hover': {
@@ -540,9 +529,9 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
           >
             Voltar
           </Button>
-          
+
         </Stack>
-        
+
         <Button
           variant="contained"
           size="large"
@@ -584,8 +573,8 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
       </Dialog>
 
       {/* Modal da Bolsa */}
-      <Dialog 
-        open={bolsaModalOpen} 
+      <Dialog
+        open={bolsaModalOpen}
         onClose={() => setBolsaModalOpen(false)}
         maxWidth="md"
         fullWidth
@@ -598,12 +587,12 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
                 Bolsa do Personagem
               </Typography>
             </Box>
-            
+
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Chip
                 label={`${totalOuro(ficha)} moedas de ouro`}
-                sx={{ 
-                  backgroundColor: '#FFD700', 
+                sx={{
+                  backgroundColor: '#FFD700',
                   color: 'black',
                   fontWeight: 700
                 }}
@@ -617,11 +606,11 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
             </Box>
           </Box>
         </DialogTitle>
-        
+
         <DialogContent>
           <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-            <Tabs 
-              value={abaAtiva} 
+            <Tabs
+              value={abaAtiva}
               onChange={(_, newValue) => setAbaAtiva(newValue)}
               variant="scrollable"
               scrollButtons="auto"
@@ -633,7 +622,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
               <Tab label="Ouro" />
             </Tabs>
           </Box>
-          
+
           {/* Conteúdo das abas */}
           {abaAtiva === 0 && (
             <Box>
@@ -677,7 +666,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
               )}
             </Box>
           )}
-          
+
           {abaAtiva === 1 && (
             <Box>
               <Typography variant="h6" sx={{ mb: 2, color: '#B67B03' }}>
@@ -720,7 +709,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
               )}
             </Box>
           )}
-          
+
           {abaAtiva === 2 && (
             <Box>
               <Typography variant="h6" sx={{ mb: 2, color: '#2196F3' }}>
@@ -763,7 +752,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
               )}
             </Box>
           )}
-          
+
           {abaAtiva === 3 && (
             <Box>
               <Typography variant="h6" sx={{ mb: 2, color: '#4CAF50' }}>
@@ -791,7 +780,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
                                 <Chip
                                   label={`x${item.quantidade}`}
                                   size="small"
-                                  sx={{ 
+                                  sx={{
                                     backgroundColor: '#4CAF50',
                                     color: 'white',
                                     fontSize: '0.75rem'
@@ -823,7 +812,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
               )}
             </Box>
           )}
-          
+
           {abaAtiva === 4 && (
             <Box>
               <Typography variant="h6" sx={{ mb: 2, color: '#FFD700' }}>
@@ -851,7 +840,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
                                 <Chip
                                   label={`x${item.quantidade}`}
                                   size="small"
-                                  sx={{ 
+                                  sx={{
                                     backgroundColor: '#FFD700',
                                     color: 'black',
                                     fontSize: '0.75rem'
@@ -884,69 +873,49 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
             </Box>
           )}
         </DialogContent>
-        
+
         <DialogActions>
           <Button onClick={() => setBolsaModalOpen(false)}>
             Fechar
           </Button>
-                 </DialogActions>
-       </Dialog>
+        </DialogActions>
+      </Dialog>
 
       {/* Modal de confirmação para começar aventura */}
-      <Dialog open={confirmStartOpen} onClose={handleCancelStart}>
-        <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold' }}>
-          🎭 Cavaleiros das Trevas
-        </DialogTitle>
-        <DialogContent>
-          <Typography variant="body1" sx={{ textAlign: 'center', mb: 2 }}>
-            Está pronto para começar a aventura de <strong>{ficha.nome}</strong>?
-          </Typography>
-          <Typography variant="body2" sx={{ textAlign: 'center', color: 'text.secondary' }}>
-            Uma vez iniciada, você entrará no mundo sombrio dos Cavaleiros das Trevas...
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ justifyContent: 'center', gap: 2 }}>
-          <Button onClick={handleCancelStart} variant="outlined">
-            Não, ainda não
-          </Button>
-          <Button 
-            onClick={handleConfirmStart} 
-            variant="contained" 
-            color="error"
-            startIcon={<PlayArrowIcon />}
-            sx={{
-              background: 'linear-gradient(180deg, rgba(179,18,18,0.85), rgba(179,18,18,0.7))',
-              '&:hover': {
-                background: 'linear-gradient(180deg, rgba(182,123,3,0.95), rgba(179,18,18,0.85))',
-              },
-            }}
-          >
-            Sim, começar!
-          </Button>
-                 </DialogActions>
-       </Dialog>
+      <Dialog open={confirmStartOpen} onClose={handleCancelStart} maxWidth="sm" fullWidth>
+        <Card sx={{ background: "linear-gradient(160deg, rgba(255,255,255,.06), rgba(255,255,255,.03))", border: "1px solid rgba(255,255,255,.1)", color: "#e8e6e3", bgcolor: "#0a0b0f" }}>
+          <CardContent sx={{ textAlign: "center", p: 4 }}>
+            <Typography variant="h5" gutterBottom>Prepare-se!</Typography>
+            <Typography variant="body1" sx={{ color: "#d6d4cf", mb: 2 }}>
+              Está pronto para começar a aventura, <strong>{ficha.nome}</strong>?
+            </Typography>
+            <DialogActions sx={{ justifyContent: 'center', gap: 2 }}>
+              <Button onClick={handleCancelStart} variant="outlined">
+                Não, ainda não
+              </Button>
+              <Button
+                onClick={handleConfirmStart}
+                variant="contained"
+                color="error"
+                sx={{
+                  background: 'linear-gradient(180deg, rgba(179,18,18,0.85), rgba(179,18,18,0.7))',
+                  '&:hover': {
+                    background: 'linear-gradient(180deg, rgba(182,123,3,0.95), rgba(179,18,18,0.85))',
+                  },
+                }}
+              >
+                Sim, começar!
+              </Button>
+            </DialogActions>
+          </CardContent>
+        </Card>
+      </Dialog>
+      {/* Controles de música */}
+      <AudioControls />
 
-        {/* Controles de música */}
-        <AudioControls />
 
-        {/* Cinematográfica de introdução */}
-        {showCinematic && (
-          <Box
-            sx={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              zIndex: 10000,
-              backgroundColor: '#000'
-            }}
-          >
-            <IntroCinematic onFinish={handleCinematicFinish} />
-          </Box>
-        )}
-     </Box>
-   );
- };
+    </Box>
+  );
+};
 
 export default CharacterSheet;

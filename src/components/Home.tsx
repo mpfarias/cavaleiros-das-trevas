@@ -86,7 +86,7 @@ const Home: React.FC<HomeProps> = ({ onStart }) => {
             fontSize: { xs: '14px', sm: '16px', md: '18px' },
           }}
         >
-          Um jogo de terror gótico
+          Um jogo de terror macabro
         </Typography>
 
         <Divider

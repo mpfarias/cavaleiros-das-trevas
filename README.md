@@ -1,6 +1,6 @@
 # A Lenda do Cavaleiro das Trevas
 
-Um jogo-livro de terror gótico convertido para React + Material UI + TypeScript.
+Um jogo-livro de terror convertido para React + Material UI + TypeScript.
 
 ## 🚀 Tecnologias
 
