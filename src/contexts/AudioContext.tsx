@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import { AudioContext, type AudioContextType } from './AudioContextDef';
 
@@ -9,7 +9,7 @@ interface AudioProviderProps {
 export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const [volume, setVolumeState] = useState(0.3);
+  const [volume, setVolumeState] = useState(1.0);
   const [currentTrack, setCurrentTrack] = useState<string | null>(null);
   const [autoplayBlocked, setAutoplayBlocked] = useState(false);
   
@@ -32,121 +32,159 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
 
   // Detecta quando o áudio é carregado
   useEffect(() => {
-    if (audioRef.current) {
-      const handleCanPlay = () => {
+    if (audioRef.current && currentTrack) {
+      const audio = audioRef.current;
+      
+      const handleCanPlay = async () => {
         console.log('Áudio carregado e pronto para tocar');
-        if (currentTrack) {
-          setAutoplayBlocked(false);
+        setAutoplayBlocked(false);
+        
+        // Tenta iniciar automaticamente quando estiver pronto
+        try {
+          await audio.play();
+          console.log('🎵 Música iniciada automaticamente!');
+        } catch (error) {
+          console.log('🔒 Autoplay bloqueado pelo navegador - clique em qualquer lugar para ativar');
+          setAutoplayBlocked(true);
         }
       };
 
-      const handleError = () => {
-        console.log('Erro ao carregar áudio');
+      const handleError = (e: Event) => {
+        console.log('Erro ao carregar áudio:', e);
         setAutoplayBlocked(true);
+        setIsPlaying(false);
       };
 
-      audioRef.current.addEventListener('canplay', handleCanPlay);
-      audioRef.current.addEventListener('error', handleError);
+      const handleEnded = () => {
+        setIsPlaying(false);
+      };
+
+      const handlePlay = () => {
+        setIsPlaying(true);
+        setAutoplayBlocked(false);
+      };
+
+      const handlePause = () => {
+        setIsPlaying(false);
+      };
+
+      // Remove listeners antigos antes de adicionar novos
+      audio.removeEventListener('canplaythrough', handleCanPlay);
+      audio.removeEventListener('error', handleError);
+      audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('play', handlePlay);
+      audio.removeEventListener('pause', handlePause);
+
+      // Adiciona novos listeners
+      audio.addEventListener('canplaythrough', handleCanPlay, { once: true });
+      audio.addEventListener('error', handleError);
+      audio.addEventListener('ended', handleEnded);
+      audio.addEventListener('play', handlePlay);
+      audio.addEventListener('pause', handlePause);
 
       return () => {
-        if (audioRef.current) {
-          audioRef.current.removeEventListener('canplay', handleCanPlay);
-          audioRef.current.removeEventListener('error', handleError);
-        }
+        audio.removeEventListener('canplaythrough', handleCanPlay);
+        audio.removeEventListener('error', handleError);
+        audio.removeEventListener('ended', handleEnded);
+        audio.removeEventListener('play', handlePlay);
+        audio.removeEventListener('pause', handlePause);
       };
     }
   }, [currentTrack]);
 
   // Função para tocar música
-  const play = async (): Promise<void> => {
-    if (audioRef.current && currentTrack) {
-      try {
-        await audioRef.current.play();
-        setIsPlaying(true);
-        setAutoplayBlocked(false); // Reseta o autoplay bloqueado quando consegue tocar
-        console.log('Música iniciada!');
-      } catch (error) {
-        console.log('Erro ao tocar música:', error);
-        setAutoplayBlocked(true);
-      }
-    } else {
+  const play = useCallback(async (): Promise<void> => {
+    if (!audioRef.current || !currentTrack) {
       console.log('Não há faixa atual ou elemento de áudio não disponível');
       setAutoplayBlocked(true);
+      setIsPlaying(false);
+      return;
     }
-  };
 
-  // Função para pausar música
-  const pause = (): void => {
-    if (audioRef.current) {
-      audioRef.current.pause();
+    try {
+      // Verifica se já está carregado
+      if (audioRef.current.readyState >= 2) {
+        await audioRef.current.play();
+        console.log('Música iniciada!');
+      } else {
+        console.log('Aguardando carregamento do áudio...');
+        setAutoplayBlocked(true);
+      }
+    } catch (error) {
+      console.log('Erro ao tocar música:', error);
+      setAutoplayBlocked(true);
       setIsPlaying(false);
     }
-  };
+  }, [currentTrack]);
+
+  // Função para pausar música
+  const pause = useCallback((): void => {
+    if (audioRef.current && !audioRef.current.paused) {
+      audioRef.current.pause();
+    }
+  }, []);
 
   // Função para alternar play/pause
-  const togglePlay = async (): Promise<void> => {
+  const togglePlay = useCallback(async (): Promise<void> => {
     if (isPlaying) {
       pause();
     } else {
       await play();
     }
-  };
+  }, [isPlaying, pause, play]);
 
   // Função para alternar mute
-  const toggleMute = (): void => {
+  const toggleMute = useCallback((): void => {
     setIsMuted(!isMuted);
-  };
+  }, [isMuted]);
 
   // Função para ajustar volume
-  const setVolume = (newVolume: number): void => {
+  const setVolume = useCallback((newVolume: number): void => {
     setVolumeState(newVolume);
     setIsMuted(false);
-  };
+  }, []);
 
   // Função para trocar de música
-  const changeTrack = async (trackSrc: string): Promise<void> => {
-    if (audioRef.current) {
-      const wasPlaying = isPlaying;
-      
-      // Pausa a música atual
-      if (wasPlaying) {
-        pause();
-      }
-      
-      // Carrega nova música
-      audioRef.current.src = trackSrc;
-      setCurrentTrack(trackSrc);
-      
-      // Aguarda um pouco para o carregamento
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Tenta iniciar automaticamente se estava tocando antes
-      if (wasPlaying) {
-        try {
-          await audioRef.current.play();
-          setIsPlaying(true);
-          setAutoplayBlocked(false);
-        } catch {
-          setAutoplayBlocked(true);
-        }
-      }
+  const changeTrack = useCallback(async (trackSrc: string): Promise<void> => {
+    if (!audioRef.current) {
+      console.error('AudioRef não disponível');
+      return;
     }
-  };
+
+    // Evita recarregar a mesma música
+    if (currentTrack === trackSrc) {
+      console.log('🎵 Música já carregada:', trackSrc);
+      return;
+    }
+
+    console.log('🎵 Trocando música para:', trackSrc);
+    
+    // Pausa música atual se estiver tocando
+    if (!audioRef.current.paused) {
+      audioRef.current.pause();
+    }
+    
+    // Carrega nova música
+    audioRef.current.src = trackSrc;
+    setCurrentTrack(trackSrc);
+    setIsPlaying(false);
+    setAutoplayBlocked(false);
+    
+    console.log('✅ Música carregada:', trackSrc);
+  }, [currentTrack]);
 
   // Função para tentar iniciar música quando houver interação do usuário
-  const tryStartMusic = async (): Promise<void> => {
+  const tryStartMusic = useCallback(async (): Promise<void> => {
     if (audioRef.current && currentTrack) {
       try {
         await audioRef.current.play();
-        setIsPlaying(true);
-        setAutoplayBlocked(false); // Reseta o autoplay bloqueado
-        console.log('Música iniciada após interação do usuário!');
+        console.log('🎵 Música iniciada após interação!');
       } catch (error) {
-        console.log('Erro ao iniciar música:', error);
+        console.log('❌ Erro ao tocar:', error);
         setAutoplayBlocked(true);
       }
     }
-  };
+  }, [currentTrack]);
 
   const value: AudioContextType = {
     isPlaying,
