@@ -3,8 +3,7 @@ import { Box, Typography, Card, CardContent } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import InventoryModal from './InventoryModal';
 import type { Ficha } from '../types';
-
-// Importar o áudio ambiente
+import { useClickSound } from '../hooks/useClickSound';
 import peopleSound from '../assets/sounds/people.mp3';
 
 // Animações
@@ -16,15 +15,6 @@ const fadeIn = keyframes`
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-`;
-
-const pulseGlow = keyframes`
-  0%, 100% {
-    box-shadow: 0 0 10px rgba(250, 161, 35, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 20px rgba(250, 161, 35, 0.6);
   }
 `;
 
@@ -172,9 +162,9 @@ interface RoyalLendleScreenProps {
   ficha: Ficha;
 }
 
-const RoyalLendleScreen: React.FC<RoyalLendleScreenProps> = ({ 
-  onChoice, 
-  onBackToMap, 
+const RoyalLendleScreen: React.FC<RoyalLendleScreenProps> = ({
+  onChoice,
+  onBackToMap,
   ficha
 }) => {
   const [textVisible, setTextVisible] = useState(false);
@@ -195,7 +185,7 @@ const RoyalLendleScreen: React.FC<RoyalLendleScreenProps> = ({
     const setupAudio = async () => {
       try {
         console.log('🎵 [RoyalLendle] Configurando áudio ambiente people.mp3...');
-        
+
         if (audioRef.current) {
           audioRef.current.pause();
           audioRef.current = null;
@@ -235,7 +225,7 @@ const RoyalLendleScreen: React.FC<RoyalLendleScreenProps> = ({
     return () => {
       clearTimeout(textTimer);
       clearTimeout(choicesTimer);
-      
+
       // Pausar áudio ao sair da tela
       if (audioRef.current) {
         console.log('🎵 [RoyalLendle] Pausando áudio ambiente...');
@@ -245,30 +235,21 @@ const RoyalLendleScreen: React.FC<RoyalLendleScreenProps> = ({
     };
   }, []);
 
-  // Função para iniciar música manualmente
-  const startMusic = async () => {
-    if (audioRef.current) {
-      try {
-        await audioRef.current.play();
-        setShowMusicButton(false);
-        console.log('🎵 [RoyalLendle] Áudio ambiente iniciado manualmente');
-      } catch (error) {
-        console.error('🎵 [RoyalLendle] Erro ao tocar áudio manualmente:', error);
-      }
-    }
-  };
-
   const handleChoice = (choice: string) => {
     console.log(`🎲 Jogador escolheu: ${choice}`);
     onChoice(choice);
   };
 
+const playClick = useClickSound(0.2);
+
   return (
     <GameContainer>
-      <BackButton onClick={onBackToMap}>
-        ⬅ Voltar ao Mapa
+      <BackButton onClick={()=>{
+        playClick();
+        onBackToMap();}}>
+        Voltar ao Mapa
       </BackButton>
-      
+
       <PlayerStatus onClick={() => setInventoryOpen(true)}>
         {ficha.nome} | 💰 {totalGold} Moedas de Ouro
       </PlayerStatus>
@@ -287,8 +268,8 @@ const RoyalLendleScreen: React.FC<RoyalLendleScreenProps> = ({
       )}
 
       <StoryCard>
-        <CardContent sx={{ 
-          padding: '40px', 
+        <CardContent sx={{
+          padding: '40px',
           paddingBottom: '60px',  // Espaço extra embaixo
           overflow: 'visible',
           minHeight: 'auto'
@@ -296,35 +277,35 @@ const RoyalLendleScreen: React.FC<RoyalLendleScreenProps> = ({
           <LocationTitle>
             Royal Lendle
           </LocationTitle>
-          
-          <NarrativeText 
-            sx={{ 
+
+          <NarrativeText
+            sx={{
               opacity: textVisible ? 1 : 0,
               transition: 'opacity 1s ease-out'
             }}
           >
             Embora aliviado por você ter concordado em ir com ele, <strong>Mendokan</strong> fica um tanto envergonhado e diz:
-            <br/><br/>
+            <br /><br />
             — Nós somos muito pobres. Não podemos pagar mais do que <strong>duzentas Moedas de Ouro</strong> e, além disso, os anciãos da aldeia decretaram que só te pagaríamos depois que o serviço fosse concluído.
-            <br/><br/>
+            <br /><br />
             Como você sabe que os tempos estão difíceis para todos, não volta atrás e concorda com os termos do contrato. <strong>Mendokan</strong> sorri, aliviado, e vai se encontrar com os amigos para preparar a partida para <strong>Karnstein</strong>. Enquanto isso, você terá que comprar <strong>Provisões</strong> e outro equipamento para a sua expedição.
-            <br/><br/>
+            <br /><br />
             Você se despede de <strong>Mendokan</strong> e combinam de se encontrar dali a duas horas, na estrada principal ao sul da cidade. Assim que ele sai, chega um sujeito vestido de forma extravagante, abrindo caminho com cotoveladas para chegar até você. Ele se chama <strong>Bartolph</strong> e é um jogador pouco confiável. Frequentador das áreas mais perigosas da cidade, vive usando roupas caras de seda, como se quisesse mostrar o dinheiro que ganha no jogo.
-            <br/><br/>
+            <br /><br />
             — Há muito tempo que não te vejo por aqui — diz com um ar astuto. — <strong>Quer tentar a sorte?</strong>
-            <br/><br/>
+            <br /><br />
             Embora você não queira perder tempo, a verdade é que, se ganhasse, teria mais dinheiro para comprar equipamento, o que seria útil. O que você decide fazer?
           </NarrativeText>
 
           {/* BOTÕES ESTILIZADOS - AGORA QUE SABEMOS QUE FUNCIONA */}
-          <Box sx={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            gap: '16px', 
+          <Box sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
             marginTop: '32px',
             width: '100%'
           }}>
-            <button 
+            <button
               onClick={() => handleChoice('aceitar_jogo')}
               style={{
                 padding: '16px 24px',
@@ -366,9 +347,9 @@ const RoyalLendleScreen: React.FC<RoyalLendleScreenProps> = ({
             >
               <div>
                 <strong>Aceitar o Desafio de Bartolph</strong>
-                <div style={{ 
-                  marginTop: '8px', 
-                  color: '#D2B48C', 
+                <div style={{
+                  marginTop: '8px',
+                  color: '#D2B48C',
                   fontFamily: '"Spectral", serif',
                   fontStyle: 'italic',
                   fontSize: '14px'
@@ -378,7 +359,7 @@ const RoyalLendleScreen: React.FC<RoyalLendleScreenProps> = ({
               </div>
             </button>
 
-            <button 
+            <button
               onClick={() => handleChoice('recusar_jogo')}
               style={{
                 padding: '16px 24px',
@@ -420,9 +401,9 @@ const RoyalLendleScreen: React.FC<RoyalLendleScreenProps> = ({
             >
               <div>
                 <strong>Ir Embora e Preparar-se</strong>
-                <div style={{ 
-                  marginTop: '8px', 
-                  color: '#D2B48C', 
+                <div style={{
+                  marginTop: '8px',
+                  color: '#D2B48C',
                   fontFamily: '"Spectral", serif',
                   fontStyle: 'italic',
                   fontSize: '14px'
@@ -436,7 +417,7 @@ const RoyalLendleScreen: React.FC<RoyalLendleScreenProps> = ({
       </StoryCard>
 
       {/* Modal da Bolsa */}
-      <InventoryModal 
+      <InventoryModal
         open={inventoryOpen}
         onClose={() => setInventoryOpen(false)}
         ficha={ficha}

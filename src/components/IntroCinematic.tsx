@@ -75,7 +75,7 @@ const TIMELINE: Scene[] = [
     sfx: (s) => {
       console.log('🎬 Cena 1: Iniciando aventura');
       console.log('🎵 Tentando tocar música bgm-intro...');
-      s.playTag("music", 1.0, true);  // Música principal volume máximo
+      s.playTag("music", 0.3, true);  // Música principal volume máximo
       console.log('🎵 Comando de música enviado');
       s.wind(true);  // Vento reativado com volume baixo (0.2)
       console.log('🌪️ Comando de vento enviado (volume baixo)');
@@ -218,7 +218,7 @@ function useAudioManager(audioSources: AudioMap | undefined) {
       a.crossOrigin = "anonymous";
       a.loop = ["music", "tavern", "wind", "battle"].includes(k);
       // Volumes otimizados para os áudios do projeto
-      a.volume = k === "music" ? 1.0 :     // bgm-intro volume máximo
+      a.volume = k === "music" ? 0.3 :     // bgm-intro volume máximo
                  k === "tavern" ? 0.6 :    // bgm-modal para taverna
                  k === "wind" ? 0.2 :      // rain.wav bem baixo para não sobrepor
                  k === "mug" ? 0.8 :       // laugh.wav para taverna
@@ -390,7 +390,7 @@ function useAudioManager(audioSources: AudioMap | undefined) {
     },
     wind: (on = true) => {
       if (audioTags.current["wind"]) {
-        if (on) playTag("wind", 0.3, true);
+        if (on) playTag("wind", 0.2, true);
         else stopTag("wind");
         return;
       }
@@ -695,7 +695,7 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
     // FORÇAR MÚSICA PRINCIPAL IMEDIATAMENTE
     console.log('🎵 FORÇANDO bgm-intro.mp3 AGORA...');
     setTimeout(() => {
-      api.playTag("music", 1.0, true);
+      api.playTag("music", 0.3, true);
       console.log('🎵 Comando FORÇADO de música enviado');
     }, 100);
     

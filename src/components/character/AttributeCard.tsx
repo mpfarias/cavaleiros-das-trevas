@@ -20,6 +20,8 @@ interface AttributeCardProps {
   usarMeusDados: boolean;
   onRoll: () => void;
   onAtributoChange: (attr: 'pericia' | 'forca' | 'sorte', valor: number) => void;
+  rolagensFeitas?: number;
+  maxRolagens?: number;
 }
 
 const AttributeCard: React.FC<AttributeCardProps> = memo(({
@@ -28,7 +30,9 @@ const AttributeCard: React.FC<AttributeCardProps> = memo(({
   ficha,
   usarMeusDados,
   onRoll,
-  onAtributoChange
+  onAtributoChange,
+  rolagensFeitas = 0,
+  maxRolagens = 3
 }) => {
   const limits = ATTRIBUTE_LIMITS[attr];
   const formula = DICE_FORMULAS[attr];
@@ -85,10 +89,28 @@ const AttributeCard: React.FC<AttributeCardProps> = memo(({
               size="small"
               onClick={onRoll}
               startIcon={<CasinoIcon />}
+              disabled={rolagensFeitas >= maxRolagens}
               aria-label={`Rolar dados para ${title}: ${formula.text}`}
+              sx={{
+                '&:disabled': {
+                  opacity: 0.6,
+                  cursor: 'not-allowed'
+                }
+              }}
             >
               {formula.text}
             </Button>
+            {rolagensFeitas > 0 && (
+              <Chip
+                label={`${rolagensFeitas}/${maxRolagens}`}
+                size="small"
+                color={rolagensFeitas >= maxRolagens ? 'error' : 'default'}
+                sx={{
+                  fontSize: '0.75rem',
+                  height: '24px'
+                }}
+              />
+            )}
           </Stack>
         )}
         

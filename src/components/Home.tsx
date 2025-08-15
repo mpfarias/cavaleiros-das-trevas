@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { 
-  Box, 
-  Typography, 
-  Button, 
+import {
+  Box,
+  Typography,
+  Button,
   Divider,
   Dialog,
   DialogTitle,
@@ -13,6 +13,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { useAudio } from '../hooks/useAudio';
 import AudioControls from './AudioControls';
 import bgmModal from '../assets/sounds/bgm-modal.mp3';
+import { useClickSound } from '../hooks/useClickSound';
 
 interface HomeProps {
   onStart: () => void;
@@ -33,25 +34,24 @@ const Home: React.FC<HomeProps> = ({ onStart }) => {
         console.log('Erro ao carregar música:', error);
       }
     };
-    
+
     loadMusic();
-  }, []); // Remove a dependência changeTrack para evitar loops
+  }, []);
 
   const handleIniciarAventura = () => {
-    tryStartMusic(); // Tenta iniciar música quando clicar no botão
+    tryStartMusic();
     setModalExplicativoOpen(true);
   };
 
   const handleCiente = () => {
     setModalExplicativoOpen(false);
-    onStart(); // Chama a função original para ir para a ficha
+    onStart();
   };
+
+  const playClick = useClickSound(0.2);
 
   return (
     <>
-      
-      
-            {/* Controles de música */}
       <AudioControls />
 
       <Box
@@ -115,7 +115,9 @@ const Home: React.FC<HomeProps> = ({ onStart }) => {
         <Button
           variant="contained"
           size="large"
-          onClick={handleIniciarAventura}
+          onClick={() => {
+            playClick();
+            handleIniciarAventura();}}
           sx={{
             background: 'linear-gradient(180deg, rgba(179,18,18,0.85), rgba(179,18,18,0.7))',
             border: '1px solid rgba(255,255,255,0.14)',
@@ -129,7 +131,7 @@ const Home: React.FC<HomeProps> = ({ onStart }) => {
               transform: 'translateY(-1px)',
               background: 'linear-gradient(180deg, rgba(179,18,18,0.85))',
               boxShadow: '0 12px 36px rgba(179,18,18,0.85)',
-              color:'rgba(226, 143, 143, 0.85)'
+              color: 'rgba(226, 143, 143, 0.85)'
             },
           }}
         >
@@ -283,7 +285,9 @@ const Home: React.FC<HomeProps> = ({ onStart }) => {
 
           <DialogActions sx={{ p: 3, pt: 1 }}>
             <Button
-              onClick={handleCiente}
+              onClick={()=>{
+                playClick();
+                handleCiente();}}
               variant="contained"
               size="large"
               sx={{

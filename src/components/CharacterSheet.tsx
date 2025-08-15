@@ -35,6 +35,7 @@ import {
   Close as CloseIcon,
 } from '@mui/icons-material';
 import type { Ficha, Item } from '../types';
+import { createEmptyFicha } from '../types';
 import { adicionarItem, totalOuro } from '../utils/inventory';
 import { DICE_FORMULAS, ITEM_COLORS } from '../constants/character';
 
@@ -54,6 +55,10 @@ import NotificationToast from './ui/NotificationToast';
 
 import bgmFicha from '../assets/sounds/bgm-ficha.mp3';
 import screamWoman from '../assets/sounds/scream-woman.mp3';
+import { useBagSound } from '../hooks/useBagSound';
+
+import { useCoinSound } from '../hooks/useCoinsSound';
+import { useDiceSound } from '../hooks/useDiceSound';
 
 interface CharacterSheetProps {
   ficha: Ficha;
@@ -68,6 +73,17 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
   const [abaAtiva, setAbaAtiva] = useState(0);
   const [usarMeusDados, setUsarMeusDados] = useState(false);
   const [confirmStartOpen, setConfirmStartOpen] = useState(false);
+  
+  // Contador de rolagens para cada atributo (máximo 3 por atributo)
+  const [rolagensDados, setRolagensDados] = useState({
+    pericia: 0,
+    forca: 0,
+    sorte: 0
+  });
+
+  // Contador de limpezas (máximo 3 vezes)
+  const [limpezasRealizadas, setLimpezasRealizadas] = useState(0);
+  const maxLimpezas = 3;
 
   // Hooks
   const { changeTrack, tryStartMusic, autoplayBlocked, pause } = useAudio();
@@ -75,6 +91,9 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
   const { validateForStart } = useCharacterValidation();
   const { rollAttribute, rollWithDetails } = useDiceRoller();
   const { isLoading, loadFromFile, clearLocalStorage } = useFileOperations();
+  const playBag = useBagSound(1);
+  const playCoin = useCoinSound(1);
+  const playDice = useDiceSound(1);
 
   // Carrega a música específica da ficha quando o componente monta
   useEffect(() => {
@@ -111,25 +130,88 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
   }, [ficha, onFichaChange]);
 
   const rolarPericia = useCallback(() => {
+    if (rolagensDados.pericia >= 3) {
+      console.log('🚫 Limite de rolagens atingido para Perícia:', rolagensDados.pericia);
+      showNotification('Você já rolou os dados de Perícia 3 vezes. Limite máximo atingido.', 'warning');
+      return;
+    }
+    
+    playDice();
     const valor = rollAttribute('pericia');
     updateFicha({
       pericia: { inicial: valor, atual: valor },
     });
-  }, [rollAttribute, updateFicha]);
+    
+    setRolagensDados(prev => {
+      const newCount = prev.pericia + 1;
+      console.log('🎲 Rolagem de Perícia:', newCount, '/ 3');
+      if (newCount === 3) {
+        setTimeout(() => {
+          showNotification('⚠️ Você atingiu o limite máximo de rolagens para Perícia (3/3)', 'info');
+        }, 500);
+      }
+      return {
+        ...prev,
+        pericia: newCount
+      };
+    });
+  }, [rollAttribute, updateFicha, rolagensDados.pericia, playDice, showNotification]);
 
   const rolarForca = useCallback(() => {
+    if (rolagensDados.forca >= 3) {
+      console.log('🚫 Limite de rolagens atingido para Força:', rolagensDados.forca);
+      showNotification('Você já rolou os dados de Força 3 vezes. Limite máximo atingido.', 'warning');
+      return;
+    }
+    
+    playDice();
     const valor = rollAttribute('forca');
     updateFicha({
       forca: { inicial: valor, atual: valor },
     });
-  }, [rollAttribute, updateFicha]);
+    
+    setRolagensDados(prev => {
+      const newCount = prev.forca + 1;
+      console.log('🎲 Rolagem de Força:', newCount, '/ 3');
+      if (newCount === 3) {
+        setTimeout(() => {
+          showNotification('⚠️ Você atingiu o limite máximo de rolagens para Força (3/3)', 'info');
+        }, 500);
+      }
+      return {
+        ...prev,
+        forca: newCount
+      };
+    });
+  }, [rollAttribute, updateFicha, rolagensDados.forca, playDice, showNotification]);
 
   const rolarSorte = useCallback(() => {
+    if (rolagensDados.sorte >= 3) {
+      console.log('🚫 Limite de rolagens atingido para Sorte:', rolagensDados.sorte);
+      showNotification('Você já rolou os dados de Sorte 3 vezes. Limite máximo atingido.', 'warning');
+      return;
+    }
+    
+    playDice();
     const valor = rollAttribute('sorte');
     updateFicha({
       sorte: { inicial: valor, atual: valor },
     });
-  }, [rollAttribute, updateFicha]);
+    
+    setRolagensDados(prev => {
+      const newCount = prev.sorte + 1;
+      console.log('🎲 Rolagem de Sorte:', newCount, '/ 3');
+      if (newCount === 3) {
+        setTimeout(() => {
+          showNotification('⚠️ Você atingiu o limite máximo de rolagens para Sorte (3/3)', 'info');
+        }, 500);
+      }
+      return {
+        ...prev,
+        sorte: newCount
+      };
+    });
+  }, [rollAttribute, updateFicha, rolagensDados.sorte, playDice, showNotification]);
 
   const handleAtributoChange = useCallback((attr: 'pericia' | 'forca' | 'sorte', valor: number) => {
     updateFicha({
@@ -162,6 +244,10 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
 
 
   const resetar = () => {
+    if (limpezasRealizadas >= maxLimpezas) {
+      showNotification('Você já usou todas as suas 3 limpezas. Limite máximo atingido.', 'warning');
+      return;
+    }
     setConfirmOpen(true);
   };
 
@@ -207,10 +293,10 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
 
   // Memoized handlers for attribute cards
   const attributeCards = useMemo(() => [
-    { title: 'PERÍCIA', attr: 'pericia' as const, onRoll: rolarPericia },
-    { title: 'FORÇA', attr: 'forca' as const, onRoll: rolarForca },
-    { title: 'SORTE', attr: 'sorte' as const, onRoll: rolarSorte },
-  ], [rolarPericia, rolarForca, rolarSorte]);
+    { title: 'PERÍCIA', attr: 'pericia' as const, onRoll: rolarPericia, rolagensFeitas: rolagensDados.pericia },
+    { title: 'FORÇA', attr: 'forca' as const, onRoll: rolarForca, rolagensFeitas: rolagensDados.forca },
+    { title: 'SORTE', attr: 'sorte' as const, onRoll: rolarSorte, rolagensFeitas: rolagensDados.sorte },
+  ], [rolarPericia, rolarForca, rolarSorte, rolagensDados]);
 
   const getItemIcon = (tipo: Item['tipo']) => {
     switch (tipo) {
@@ -242,7 +328,9 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
             <Button
               variant="outlined"
               size="small"
-              onClick={() => setBolsaModalOpen(true)}
+              onClick={() => {
+                playBag();
+                setBolsaModalOpen(true)}}
               startIcon={<InventoryIcon />}
               sx={{
                 borderColor: 'rgba(255,255,255,0.3)',
@@ -326,12 +414,39 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
 
   const handleConfirmReset = useCallback(() => {
     setConfirmOpen(false);
+    
+    // Incrementar contador de limpezas
+    setLimpezasRealizadas(prev => prev + 1);
+    
+    // Resetar contadores de rolagens
+    setRolagensDados({
+      pericia: 0,
+      forca: 0,
+      sorte: 0
+    });
+    
     const result = clearLocalStorage();
     showNotification(result.message, result.severity);
+    
+    // Não redirecionar mais - apenas limpar a ficha localmente
     if (result.success) {
-      setTimeout(() => window.location.reload(), 1000);
+      // Criar uma ficha vazia usando a função padrão
+      const fichaVazia = createEmptyFicha();
+      
+      // Atualizar a ficha com dados vazios
+      onFichaChange(fichaVazia);
+      
+      // Resetar também o checkbox de "usar meus dados"
+      setUsarMeusDados(false);
+      
+      const limpezasRestantes = maxLimpezas - (limpezasRealizadas + 1);
+      if (limpezasRestantes > 0) {
+        showNotification(`Ficha resetada! Você pode limpar mais ${limpezasRestantes} vez(es).`, 'success');
+      } else {
+        showNotification('Ficha resetada! Esta foi sua última limpeza disponível.', 'warning');
+      }
     }
-  }, [clearLocalStorage, showNotification]);
+  }, [clearLocalStorage, showNotification, onFichaChange, limpezasRealizadas, maxLimpezas]);
 
   const handleCancelReset = useCallback(() => {
     setConfirmOpen(false);
@@ -351,7 +466,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
     // Reset input
     e.currentTarget.value = '';
   }, [loadFromFile, showNotification, updateFicha]);
-
+  
   return (
     <Box
       sx={{
@@ -428,7 +543,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
       </Card>
 
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 2, mb: 3 }}>
-        {attributeCards.map(({ title, attr, onRoll }) => (
+        {attributeCards.map(({ title, attr, onRoll, rolagensFeitas }) => (
           <AttributeCard
             key={attr}
             title={title}
@@ -437,6 +552,8 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
             usarMeusDados={usarMeusDados}
             onRoll={onRoll}
             onAtributoChange={handleAtributoChange}
+            rolagensFeitas={rolagensFeitas}
+            maxRolagens={3}
           />
         ))}
         <Card>
@@ -457,7 +574,10 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
               <Button
                 variant="outlined"
                 size="small"
-                onClick={rolarMoedasOuro}
+                onClick={()=>{
+                  playCoin();
+                  rolarMoedasOuro();
+                }}
                 startIcon={<CasinoIcon />}
                 disabled={!!ficha.bolsa.find(item => item.nome === 'Moedas de Ouro') || isLoading}
                 sx={{
@@ -506,15 +626,37 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
             />
           </Button>
 
-          <Button
-            variant="contained"
-            color="error"
-            onClick={resetar}
-            startIcon={<DeleteIcon />}
-            sx={{ background: '#3b1212', borderColor: '#6b1c1c' }}
-          >
-            Limpar
-          </Button>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Button
+              variant="contained"
+              color="error"
+              onClick={resetar}
+              startIcon={<DeleteIcon />}
+              disabled={limpezasRealizadas >= maxLimpezas}
+              sx={{ 
+                background: '#3b1212', 
+                borderColor: '#6b1c1c',
+                '&:disabled': {
+                  opacity: 0.6,
+                  cursor: 'not-allowed',
+                  background: '#2a0e0e'
+                }
+              }}
+            >
+              Limpar
+            </Button>
+            {limpezasRealizadas > 0 && (
+              <Chip
+                label={`${limpezasRealizadas}/${maxLimpezas}`}
+                size="small"
+                color={limpezasRealizadas >= maxLimpezas ? 'error' : 'default'}
+                sx={{
+                  fontSize: '0.75rem',
+                  height: '24px'
+                }}
+              />
+            )}
+          </Box>
           <Button
             variant="outlined"
             onClick={onVoltar}
@@ -560,8 +702,11 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
       <Dialog open={confirmOpen} onClose={handleCancelReset}>
         <DialogTitle>Apagar ficha?</DialogTitle>
         <DialogContent>
-          <Typography variant="body2">
-            Esta ação removerá sua ficha salva do dispositivo. Deseja continuar?
+          <Typography variant="body2" sx={{ mb: 1 }}>
+            Esta ação removerá sua ficha salva do dispositivo.
+          </Typography>
+          <Typography variant="body2" color="warning.main">
+            Você pode apagar seus atributos apenas mais {maxLimpezas - limpezasRealizadas} vez(es). Deseja continuar?
           </Typography>
         </DialogContent>
         <DialogActions>
