@@ -56,9 +56,10 @@ import NotificationToast from './ui/NotificationToast';
 import bgmFicha from '../assets/sounds/bgm-ficha.mp3';
 import screamWoman from '../assets/sounds/scream-woman.mp3';
 import { useBagSound } from '../hooks/useBagSound';
-
 import { useCoinSound } from '../hooks/useCoinsSound';
 import { useDiceSound } from '../hooks/useDiceSound';
+import { useClickSound } from '../hooks/useClickSound';
+
 
 interface CharacterSheetProps {
   ficha: Ficha;
@@ -73,7 +74,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
   const [abaAtiva, setAbaAtiva] = useState(0);
   const [usarMeusDados, setUsarMeusDados] = useState(false);
   const [confirmStartOpen, setConfirmStartOpen] = useState(false);
-  
+
   // Contador de rolagens para cada atributo (máximo 3 por atributo)
   const [rolagensDados, setRolagensDados] = useState({
     pericia: 0,
@@ -94,6 +95,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
   const playBag = useBagSound(1);
   const playCoin = useCoinSound(1);
   const playDice = useDiceSound(1);
+  const playClick = useClickSound(1);
 
   // Carrega a música específica da ficha quando o componente monta
   useEffect(() => {
@@ -135,13 +137,13 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
       showNotification('Você já rolou os dados de Perícia 3 vezes. Limite máximo atingido.', 'warning');
       return;
     }
-    
+
     playDice();
     const valor = rollAttribute('pericia');
     updateFicha({
       pericia: { inicial: valor, atual: valor },
     });
-    
+
     setRolagensDados(prev => {
       const newCount = prev.pericia + 1;
       console.log('🎲 Rolagem de Perícia:', newCount, '/ 3');
@@ -163,13 +165,13 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
       showNotification('Você já rolou os dados de Força 3 vezes. Limite máximo atingido.', 'warning');
       return;
     }
-    
+
     playDice();
     const valor = rollAttribute('forca');
     updateFicha({
       forca: { inicial: valor, atual: valor },
     });
-    
+
     setRolagensDados(prev => {
       const newCount = prev.forca + 1;
       console.log('🎲 Rolagem de Força:', newCount, '/ 3');
@@ -191,13 +193,13 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
       showNotification('Você já rolou os dados de Sorte 3 vezes. Limite máximo atingido.', 'warning');
       return;
     }
-    
+
     playDice();
     const valor = rollAttribute('sorte');
     updateFicha({
       sorte: { inicial: valor, atual: valor },
     });
-    
+
     setRolagensDados(prev => {
       const newCount = prev.sorte + 1;
       console.log('🎲 Rolagem de Sorte:', newCount, '/ 3');
@@ -262,11 +264,11 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
     setConfirmStartOpen(true);
   }, [ficha, validateForStart, showNotification]);
 
-  
 
-    const handleConfirmStart = useCallback(async () => {
+
+  const handleConfirmStart = useCallback(async () => {
     setConfirmStartOpen(false);
-    
+
     // Tocar som de grito
     try {
       const screamAudio = new Audio(screamWoman);
@@ -275,7 +277,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
     } catch (error) {
       console.log('Erro ao tocar som de grito:', error);
     }
-    
+
     // Pequeno delay para o som e depois navegar para cinematográfica
     setTimeout(() => {
       // Pausar música da ficha antes de navegar
@@ -330,7 +332,8 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
               size="small"
               onClick={() => {
                 playBag();
-                setBolsaModalOpen(true)}}
+                setBolsaModalOpen(true)
+              }}
               startIcon={<InventoryIcon />}
               sx={{
                 borderColor: 'rgba(255,255,255,0.3)',
@@ -414,31 +417,31 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
 
   const handleConfirmReset = useCallback(() => {
     setConfirmOpen(false);
-    
+
     // Incrementar contador de limpezas
     setLimpezasRealizadas(prev => prev + 1);
-    
+
     // Resetar contadores de rolagens
     setRolagensDados({
       pericia: 0,
       forca: 0,
       sorte: 0
     });
-    
+
     const result = clearLocalStorage();
     showNotification(result.message, result.severity);
-    
+
     // Não redirecionar mais - apenas limpar a ficha localmente
     if (result.success) {
       // Criar uma ficha vazia usando a função padrão
       const fichaVazia = createEmptyFicha();
-      
+
       // Atualizar a ficha com dados vazios
       onFichaChange(fichaVazia);
-      
+
       // Resetar também o checkbox de "usar meus dados"
       setUsarMeusDados(false);
-      
+
       const limpezasRestantes = maxLimpezas - (limpezasRealizadas + 1);
       if (limpezasRestantes > 0) {
         showNotification(`Ficha resetada! Você pode limpar mais ${limpezasRestantes} vez(es).`, 'success');
@@ -466,7 +469,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
     // Reset input
     e.currentTarget.value = '';
   }, [loadFromFile, showNotification, updateFicha]);
-  
+
   return (
     <Box
       sx={{
@@ -486,7 +489,10 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
         open={notification.open}
         message={notification.message}
         severity={notification.severity}
-        onClose={hideNotification}
+        onClose={() => {
+          playClick();
+          hideNotification();
+        }}
       />
 
       <Typography variant="h2" sx={{ mb: 2 }}>
@@ -574,7 +580,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
               <Button
                 variant="outlined"
                 size="small"
-                onClick={()=>{
+                onClick={() => {
                   playCoin();
                   rolarMoedasOuro();
                 }}
@@ -630,11 +636,14 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
             <Button
               variant="contained"
               color="error"
-              onClick={resetar}
+              onClick={() => {
+                playClick();
+                resetar()
+              }}
               startIcon={<DeleteIcon />}
               disabled={limpezasRealizadas >= maxLimpezas}
-              sx={{ 
-                background: '#3b1212', 
+              sx={{
+                background: '#3b1212',
                 borderColor: '#6b1c1c',
                 '&:disabled': {
                   opacity: 0.6,
@@ -659,7 +668,10 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
           </Box>
           <Button
             variant="outlined"
-            onClick={onVoltar}
+            onClick={() => {
+              playClick();
+              onVoltar();
+            }}
             sx={{
               borderColor: 'rgba(255,255,255,0.3)',
               color: 'text.secondary',
@@ -677,7 +689,10 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
         <Button
           variant="contained"
           size="large"
-          onClick={comecarAventura}
+          onClick={() => {
+            playClick();
+            comecarAventura();
+          }}
           sx={{
             background: 'linear-gradient(180deg, rgba(179,18,18,0.85), rgba(179,18,18,0.7))',
             border: '1px solid rgba(255,255,255,0.14)',
@@ -691,7 +706,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
               transform: 'translateY(-1px)',
               background: 'linear-gradient(180deg, rgba(179,18,18,0.85))',
               boxShadow: '0 12px 36px rgba(179,18,18,0.85)',
-              color:'rgba(245, 111, 111, 0.85)'
+              color: 'rgba(245, 111, 111, 0.85)'
             },
           }}
         >
@@ -699,7 +714,10 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
         </Button>
       </Stack>
 
-      <Dialog open={confirmOpen} onClose={handleCancelReset}>
+      <Dialog open={confirmOpen} onClose={() => {
+        playClick();
+        handleCancelReset();
+      }}>
         <DialogTitle>Apagar ficha?</DialogTitle>
         <DialogContent>
           <Typography variant="body2" sx={{ mb: 1 }}>
@@ -710,8 +728,8 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCancelReset}>Cancelar</Button>
-          <Button color="error" variant="contained" onClick={handleConfirmReset} startIcon={<DeleteIcon />}>
+          <Button onClick={() => { playClick(); handleCancelReset(); }}>Cancelar</Button>
+          <Button color="error" variant="contained" onClick={() => { playClick(); handleConfirmReset() }} startIcon={<DeleteIcon />}>
             Apagar
           </Button>
         </DialogActions>
@@ -720,7 +738,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
       {/* Modal da Bolsa */}
       <Dialog
         open={bolsaModalOpen}
-        onClose={() => setBolsaModalOpen(false)}
+        onClose={() => { playClick(); setBolsaModalOpen(false) }}
         maxWidth="md"
         fullWidth
       >
@@ -743,7 +761,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
                 }}
               />
               <IconButton
-                onClick={() => setBolsaModalOpen(false)}
+                onClick={() => { playClick(); setBolsaModalOpen(false) }}
                 size="small"
               >
                 <CloseIcon />
@@ -1020,14 +1038,14 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={() => setBolsaModalOpen(false)}>
+          <Button onClick={() => { playClick(); setBolsaModalOpen(false) }}>
             Fechar
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* Modal de confirmação para começar aventura */}
-      <Dialog open={confirmStartOpen} onClose={handleCancelStart} maxWidth="sm" fullWidth>
+      <Dialog open={confirmStartOpen} onClose={() => { playClick(); handleCancelStart(); }} maxWidth="sm" fullWidth>
         <Card sx={{ background: "linear-gradient(160deg, rgba(255,255,255,.06), rgba(255,255,255,.03))", border: "1px solid rgba(255,255,255,.1)", color: "#e8e6e3", bgcolor: "#0a0b0f" }}>
           <CardContent sx={{ textAlign: "center", p: 4 }}>
             <Typography variant="h5" gutterBottom>Prepare-se!</Typography>
@@ -1035,11 +1053,11 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
               Está pronto para começar a aventura, <strong>{ficha.nome}</strong>?
             </Typography>
             <DialogActions sx={{ justifyContent: 'center', gap: 2 }}>
-              <Button onClick={handleCancelStart} variant="outlined">
+              <Button onClick={() => { playClick(); handleCancelStart() }} variant="outlined">
                 Não, ainda não
               </Button>
               <Button
-                onClick={handleConfirmStart}
+                onClick={() => { playClick(); handleConfirmStart() }}
                 variant="contained"
                 color="error"
                 sx={{
