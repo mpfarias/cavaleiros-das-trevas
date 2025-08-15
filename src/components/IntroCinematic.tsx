@@ -6,32 +6,8 @@ import { styled, keyframes } from "@mui/material/styles";
 import bgmIntro from '../assets/sounds/bgm-intro.mp3';
 import bgmModal from '../assets/sounds/bgm-modal.mp3';
 import rainSound from '../assets/sounds/rainning.mp3';
+import { useClickSound } from "../hooks/useClickSound";
 
-/**
- * IntroCinematic.tsx — Abertura cinematográfica (TypeScript + React + MUI)
- *
- * - Exibe a narrativa de Royal Lendle em blocos com pausas dramáticas
- * - Partículas, vinheta, fade e sons sincronizados
- * - Suporte a áudios reais por props + fallback com WebAudio sintetizado
- * - Controles: Pular, Rever, Iniciar Aventura
- *
- * Como usar:
- * <IntroCinematic
- *   onFinish={() => navigate("/ficha-personagem")}
- * />
- * 
- * Áudios mapeados automaticamente:
- * - bgm-intro.mp3: Música de fundo principal
- * - bgm-modal.mp3: Música de taverna/ambiente
- * - rain.wav: Chuva/vento para atmosfera
- * - laugh.wav: Risadas de taverna
- */
-
-// ==========================
-// Tipos & Timeline narrativa
-// ==========================
-
-// Mapeamento automático dos áudios do projeto
 const PROJECT_AUDIO_MAP: Record<string, string> = {
   music: bgmIntro,     // Música de fundo principal
   tavern: bgmModal,    // Música de taverna/ambiente
@@ -40,10 +16,6 @@ const PROJECT_AUDIO_MAP: Record<string, string> = {
   steps: rainSound,    // Improvisa passos com chuva baixa
   thunder: rainSound,  // Usa chuva para trovão
 };
-
-// Debug do mapeamento
-console.log('🎵 PROJECT_AUDIO_MAP:', PROJECT_AUDIO_MAP);
-console.log('🎵 bgmIntro path:', bgmIntro);
 
 type AudioMap = Partial<Record<
   | "music"
@@ -615,6 +587,8 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
   const running = useRef(false);
   const raf = useRef<number | null>(null);
 
+  const playClick = useClickSound(1);
+
   const { ensureAudioContext, loadTags, api } = useAudioManager(audioSources);
 
   // Controles da timeline
@@ -738,7 +712,6 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
   return (
     <Screen 
       onClick={(e) => {
-        // Previne cliques indesejados que podem pular para o mapa
         e.preventDefault();
         e.stopPropagation();
         console.log('🎬 [DEBUG] Clique na tela bloqueado para evitar navegação indesejada');
@@ -749,6 +722,7 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
           onClick={(e) => {
             e.stopPropagation();
             skip();
+            playClick();
           }}
           style={{
             padding: '12px 24px',
@@ -791,6 +765,7 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
           onClick={(e) => {
             e.stopPropagation();
             replay();
+            playClick();
           }}
           style={{
             padding: '12px 24px',
@@ -847,6 +822,7 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
         <Box sx={{ mt: 2, opacity: ended ? 1 : 0, transform: `translateY(${ended ? 0 : 10}px)`, transition: ".6s ease all" }}>
           <button
             onClick={(e) => {
+              playClick();
               e.stopPropagation();
               console.log('🎬 [DEBUG] Clicou em Ir para Karnstein');
               console.log('🎬 [DEBUG] ended:', ended);
