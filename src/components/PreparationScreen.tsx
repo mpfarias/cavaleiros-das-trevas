@@ -329,3 +329,4 @@ const PreparationScreen: React.FC<PreparationScreenProps> = ({
 };
 
 export default PreparationScreen;
+

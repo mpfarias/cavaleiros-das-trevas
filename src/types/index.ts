@@ -63,14 +63,6 @@ export const createEmptyFicha = (): Ficha => ({
       tipo: 'arma',
       descricao: 'Espada básica de aço, arma padrão de todo cavaleiro',
       adquiridoEm: 'Criação do Personagem'
-    },
-    {
-      id: 'ouro_inicial',
-      nome: 'Moedas de Ouro',
-      tipo: 'ouro',
-      quantidade: 100,
-      descricao: 'Moedas de ouro para compras e transações',
-      adquiridoEm: 'Criação do Personagem'
     }
   ],
 })

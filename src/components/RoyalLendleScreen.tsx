@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Box, Typography, Card, CardContent } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import InventoryModal from './InventoryModal';
 import type { Ficha } from '../types';
+
+// Importar o áudio ambiente
+import peopleSound from '../assets/sounds/people.mp3';
 
 // Animações
 const fadeIn = keyframes`
@@ -112,44 +115,6 @@ const NarrativeText = styled(Typography)({
   }
 });
 
-const ChoicesContainer = styled(Box)({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '16px',
-  width: '100%',
-  marginTop: '20px'
-});
-
-const ChoiceButton = styled('button')({
-  padding: '16px 24px',
-  background: 'linear-gradient(135deg, rgba(139,69,19,0.9) 0%, rgba(160,82,45,0.8) 100%)',
-  color: '#F5DEB3',
-  border: '2px solid #D2B48C',
-  borderRadius: '12px',
-  fontSize: '16px',
-  fontFamily: '"Cinzel", serif',
-  fontWeight: '600',
-  textAlign: 'left',
-  cursor: 'pointer',
-  transition: 'all 0.3s ease',
-  position: 'relative',
-  outline: 'none',
-  textShadow: '0 1px 2px rgba(0,0,0,0.8)',
-  boxShadow: '0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
-  animation: `${fadeIn} 0.8s ease-out 0.5s both`,
-  '&:hover': {
-    background: 'linear-gradient(135deg, rgba(179,18,18,0.9) 0%, rgba(139,0,0,0.8) 100%)',
-    borderColor: '#FFD700',
-    color: '#FFFFFF',
-    transform: 'translateY(-2px) scale(1.02)',
-    boxShadow: '0 8px 25px rgba(179,18,18,0.4), inset 0 1px 0 rgba(255,255,255,0.2)',
-    animation: `${pulseGlow} 2s ease-in-out infinite`
-  },
-  '&:active': {
-    transform: 'translateY(0) scale(0.98)'
-  }
-});
-
 const BackButton = styled('button')({
   position: 'absolute',
   top: '20px',
@@ -215,6 +180,10 @@ const RoyalLendleScreen: React.FC<RoyalLendleScreenProps> = ({
   const [textVisible, setTextVisible] = useState(false);
   const [choicesVisible, setChoicesVisible] = useState(false);
   const [inventoryOpen, setInventoryOpen] = useState(false);
+  const [showMusicButton, setShowMusicButton] = useState(false);
+
+  // Ref para o áudio ambiente
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Calcular total de moedas de ouro
   const totalGold = ficha.bolsa
@@ -222,6 +191,37 @@ const RoyalLendleScreen: React.FC<RoyalLendleScreenProps> = ({
     .reduce((total, item) => total + (item.quantidade || 0), 0);
 
   useEffect(() => {
+    // Configurar e iniciar áudio ambiente
+    const setupAudio = async () => {
+      try {
+        console.log('🎵 [RoyalLendle] Configurando áudio ambiente people.mp3...');
+        
+        if (audioRef.current) {
+          audioRef.current.pause();
+          audioRef.current = null;
+        }
+
+        const audio = new Audio(peopleSound);
+        audio.volume = 0.1; // Volume moderado para ambiente
+        audio.loop = true;
+        audioRef.current = audio;
+
+        // Tentar tocar automaticamente
+        try {
+          await audio.play();
+          console.log('🎵 [RoyalLendle] Áudio ambiente iniciado automaticamente');
+        } catch (autoplayError) {
+          console.warn('🎵 [RoyalLendle] Autoplay bloqueado, mostrando botão manual');
+          setShowMusicButton(true);
+        }
+      } catch (error) {
+        console.error('🎵 [RoyalLendle] Erro ao configurar áudio:', error);
+        setShowMusicButton(true);
+      }
+    };
+
+    setupAudio();
+
     // Animar entrada do texto
     const textTimer = setTimeout(() => {
       setTextVisible(true);
@@ -235,8 +235,28 @@ const RoyalLendleScreen: React.FC<RoyalLendleScreenProps> = ({
     return () => {
       clearTimeout(textTimer);
       clearTimeout(choicesTimer);
+      
+      // Pausar áudio ao sair da tela
+      if (audioRef.current) {
+        console.log('🎵 [RoyalLendle] Pausando áudio ambiente...');
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
     };
   }, []);
+
+  // Função para iniciar música manualmente
+  const startMusic = async () => {
+    if (audioRef.current) {
+      try {
+        await audioRef.current.play();
+        setShowMusicButton(false);
+        console.log('🎵 [RoyalLendle] Áudio ambiente iniciado manualmente');
+      } catch (error) {
+        console.error('🎵 [RoyalLendle] Erro ao tocar áudio manualmente:', error);
+      }
+    }
+  };
 
   const handleChoice = (choice: string) => {
     console.log(`🎲 Jogador escolheu: ${choice}`);
@@ -252,6 +272,19 @@ const RoyalLendleScreen: React.FC<RoyalLendleScreenProps> = ({
       <PlayerStatus onClick={() => setInventoryOpen(true)}>
         {ficha.nome} | 💰 {totalGold} Moedas de Ouro
       </PlayerStatus>
+
+      {/* Botão para iniciar música manualmente se autoplay falhar */}
+      {showMusicButton && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '80px',
+            right: '20px',
+            zIndex: 20
+          }}
+        >
+        </Box>
+      )}
 
       <StoryCard>
         <CardContent sx={{ 
@@ -332,7 +365,7 @@ const RoyalLendleScreen: React.FC<RoyalLendleScreenProps> = ({
               }}
             >
               <div>
-                🎲 <strong>Aceitar o Desafio de Bartolph</strong>
+                <strong>Aceitar o Desafio de Bartolph</strong>
                 <div style={{ 
                   marginTop: '8px', 
                   color: '#D2B48C', 
@@ -386,7 +419,7 @@ const RoyalLendleScreen: React.FC<RoyalLendleScreenProps> = ({
               }}
             >
               <div>
-                🚶 <strong>Ir Embora e Preparar-se</strong>
+                <strong>Ir Embora e Preparar-se</strong>
                 <div style={{ 
                   marginTop: '8px', 
                   color: '#D2B48C', 
