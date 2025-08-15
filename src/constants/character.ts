@@ -5,10 +5,10 @@ export const ATTRIBUTE_LIMITS = {
 } as const;
 
 export const DICE_FORMULAS = {
-  pericia: { dice: '1d6', bonus: 6, text: '1 D6 + 6' },
-  forca: { dice: '2d6', bonus: 12, text: '2 D6 + 12' },
-  sorte: { dice: '1d6', bonus: 6, text: '1 D6 + 6' },
-  ouro: { dice: '2d6', bonus: 12, text: '2 D6 + 12' }
+  pericia: { dice: '1d6', bonus: 6, text: 'Definir perícia' },
+  forca: { dice: '2d6', bonus: 12, text: 'Definir força' },
+  sorte: { dice: '1d6', bonus: 6, text: 'Definir sorte' },
+  ouro: { dice: '2d6', bonus: 12, text: 'Gerar moedas de ouro' }
 } as const;
 
 export const NOTIFICATION_CONFIG = {

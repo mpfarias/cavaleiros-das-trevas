@@ -237,11 +237,20 @@ const Home: React.FC<HomeProps> = ({ onStart }) => {
                 fontSize: '15px',
                 fontFamily: '"Spectral", serif',
               }}>
-                Para determinar cada atributo, clique no botão com o símbolo de um dado.
+                Para determinar cada atributo, clique no botão "Definir atributo (Perícia, Força e Sorte)".
                 Se preferir sentir o peso do destino em suas próprias mãos, tenha à disposição <b>dois dados de seis lados</b> e role-os para decidir seus valores, conforme instruções abaixo:<br />
                 1 - Para definir sua <b>PERÍCIA</b>, role 1 dado e some 6 ao resultado.<br />
                 2 - Para definir sua <b>FORÇA</b>, role 2 dados e some 12 ao resultado.<br />
                 3 - Para definir sua <b>SORTE</b>, role 1 dado e some 6 ao resultado.<br />
+                </Typography>
+              <Typography variant="body1" sx={{
+                mb: 3,
+                lineHeight: 1.8,
+                color: 'text.secondary',
+                fontSize: '15px',
+                fontFamily: '"Spectral", serif',
+              }}>
+                <b>Lembre-se: só poderá rolar os dados no máximo 3 vezes por atributo!</b>
               </Typography>
 
               <Typography variant="body1" sx={{
