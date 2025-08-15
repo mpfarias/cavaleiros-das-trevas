@@ -116,7 +116,6 @@ const Home: React.FC<HomeProps> = ({ onStart }) => {
           variant="contained"
           size="large"
           onClick={handleIniciarAventura}
-          startIcon={<PlayArrowIcon />}
           sx={{
             background: 'linear-gradient(180deg, rgba(179,18,18,0.85), rgba(179,18,18,0.7))',
             border: '1px solid rgba(255,255,255,0.14)',
@@ -128,8 +127,9 @@ const Home: React.FC<HomeProps> = ({ onStart }) => {
             transition: 'transform 0.12s, box-shadow 0.2s, background 0.2s',
             '&:hover': {
               transform: 'translateY(-1px)',
-              background: 'linear-gradient(180deg, rgba(182,123,3,0.95), rgba(179,18,18,0.85))',
-              boxShadow: '0 12px 36px rgba(182,123,3,0.35)',
+              background: 'linear-gradient(180deg, rgba(179,18,18,0.85))',
+              boxShadow: '0 12px 36px rgba(179,18,18,0.85)',
+              color:'rgba(226, 143, 143, 0.85)'
             },
           }}
         >

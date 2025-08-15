@@ -4,6 +4,10 @@ import { CssBaseline, Box } from '@mui/material';
 import Home from './components/Home';
 import CharacterSheet from './components/CharacterSheet';
 import IntroCinematic from './components/IntroCinematic';
+import MapScreen from './components/MapScreen';
+import RoyalLendleScreen from './components/RoyalLendleScreen';
+import BartolphGameScreen from './components/BartolphGameScreen';
+import PreparationScreen from './components/PreparationScreen';
 import type { Ficha } from './types';
 import { FichaSchema, createEmptyFicha } from './types';
 import { AudioProvider } from './contexts/AudioContext';
@@ -128,8 +132,9 @@ const darkTheme = createTheme({
 });
 
 function App() {
-  const [currentView, setCurrentView] = useState<'home' | 'sheet' | 'cinematic'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'sheet' | 'cinematic' | 'map' | 'royallendle' | 'bartolph' | 'preparation'>('home');
   const [ficha, setFicha] = useState<Ficha>(createEmptyFicha());
+  const [currentLocation, setCurrentLocation] = useState<string>('');
 
   useEffect(() => {
     const savedData = localStorage.getItem('cavaleiro:ficha');
@@ -159,6 +164,96 @@ function App() {
     } catch (e) {
       console.error('Falha ao salvar no localStorage:', e);
     }
+  };
+
+  const handleLocationSelect = (location: string) => {
+    console.log(`🗺️ Navegando para: ${location}`);
+    setCurrentLocation(location);
+    
+    // Roteamento baseado na localização
+    switch (location) {
+      case 'Royal':
+        setCurrentView('royallendle');
+        break;
+      case 'Karnstein':
+        // TODO: Implementar tela de Karnstein
+        console.log('🏰 Karnstein ainda não implementado');
+        break;
+      default:
+        console.log(`📍 Localização ${location} ainda não implementada`);
+    }
+  };
+
+  const handleGameChoice = (choice: string) => {
+    console.log(`🎲 Escolha feita: ${choice} em ${currentLocation}`);
+    
+    // Lógica específica baseada na escolha
+    switch (choice) {
+      case 'aceitar_jogo':
+        console.log('🎲 Jogador aceitou o jogo de Bartolph');
+        setCurrentView('bartolph');
+        break;
+      case 'recusar_jogo':
+        console.log('🚶 Jogador recusou o jogo e vai se preparar');
+        setCurrentView('preparation');
+        break;
+      default:
+        console.log(`❓ Escolha não reconhecida: ${choice}`);
+    }
+  };
+
+  const handleGameResult = (won: boolean, goldChange: number) => {
+    console.log(`🎲 Resultado do jogo: ${won ? 'Vitória' : 'Derrota'}, Mudança de ouro: ${goldChange}`);
+    
+    // Atualizar ouro na ficha
+    const updatedFicha = { ...ficha };
+    const goldItemIndex = updatedFicha.bolsa.findIndex(item => item.tipo === 'ouro');
+    
+    if (goldItemIndex !== -1) {
+      const currentGold = updatedFicha.bolsa[goldItemIndex].quantidade || 0;
+      updatedFicha.bolsa[goldItemIndex].quantidade = Math.max(0, currentGold + goldChange);
+    }
+    
+    setFicha(updatedFicha);
+    localStorage.setItem('cavaleiro:ficha', JSON.stringify(updatedFicha));
+    
+    // Voltar para o mapa após o jogo
+    setCurrentView('map');
+  };
+
+  const handlePurchase = (item: any) => {
+    console.log(`🛒 Comprando: ${item.nome} por ${item.preco} moedas`);
+    
+    // Atualizar ficha com nova compra
+    const updatedFicha = { ...ficha };
+    
+    // Reduzir ouro
+    const goldItemIndex = updatedFicha.bolsa.findIndex(item => item.tipo === 'ouro');
+    if (goldItemIndex !== -1) {
+      const currentGold = updatedFicha.bolsa[goldItemIndex].quantidade || 0;
+      updatedFicha.bolsa[goldItemIndex].quantidade = currentGold - item.preco;
+    }
+    
+    // Adicionar item comprado
+    const newItem = {
+      id: `${item.id}_${Date.now()}`,
+      nome: item.nome,
+      tipo: item.tipo,
+      quantidade: 1,
+      descricao: item.descricao,
+      adquiridoEm: 'Royal Lendle - Mercador'
+    };
+    
+    updatedFicha.bolsa.push(newItem);
+    
+    setFicha(updatedFicha);
+    localStorage.setItem('cavaleiro:ficha', JSON.stringify(updatedFicha));
+  };
+
+  const handleFinishPreparation = () => {
+    console.log('✅ Preparação concluída - Partindo para Karnstein');
+    // Voltar para o mapa após preparação
+    setCurrentView('map');
   };
 
   return (
@@ -230,7 +325,7 @@ function App() {
             onVoltar={() => setCurrentView('home')}
             onStartCinematic={() => setCurrentView('cinematic')}
           />
-        ) : (
+        ) : currentView === 'cinematic' ? (
           <Box
             sx={{
               position: 'absolute',
@@ -245,8 +340,36 @@ function App() {
             }}
           >
             <IntroCinematic 
-              onFinish={() => setCurrentView('sheet')} 
+              onFinish={() => setCurrentView('map')} 
             />
+          </Box>
+                ) : currentView === 'map' ? (
+          <MapScreen
+            onLocationSelect={handleLocationSelect}
+          />
+        ) : currentView === 'royallendle' ? (
+          <RoyalLendleScreen
+            onChoice={handleGameChoice}
+            onBackToMap={() => setCurrentView('map')}
+            ficha={ficha}
+          />
+        ) : currentView === 'bartolph' ? (
+          <BartolphGameScreen
+            ficha={ficha}
+            onGameResult={handleGameResult}
+            onBackToRoyal={() => setCurrentView('royallendle')}
+          />
+        ) : currentView === 'preparation' ? (
+          <PreparationScreen
+            ficha={ficha}
+            onPurchase={handlePurchase}
+            onFinishPreparation={handleFinishPreparation}
+            onBackToRoyal={() => setCurrentView('royallendle')}
+          />
+        ) : (
+          <Box>
+            <h1>Tela do Jogo - {ficha.nome} em {currentLocation}</h1>
+            <button onClick={() => setCurrentView('map')}>Voltar ao Mapa</button>
           </Box>
         )}
         </Box>

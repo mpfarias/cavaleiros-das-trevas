@@ -1,12 +1,11 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import { Box, Button, Card, CardContent, Dialog, Typography } from "@mui/material";
+import { Box, Card, CardContent, Dialog, Typography } from "@mui/material";
 import { styled, keyframes } from "@mui/material/styles";
 
 // Imports dos arquivos de áudio
 import bgmIntro from '../assets/sounds/bgm-intro.mp3';
 import bgmModal from '../assets/sounds/bgm-modal.mp3';
 import rainSound from '../assets/sounds/rainning.mp3';
-import laughSound from '../assets/sounds/laugh.wav';
 
 /**
  * IntroCinematic.tsx — Abertura cinematográfica (TypeScript + React + MUI)
@@ -39,10 +38,12 @@ const PROJECT_AUDIO_MAP: Record<string, string> = {
   wind: rainSound,     // Som de chuva/vento para atmosfera
   battle: bgmIntro,    // Usa a mesma música principal para batalha
   steps: rainSound,    // Improvisa passos com chuva baixa
-  mug: laughSound,     // Som de taverna
   thunder: rainSound,  // Usa chuva para trovão
-  sword: laughSound,   // Improvisa com áudio disponível
 };
+
+// Debug do mapeamento
+console.log('🎵 PROJECT_AUDIO_MAP:', PROJECT_AUDIO_MAP);
+console.log('🎵 bgmIntro path:', bgmIntro);
 
 type AudioMap = Partial<Record<
   | "music"
@@ -73,8 +74,11 @@ const TIMELINE: Scene[] = [
     ],
     sfx: (s) => {
       console.log('🎬 Cena 1: Iniciando aventura');
-      s.wind(true);
-      s.playTag("music", 0.7, true);  // Música principal mais alta
+      console.log('🎵 Tentando tocar música bgm-intro...');
+      s.playTag("music", 1.0, true);  // Música principal volume máximo
+      console.log('🎵 Comando de música enviado');
+      s.wind(true);  // Vento reativado com volume baixo (0.2)
+      console.log('🌪️ Comando de vento enviado (volume baixo)');
     },
   },
   {
@@ -90,11 +94,6 @@ const TIMELINE: Scene[] = [
       ["mid", "Já lutou com muitos exércitos…"],
       ["mid", "e fez longas expedições a terras desconhecidas."],
     ],
-    sfx: (s) => {
-      console.log('🎬 Cena 3: Memórias de guerra');
-      s.battle();
-      s.fade("music", 0.4, 500); // Diminui música para dar destaque à batalha
-    },
   },
   {
     t: 18,
@@ -102,11 +101,6 @@ const TIMELINE: Scene[] = [
       ["mid", "Durante a Guerra dos Quatro Reinos,"],
       ["mid", "lutou por Gallantaria, sua pátria."],
     ],
-    sfx: (s) => {
-      console.log('🎬 Cena 4: Guerra épica');
-      s.boom();
-      s.thunder(); // Efeito dramático adicional
-    },
   },
   {
     t: 24,
@@ -121,10 +115,6 @@ const TIMELINE: Scene[] = [
       ["mid", "Terminada a guerra, deixou a fama para trás…"],
       ["mid", "e partiu em busca de novas aventuras."],
     ],
-    sfx: (s) => {
-      console.log('🎬 Cena 6: Fim da guerra');
-      s.fade("music", 0.7, 1000); // Música volta ao normal
-    },
   },
   {
     t: 36,
@@ -132,10 +122,6 @@ const TIMELINE: Scene[] = [
       ["mid", "Cinco anos se passaram."],
       ["mid", "Agora, você está em Royal Lendle."],
     ],
-    sfx: (s) => {
-      console.log('🎬 Cena 7: Royal Lendle');
-      s.wind(true); // Vento da cidade
-    },
   },
   {
     t: 42,
@@ -143,12 +129,6 @@ const TIMELINE: Scene[] = [
       ["mid", "Quatro dias na cidade… e já está entediado."],
       ["mid", "Então, vai até a taverna Primeiro Passo."],
     ],
-    sfx: (s) => {
-      console.log('🎬 Cena 8: Entrando na taverna');
-      s.playTag("tavern", 0.6, true); // Música de taverna
-      s.steps();
-      s.fade("wind", 0.2, 800); // Diminui vento ao entrar
-    },
   },
   {
     t: 48,
@@ -156,10 +136,6 @@ const TIMELINE: Scene[] = [
       ["mid", "Ao terminar a segunda caneca de Lendale,"],
       ["mid", "alguém bate em seu ombro."],
     ],
-    sfx: (s) => {
-      console.log('🎬 Cena 9: Na taverna');
-      s.mug(); // Som de taverna (laugh.wav)
-    },
   },
   {
     t: 54,
@@ -178,11 +154,6 @@ const TIMELINE: Scene[] = [
       ["mid", "Ele fala de saques… mortes…"],
       ["mid", "E de um inimigo impossível: o Cavaleiro das Trevas."],
     ],
-    sfx: (s) => {
-      console.log('🎬 Cena 11: Cavaleiro das Trevas mencionados');
-      s.thunder(); // Efeito dramático (rain.wav)
-      s.fade("tavern", 0.3, 600); // Diminui música de taverna para criar tensão
-    },
   },
   {
     t: 72,
@@ -198,11 +169,6 @@ const TIMELINE: Scene[] = [
   {
     t: 82,
     lines: [["mid", "E então você decide:"]],
-    sfx: (s) => {
-      console.log('🎬 Cena 13: Decisão tomada');
-      s.sword(); // Efeito de decisão
-      s.fade("tavern", 0.6, 800); // Música volta um pouco
-    },
   },
   {
     t: 86,
@@ -210,13 +176,6 @@ const TIMELINE: Scene[] = [
       ["mid", "irá para Karnstein…"],
       ["mid", "para enfrentar o que quer que esteja nas sombras."],
     ],
-    sfx: (s) => {
-      console.log('🎬 Cena 14: Partindo para Karnstein');
-      s.wind(false); // Para o vento
-      s.boom(); // Efeito épico final
-      s.fade("tavern", 0, 1200); // Fade out da taverna
-      s.fade("music", 0.4, 1200); // Música principal continua mais baixa
-    },
   },
 ];
 
@@ -259,9 +218,9 @@ function useAudioManager(audioSources: AudioMap | undefined) {
       a.crossOrigin = "anonymous";
       a.loop = ["music", "tavern", "wind", "battle"].includes(k);
       // Volumes otimizados para os áudios do projeto
-      a.volume = k === "music" ? 0.7 :     // bgm-intro mais alto
+      a.volume = k === "music" ? 1.0 :     // bgm-intro volume máximo
                  k === "tavern" ? 0.6 :    // bgm-modal para taverna
-                 k === "wind" ? 0.4 :      // rain.wav mais suave para vento
+                 k === "wind" ? 0.2 :      // rain.wav bem baixo para não sobrepor
                  k === "mug" ? 0.8 :       // laugh.wav para taverna
                  k === "thunder" ? 0.7 :   // rain.wav para trovão
                  0.9;
@@ -293,12 +252,29 @@ function useAudioManager(audioSources: AudioMap | undefined) {
   };
 
   const playTag = (name: string, vol?: number, loop?: boolean) => {
+    console.log(`🎵 playTag chamado: ${name}, vol: ${vol}, loop: ${loop}`);
     const a = audioTags.current[name];
-    if (!a) return;
+    if (!a) {
+      console.log(`❌ Áudio não encontrado: ${name}`);
+      console.log(`📋 Áudios carregados:`, Object.keys(audioTags.current));
+      return;
+    }
+    console.log(`✅ Áudio encontrado: ${name}, src: ${a.src}`);
+    console.log(`🔊 Volume atual: ${a.volume}, Novo volume: ${vol}`);
     if (typeof vol === "number") a.volume = vol;
     if (typeof loop === "boolean") a.loop = loop;
     a.currentTime = 0;
-    a.play();
+    
+    // Garantir que está carregado
+    if (a.readyState < 2) {
+      console.log(`⏳ Áudio ${name} ainda carregando... readyState: ${a.readyState}`);
+    }
+    
+    a.play().then(() => {
+      console.log(`🎵 Áudio iniciado com sucesso: ${name}, volume: ${a.volume}, tocando: ${!a.paused}`);
+    }).catch((error) => {
+      console.log(`❌ Erro ao tocar áudio ${name}:`, error);
+    });
   };
 
   const stopTag = (name: string) => {
@@ -511,6 +487,7 @@ const Grain = styled(Box)({
   position: "absolute",
   inset: "-20%",
   mixBlendMode: "soft-light" as any,
+  pointerEvents: "none", // IMPORTANTE: Não bloquear cliques
   animation: `${grainAnim} 1.5s steps(6) infinite`,
   backgroundImage:
     "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"200\" height=\"200\"><filter id=\"n\"><feTurbulence type=\"fractalNoise\" baseFrequency=\"0.7\" numOctaves=\"2\" stitchTiles=\"stitch\"/></filter><rect width=\"100%\" height=\"100%\" filter=\"url(%23n)\" opacity=\"0.05\"/></svg>')",
@@ -544,10 +521,12 @@ const Center = styled(Box)({
   textAlign: "center",
 });
 
-const Line = styled(Typography)<{ kind: LineKind }>(({ kind }) => ({
-  animation: `${fadeInUp} .8s ease both`,
+const Line = styled(Typography)<{ kind: LineKind; delay?: number }>(({ kind, delay = 0 }) => ({
+  animation: `${fadeInUp} 1.2s ease both`,
+  animationDelay: `${delay}s`,
   filter: "drop-shadow(0 8px 24px rgba(0,0,0,.6))",
   marginTop: 8,
+  transition: "opacity 0.6s ease-in-out",
   ...(kind === "big"
     ? { fontSize: "clamp(24px, 4.2vw, 44px)", letterSpacing: ".02em", lineHeight: 1.25 }
     : kind === "mid"
@@ -632,6 +611,7 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
   const [gateOpen, setGateOpen] = useState(true);
   const [lines, setLines] = useState<Array<[LineKind, string]>>([]);
   const [ended, setEnded] = useState(false);
+  const [fadeKey, setFadeKey] = useState(0); // Para forçar re-render com nova animação
   const running = useRef(false);
   const raf = useRef<number | null>(null);
 
@@ -656,7 +636,13 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
       const elapsed = (now - t0) / 1000;
       while (idx < TIMELINE.length && elapsed >= TIMELINE[idx].t) {
         const scene = TIMELINE[idx++];
-        setLines(scene.lines);
+        
+        // Fade-out das linhas anteriores e fade-in das novas
+        setFadeKey(prev => prev + 1);
+        setTimeout(() => {
+          setLines(scene.lines);
+        }, 100); // Pequeno delay para o fade-out
+        
         scene.sfx?.(api);
       }
       if (idx >= TIMELINE.length) {
@@ -674,6 +660,8 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
     console.log('🔄 Reiniciando cinematográfica');
     setGateOpen(false); // Fecha modal se estiver aberto
     stopTimeline();
+    setFadeKey(0); // Reset do fade
+    setLines([]); // Limpa linhas
     // Reinicia música principal
     api.playTag("music", 0.7, true);
     setTimeout(() => playTimeline(), 100); // Pequeno delay para garantir que parou
@@ -685,6 +673,7 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
     stopTimeline();
     api.wind(false);
     api.boom();
+    setFadeKey(prev => prev + 1); // Novo fade para o texto final
     setLines([["big", "Você parte para Karnstein… as sombras aguardam."]]);
     setEnded(true);
   }, [stopTimeline, api]);
@@ -694,10 +683,22 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
     console.log('🔓 Fechando modal e habilitando botões');
     setGateOpen(false);
     console.log('🎬 Iniciando cinematográfica com áudios do projeto');
+    console.log('🎵 Áudios disponíveis:', Object.keys(audioSources || PROJECT_AUDIO_MAP));
+    
+    // Teste direto removido - problema identificado e corrigido
+    
     ensureAudioContext();
     await loadTags().catch((err) => {
       console.warn('Erro ao carregar áudios:', err);
     });
+    
+    // FORÇAR MÚSICA PRINCIPAL IMEDIATAMENTE
+    console.log('🎵 FORÇANDO bgm-intro.mp3 AGORA...');
+    setTimeout(() => {
+      api.playTag("music", 1.0, true);
+      console.log('🎵 Comando FORÇADO de música enviado');
+    }, 100);
+    
     playTimeline();
   };
 
@@ -720,11 +721,35 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
     return () => window.removeEventListener("keydown", onKey);
   }, [gateOpen]);
 
+  // Cleanup: Para todos os áudios quando o componente for desmontado
+  useEffect(() => {
+    return () => {
+      console.log('🎬 Limpando áudios da cinematográfica... (APENAS quando sair)');
+      // Para a música de fundo quando sair da cinematográfica
+      try {
+        api.fade("music", 0, 300); // Fade out rápido da música
+        api.fade("tavern", 0, 300); // Fade out rápido da taverna
+      } catch (error) {
+        console.log('Erro ao fazer fade out dos áudios:', error);
+      }
+    };
+  }, []); // ← REMOVIDO [api] para evitar re-execução
+
   return (
-    <Screen>
+    <Screen 
+      onClick={(e) => {
+        // Previne cliques indesejados que podem pular para o mapa
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('🎬 [DEBUG] Clique na tela bloqueado para evitar navegação indesejada');
+      }}
+    >
         <TopBar>
         <button
-          onClick={skip}
+          onClick={(e) => {
+            e.stopPropagation();
+            skip();
+          }}
           style={{
             padding: '12px 24px',
             background: 'linear-gradient(135deg, rgba(11,11,13,0.95) 0%, rgba(23,23,27,0.85) 50%, rgba(15,15,18,0.95) 100%)',
@@ -763,7 +788,10 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
           Pular
         </button>
         <button
-          onClick={replay}
+          onClick={(e) => {
+            e.stopPropagation();
+            replay();
+          }}
           style={{
             padding: '12px 24px',
             background: 'linear-gradient(135deg, rgba(11,11,13,0.95) 0%, rgba(23,23,27,0.85) 50%, rgba(15,15,18,0.95) 100%)',
@@ -806,20 +834,72 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
       <Particles />
 
       <Center aria-live="polite" aria-atomic="true">
-        <Box>
+        <Box key={fadeKey}>
           {lines.map(([kind, html], i) => (
-            <Line key={i} kind={kind} dangerouslySetInnerHTML={{ __html: html }} />
+            <Line 
+              key={`${fadeKey}-${i}`} 
+              kind={kind} 
+              delay={i * 0.3} 
+              dangerouslySetInnerHTML={{ __html: html }} 
+            />
           ))}
         </Box>
         <Box sx={{ mt: 2, opacity: ended ? 1 : 0, transform: `translateY(${ended ? 0 : 10}px)`, transition: ".6s ease all" }}>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => onFinish?.()}
-            sx={{ textTransform: "none", borderRadius: 999 }}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              console.log('🎬 [DEBUG] Clicou em Ir para Karnstein');
+              console.log('🎬 [DEBUG] ended:', ended);
+              console.log('🎬 [DEBUG] onFinish existe:', !!onFinish);
+              if (onFinish) {
+                console.log('🎬 [DEBUG] Chamando onFinish...');
+                onFinish();
+                console.log('🎬 [DEBUG] onFinish chamado!');
+              } else {
+                console.log('🎬 [ERRO] onFinish não existe!');
+              }
+            }}
+            style={{
+              padding: '15px 30px',
+              background: 'linear-gradient(135deg, rgba(139,0,0,0.95) 0%, rgba(179,18,18,0.9) 100%)',
+              color: '#F5DEB3',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '16px',
+              fontFamily: '"Cinzel", serif',
+              fontWeight: '700',
+              textTransform: 'uppercase',
+              letterSpacing: '2px',
+              textShadow: '2px 2px 4px rgba(0,0,0,1)',
+              boxShadow: '0 6px 20px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.1)',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              outline: 'none',
+              userSelect: 'none',
+              position: 'relative',
+              zIndex: 9999
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'linear-gradient(135deg, rgba(179,18,18,1) 0%, rgba(139,0,0,0.95) 100%)';
+              e.currentTarget.style.color = '#e68585ff';
+              e.currentTarget.style.transform = 'scale(1.05)';
+              e.currentTarget.style.boxShadow = '0 8px 25px rgba(179,18,18,0.7), inset 0 1px 0 rgba(255,255,255,0.2)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'linear-gradient(135deg, rgba(139,0,0,0.95) 0%, rgba(179,18,18,0.9) 100%)';
+              e.currentTarget.style.color = '#FFFFFF';
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.1)';
+            }}
+            onMouseDown={(e) => {
+              e.currentTarget.style.transform = 'scale(0.95)';
+            }}
+            onMouseUp={(e) => {
+              e.currentTarget.style.transform = 'scale(1.05)';
+            }}
           >
-            Iniciar Aventura
-          </Button>
+            Ir para o mapa de Gallantaria
+          </button>
         </Box>
       </Center>
 
@@ -832,12 +912,56 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
         <Card sx={{ background: "linear-gradient(160deg, rgba(255,255,255,.06), rgba(255,255,255,.03))", border: "1px solid rgba(255,255,255,.1)", color: "#e8e6e3", bgcolor: "#0a0b0f" }}>
           <CardContent sx={{ textAlign: "center", p: 4 }}>
             <Typography variant="h5" gutterBottom>Introdução</Typography>
-            <Typography variant="body1" sx={{ color: "#d6d4cf", mb: 2 }}>
+            <Typography variant="body1" sx={{ color: "#d6d4cf", mb: 4 }}>
               Prepare-se para adentrar o mundo sombrio do Cavaleiro das Trevas.
             </Typography>
-            <Button variant="contained" onClick={begin} sx={{ textTransform: "none", borderRadius: 999 }}>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                console.log('🎬 [DEBUG] Clicou em Ok - Iniciando cinematográfica');
+                begin();
+              }}
+              style={{
+                padding: '10px 24px',
+                background: 'linear-gradient(135deg, rgba(139,0,0,0.95) 0%, rgba(179,18,18,0.9) 100%)',
+                color: '#F5DEB3',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontFamily: '"Cinzel", serif',
+                fontWeight: '700',
+                textTransform: 'uppercase',
+                letterSpacing: '2px',
+                textShadow: '2px 2px 4px rgba(0,0,0,1)',
+                boxShadow: '0 6px 20px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.1)',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                outline: 'none',
+                userSelect: 'none',
+                position: 'relative',
+                zIndex: 9999
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(179,18,18,1) 0%, rgba(139,0,0,0.95) 100%)';
+                e.currentTarget.style.color = '#FFFFFF';
+                e.currentTarget.style.transform = 'scale(1.05)';
+                e.currentTarget.style.boxShadow = '0 8px 25px rgba(179,18,18,0.7), inset 0 1px 0 rgba(255,255,255,0.2)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(139,0,0,0.95) 0%, rgba(179,18,18,0.9) 100%)';
+                e.currentTarget.style.color = '#F5DEB3';
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.1)';
+              }}
+              onMouseDown={(e) => {
+                e.currentTarget.style.transform = 'scale(0.95)';
+              }}
+              onMouseUp={(e) => {
+                e.currentTarget.style.transform = 'scale(1.05)';
+              }}
+            >
               Ok
-            </Button>
+            </button>
           </CardContent>
         </Card>
       </Dialog>

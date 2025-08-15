@@ -26,7 +26,7 @@ import {
 
   Upload as UploadIcon,
   Delete as DeleteIcon,
-  PlayArrow as PlayArrowIcon,
+
   Inventory as InventoryIcon,
   Shield as ShieldIcon,
   LocalOffer as LocalOfferIcon,
@@ -536,7 +536,6 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
           variant="contained"
           size="large"
           onClick={comecarAventura}
-          startIcon={<PlayArrowIcon />}
           sx={{
             background: 'linear-gradient(180deg, rgba(179,18,18,0.85), rgba(179,18,18,0.7))',
             border: '1px solid rgba(255,255,255,0.14)',
@@ -548,8 +547,9 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
             transition: 'transform 0.12s, box-shadow 0.2s, background 0.2s',
             '&:hover': {
               transform: 'translateY(-1px)',
-              background: 'linear-gradient(180deg, rgba(182,123,3,0.95), rgba(179,18,18,0.85))',
-              boxShadow: '0 12px 36px rgba(182,123,3,0.35)',
+              background: 'linear-gradient(180deg, rgba(179,18,18,0.85))',
+              boxShadow: '0 12px 36px rgba(179,18,18,0.85)',
+              color:'rgba(245, 111, 111, 0.85)'
             },
           }}
         >
@@ -900,7 +900,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
                 sx={{
                   background: 'linear-gradient(180deg, rgba(179,18,18,0.85), rgba(179,18,18,0.7))',
                   '&:hover': {
-                    background: 'linear-gradient(180deg, rgba(182,123,3,0.95), rgba(179,18,18,0.85))',
+                    background: 'linear-gradient(180deg, rgba(201, 115, 115, 0.95), rgba(179,18,18,0.85))',
                   },
                 }}
               >
