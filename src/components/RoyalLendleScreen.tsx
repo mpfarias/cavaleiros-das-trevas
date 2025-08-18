@@ -123,6 +123,10 @@ const BackButton = styled('button')({
   textShadow: '0 1px 2px rgba(0,0,0,0.8)',
   boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
   zIndex: 10,
+  '&:focus-visible': {
+    outline: '2px solid #FFD700',
+    outlineOffset: '2px'
+  },
   '&:hover': {
     background: 'linear-gradient(135deg, rgba(179,18,18,0.9) 0%, rgba(139,0,0,0.8) 100%)',
     borderColor: '#FFD700',
@@ -153,6 +157,39 @@ const PlayerStatus = styled(Box)({
     borderColor: '#FFD700',
     transform: 'scale(1.05)',
     boxShadow: '0 6px 20px rgba(179,18,18,0.4)'
+  }
+});
+
+// Botão de escolha estilizado
+const ChoiceButton = styled('button')({
+  padding: '16px 24px',
+  background: 'linear-gradient(135deg, rgba(139,69,19,0.9) 0%, rgba(160,82,45,0.8) 100%)',
+  color: '#F5DEB3',
+  border: '2px solid #D2B48C',
+  borderRadius: '12px',
+  fontSize: '16px',
+  fontFamily: '"Cinzel", serif',
+  fontWeight: 600,
+  textAlign: 'left',
+  cursor: 'pointer',
+  transition: 'all 0.3s ease',
+  outline: 'none',
+  textShadow: '0 1px 2px rgba(0,0,0,0.8)',
+  boxShadow: '0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
+  width: '100%',
+  '&:focus-visible': {
+    outline: '2px solid #FFD700',
+    outlineOffset: '2px'
+  },
+  '&:hover': {
+    background: 'linear-gradient(135deg, rgba(179,18,18,0.9) 0%, rgba(139,0,0,0.8) 100%)',
+    borderColor: '#FFD700',
+    color: '#FFFFFF',
+    transform: 'translateY(-2px) scale(1.02)',
+    boxShadow: '0 8px 25px rgba(179,18,18,0.4), inset 0 1px 0 rgba(255,255,255,0.2)'
+  },
+  '&:active': {
+    transform: 'translateY(0) scale(0.98)'
   }
 });
 
@@ -305,46 +342,7 @@ const playClick = useClickSound(0.2);
             marginTop: '32px',
             width: '100%'
           }}>
-            <button
-              onClick={() => handleChoice('aceitar_jogo')}
-              style={{
-                padding: '16px 24px',
-                background: 'linear-gradient(135deg, rgba(139,69,19,0.9) 0%, rgba(160,82,45,0.8) 100%)',
-                color: '#F5DEB3',
-                border: '2px solid #D2B48C',
-                borderRadius: '12px',
-                fontSize: '16px',
-                fontFamily: '"Cinzel", serif',
-                fontWeight: '600',
-                textAlign: 'left',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                outline: 'none',
-                textShadow: '0 1px 2px rgba(0,0,0,0.8)',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
-                width: '100%'
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(179,18,18,0.9) 0%, rgba(139,0,0,0.8) 100%)';
-                e.currentTarget.style.borderColor = '#FFD700';
-                e.currentTarget.style.color = '#FFFFFF';
-                e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
-                e.currentTarget.style.boxShadow = '0 8px 25px rgba(179,18,18,0.4), inset 0 1px 0 rgba(255,255,255,0.2)';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(139,69,19,0.9) 0%, rgba(160,82,45,0.8) 100%)';
-                e.currentTarget.style.borderColor = '#D2B48C';
-                e.currentTarget.style.color = '#F5DEB3';
-                e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)';
-              }}
-              onMouseDown={(e) => {
-                e.currentTarget.style.transform = 'translateY(0) scale(0.98)';
-              }}
-              onMouseUp={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
-              }}
-            >
+            <ChoiceButton onClick={() => handleChoice('aceitar_jogo')}>
               <div>
                 <strong>Aceitar o Desafio de Bartolph</strong>
                 <div style={{
@@ -357,48 +355,9 @@ const playClick = useClickSound(0.2);
                   Tentar a sorte pode render mais ouro para equipamentos...
                 </div>
               </div>
-            </button>
+            </ChoiceButton>
 
-            <button
-              onClick={() => handleChoice('recusar_jogo')}
-              style={{
-                padding: '16px 24px',
-                background: 'linear-gradient(135deg, rgba(139,69,19,0.9) 0%, rgba(160,82,45,0.8) 100%)',
-                color: '#F5DEB3',
-                border: '2px solid #D2B48C',
-                borderRadius: '12px',
-                fontSize: '16px',
-                fontFamily: '"Cinzel", serif',
-                fontWeight: '600',
-                textAlign: 'left',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                outline: 'none',
-                textShadow: '0 1px 2px rgba(0,0,0,0.8)',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
-                width: '100%'
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(179,18,18,0.9) 0%, rgba(139,0,0,0.8) 100%)';
-                e.currentTarget.style.borderColor = '#FFD700';
-                e.currentTarget.style.color = '#FFFFFF';
-                e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
-                e.currentTarget.style.boxShadow = '0 8px 25px rgba(179,18,18,0.4), inset 0 1px 0 rgba(255,255,255,0.2)';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(139,69,19,0.9) 0%, rgba(160,82,45,0.8) 100%)';
-                e.currentTarget.style.borderColor = '#D2B48C';
-                e.currentTarget.style.color = '#F5DEB3';
-                e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)';
-              }}
-              onMouseDown={(e) => {
-                e.currentTarget.style.transform = 'translateY(0) scale(0.98)';
-              }}
-              onMouseUp={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
-              }}
-            >
+            <ChoiceButton onClick={() => handleChoice('recusar_jogo')}>
               <div>
                 <strong>Ir Embora e Preparar-se</strong>
                 <div style={{
@@ -411,7 +370,7 @@ const playClick = useClickSound(0.2);
                   Não perder tempo e focar na missão principal.
                 </div>
               </div>
-            </button>
+            </ChoiceButton>
           </Box>
         </CardContent>
       </StoryCard>

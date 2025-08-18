@@ -53,6 +53,9 @@ const MapContainer = styled(Box)({
   padding: '20px', // Adicionado padding
   overflow: 'hidden',
   animation: `${fadeIn} 1s ease-out`,
+  '@media (prefers-reduced-motion: reduce)': {
+    animation: 'none'
+  },
   '&::before': {
     content: '""',
     position: 'absolute',
@@ -104,6 +107,9 @@ const MapImageContainer = styled(Box)({
   `,
   overflow: 'hidden',
   animation: `${fadeIn} 1.2s ease-out 0.3s both`,
+  '@media (prefers-reduced-motion: reduce)': {
+    animation: 'none'
+  },
   '&::before': {
     content: '""',
     position: 'absolute',
@@ -127,7 +133,61 @@ const MapImage = styled('img')({
   transition: 'filter 0.3s ease'
 });
 
-// Removido LocationButton styled - usando HTML nativo
+// Botões estilizados
+const AudioPlayButton = styled('button')({
+  padding: '12px 16px',
+  background: 'linear-gradient(135deg, rgba(139,69,19,0.95) 0%, rgba(160,82,45,0.9) 100%)',
+  color: '#F5DEB3',
+  border: '2px solid #D2B48C',
+  borderRadius: '8px',
+  fontSize: '14px',
+  fontFamily: '"Cinzel", serif',
+  fontWeight: 600,
+  textTransform: 'uppercase',
+  letterSpacing: '1px',
+  textShadow: '0 1px 2px rgba(0,0,0,0.8)',
+  boxShadow: '0 4px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1)',
+  cursor: 'pointer',
+  transition: 'all 0.3s ease',
+  outline: 'none',
+  '&:focus-visible': {
+    outline: '2px solid #FFD700',
+    outlineOffset: '2px'
+  },
+  '&:hover': {
+    background: 'linear-gradient(135deg, rgba(179,18,18,0.95) 0%, rgba(139,0,0,0.9) 100%)',
+    borderColor: '#FFD700',
+    color: '#FFFFFF',
+    transform: 'scale(1.05)'
+  },
+  '&:active': {
+    transform: 'scale(0.98)'
+  }
+});
+
+const LocationButton = styled('button')<{ accessible: boolean }>(({ accessible }) => ({
+  position: 'absolute',
+  color: '#Faa123',
+  border: 'none',
+  fontSize: accessible ? '16px' : '12px',
+  fontFamily: '"Cinzel", serif',
+  fontWeight: 600,
+  cursor: accessible ? 'pointer' : 'not-allowed',
+  outline: 'none',
+  background: 'none',
+  transform: 'translate(-50%, -50%) rotate(-25deg)',
+  transition: 'transform 0.2s ease',
+  '&:focus-visible': {
+    outline: '2px solid #FFD700',
+    outlineOffset: '2px'
+  },
+  '&:hover': accessible ? {
+    transform: 'translate(-50%, -50%) scale(1) rotate(-25deg)'
+  } : {},
+  '&:active': accessible ? {
+    transform: 'translate(-50%, -50%) scale(0.98) rotate(-25deg)'
+  } : {}
+}));
 
 const MapTitle = styled(Typography)({
   fontFamily: '"Cinzel", serif',
@@ -313,40 +373,7 @@ const MapScreen: React.FC<MapScreenProps> = ({ onLocationSelect }) => {
             animation: `${fadeIn} 1s ease-out 2s both`
           }}
         >
-          <button
-            onClick={playMapAudio}
-            style={{
-              padding: '12px 16px',
-              background: 'linear-gradient(135deg, rgba(139,69,19,0.95) 0%, rgba(160,82,45,0.9) 100%)',
-              color: '#F5DEB3',
-              border: '2px solid #D2B48C',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontFamily: '"Cinzel", serif',
-              fontWeight: '600',
-              textTransform: 'uppercase',
-              letterSpacing: '1px',
-              textShadow: '0 1px 2px rgba(0,0,0,0.8)',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1)',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              outline: 'none'
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.background = 'linear-gradient(135deg, rgba(179,18,18,0.95) 0%, rgba(139,0,0,0.9) 100%)';
-              e.currentTarget.style.borderColor = '#FFD700';
-              e.currentTarget.style.color = '#FFFFFF';
-              e.currentTarget.style.transform = 'scale(1.05)';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.background = 'linear-gradient(135deg, rgba(139,69,19,0.95) 0%, rgba(160,82,45,0.9) 100%)';
-              e.currentTarget.style.borderColor = '#D2B48C';
-              e.currentTarget.style.color = '#F5DEB3';
-              e.currentTarget.style.transform = 'scale(1)';
-            }}
-          >
-            🎵 Tocar Música
-          </button>
+          <AudioPlayButton onClick={playMapAudio}>🎵 Tocar Música</AudioPlayButton>
         </Box>
       )}
 
@@ -365,9 +392,10 @@ const MapScreen: React.FC<MapScreenProps> = ({ onLocationSelect }) => {
           
           
           return (
-            <button
+            <LocationButton
               key={location.name}
               disabled={!isAccessible}
+              accessible={isAccessible}
               onClick={() => {
                 if (!isAccessible) return;
                 playClickSound();
@@ -380,35 +408,8 @@ const MapScreen: React.FC<MapScreenProps> = ({ onLocationSelect }) => {
               }}
               onMouseLeave={() => setHoveredLocation(null)}
               style={{
-                position: 'absolute',
                 left: `${location.x}%`,
-                top: `${location.y}%`,
-                transform: 'translate(-50%, -50%) scale(1) rotate(-25deg)',
-                color: '#Faa123',
-                border: 'none',
-                fontSize: isAccessible ? '16px' : '12px',
-                fontFamily: '"Cinzel", serif',
-                fontWeight: '600',
-                cursor: isAccessible ? 'pointer' : 'not-allowed',
-                outline: 'none',
-                background: 'none'
-              }}
-              onMouseOver={(e) => {
-                if (!isAccessible) return;
-                e.currentTarget.style.transform = 'translate(-50%, -50%) scale(1) rotate(-25deg)';
-                e.currentTarget.style.background = 'none'
-              }}
-              onMouseOut={(e) => {
-                if (!isAccessible) return;
-                e.currentTarget.style.transform = 'translate(-50%, -50%) rotate(-25deg)';
-              }}
-              onMouseDown={(e) => {
-                if (!isAccessible) return;
-                e.currentTarget.style.transform = 'translate(-50%, -50%) scale(1) rotate(-25deg)';
-              }}
-              onMouseUp={(e) => {
-                if (!isAccessible) return;
-                e.currentTarget.style.transform = 'translate(-50%, -50%) scale(1) rotate(-25deg)';
+                top: `${location.y}%`
               }}
             >
               {location.name}
@@ -422,7 +423,7 @@ const MapScreen: React.FC<MapScreenProps> = ({ onLocationSelect }) => {
                   ???
                 </span>
               )}
-            </button>
+            </LocationButton>
           );
         })}
       </MapImageContainer>

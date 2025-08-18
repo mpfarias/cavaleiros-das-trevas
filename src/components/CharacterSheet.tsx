@@ -21,6 +21,7 @@ import {
   IconButton,
   CircularProgress,
 } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import {
   Casino as CasinoIcon,
 
@@ -315,6 +316,24 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
     return ITEM_COLORS[tipo] || '#757575';
   }, []);
 
+  // Input estilizado para o nome, mantendo o mesmo visual
+  const StyledInput = styled('input')({
+    flex: 1,
+    padding: '12px 16px',
+    fontSize: '16px',
+    fontFamily: '"Spectral", serif',
+    background: 'rgba(255,255,255,0.05)',
+    border: '1px solid rgba(255,255,255,0.1)',
+    borderRadius: '8px',
+    color: '#E0DFDB',
+    outline: 'none',
+    transition: 'all 0.2s ease',
+    '&:focus': {
+      border: '1px solid rgba(179,18,18,0.5)',
+      background: 'rgba(255,255,255,0.08)'
+    }
+  });
+
   const BolsaCard = () => (
     <Card>
       <CardContent>
@@ -506,31 +525,11 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
             <Typography variant="h6" component="label" sx={{ minWidth: '120px' }}>
               Nome:
             </Typography>
-            <input
+            <StyledInput
               type="text"
               value={ficha.nome}
               onChange={(e) => updateFicha({ nome: e.target.value })}
               placeholder="Digite o nome do personagem"
-              style={{
-                flex: 1,
-                padding: '12px 16px',
-                fontSize: '16px',
-                fontFamily: '"Spectral", serif',
-                background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: '8px',
-                color: '#E0DFDB',
-                outline: 'none',
-                transition: 'all 0.2s ease',
-              }}
-              onFocus={(e) => {
-                e.target.style.border = '1px solid rgba(179,18,18,0.5)';
-                e.target.style.background = 'rgba(255,255,255,0.08)';
-              }}
-              onBlur={(e) => {
-                e.target.style.border = '1px solid rgba(255,255,255,0.1)';
-                e.target.style.background = 'rgba(255,255,255,0.05)';
-              }}
             />
           </Box>
         </CardContent>

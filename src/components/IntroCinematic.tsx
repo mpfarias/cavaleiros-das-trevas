@@ -184,7 +184,8 @@ function useAudioManager(audioSources: AudioMap | undefined) {
   const loadTags = async () => {
     if (!finalAudioSources) return;
     console.log('🎵 Carregando áudios da cinematográfica:', finalAudioSources);
-    for (const [k, url] of Object.entries(finalAudioSources)) {
+    const entries = Object.entries(finalAudioSources);
+    const promises = entries.map(([k, url]) => new Promise<void>((res) => {
       const a = new Audio(url);
       a.preload = "auto";
       a.crossOrigin = "anonymous";
@@ -197,12 +198,10 @@ function useAudioManager(audioSources: AudioMap | undefined) {
                  k === "thunder" ? 0.7 :   // rain.wav para trovão
                  0.9;
       audioTags.current[k] = a;
-      await new Promise<void>((res) => {
-        const done = () => res();
-        a.addEventListener("canplaythrough", done, { once: true });
-        a.load();
-      });
-    }
+      a.addEventListener("canplaythrough", () => res(), { once: true });
+      a.load();
+    }));
+    await Promise.all(promises);
   };
 
   // inicializa WebAudio (fallback)
@@ -390,7 +389,7 @@ function useAudioManager(audioSources: AudioMap | undefined) {
     },
   } as const;
 
-  const api: SfxAPI = {
+  const api = useMemo((): SfxAPI => ({
     playTag: (n, v, l) => playTag(n, v, l),
     fade: (n, to, d) => fade(n, to, d),
     wind: (on) => synth.wind(on),
@@ -400,7 +399,7 @@ function useAudioManager(audioSources: AudioMap | undefined) {
     mug: synth.mug,
     steps: synth.steps,
     battle: synth.battle,
-  };
+  }), []);
 
   return {
     ensureAudioContext,
@@ -463,6 +462,9 @@ const Grain = styled(Box)({
   animation: `${grainAnim} 1.5s steps(6) infinite`,
   backgroundImage:
     "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"200\" height=\"200\"><filter id=\"n\"><feTurbulence type=\"fractalNoise\" baseFrequency=\"0.7\" numOctaves=\"2\" stitchTiles=\"stitch\"/></filter><rect width=\"100%\" height=\"100%\" filter=\"url(%23n)\" opacity=\"0.05\"/></svg>')",
+  '@media (prefers-reduced-motion: reduce)': {
+    animation: 'none'
+  }
 });
 
 const ParticlesWrap = styled(Box)({
@@ -484,6 +486,9 @@ const Particle = styled("i")<{ duration: number; top: number; left: number; opac
     top: `${top}vh`,
     left: `${left}vw`,
     opacity,
+    '@media (prefers-reduced-motion: reduce)': {
+      animation: 'none'
+    }
   }));
 
 const Center = styled(Box)({
@@ -504,6 +509,9 @@ const Line = styled(Typography)<{ kind: LineKind; delay?: number }>(({ kind, del
     : kind === "mid"
     ? { fontSize: "clamp(18px, 2.6vw, 26px)", color: "#d9d7d3" }
     : { fontSize: "clamp(16px, 2vw, 20px)", color: "#a7a6a2" }),
+  '@media (prefers-reduced-motion: reduce)': {
+    animation: 'none'
+  }
 }));
 
 const TopBar = styled(Box)({
@@ -526,6 +534,148 @@ const FooterHint = styled(Box)({
   opacity: 0.8,
 });
 
+// ==================
+// Botões estilizados
+// ==================
+
+const TopButtonSkip = styled('button')({
+  padding: '12px 24px',
+  background: 'linear-gradient(135deg, rgba(11,11,13,0.95) 0%, rgba(23,23,27,0.85) 50%, rgba(15,15,18,0.95) 100%)',
+  color: '#d6d4cf',
+  border: '1px solid rgba(179,18,18,0.4)',
+  borderRadius: '6px',
+  cursor: 'pointer',
+  fontSize: '13px',
+  fontFamily: '"Cinzel", serif',
+  fontWeight: 600,
+  textTransform: 'uppercase',
+  letterSpacing: '1px',
+  transition: 'all 0.3s ease',
+  backdropFilter: 'blur(8px)',
+  boxShadow: '0 4px 16px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1)',
+  textShadow: '0 1px 2px rgba(0,0,0,0.8)',
+  position: 'relative',
+  overflow: 'hidden',
+  zIndex: 1000,
+  '&:focus-visible': {
+    outline: '2px solid rgba(179,18,18,0.8)',
+    outlineOffset: '2px'
+  },
+  '&:hover': {
+    background: 'linear-gradient(135deg, rgba(179,18,18,0.2) 0%, rgba(139,0,0,0.3) 50%, rgba(179,18,18,0.2) 100%)',
+    borderColor: 'rgba(179,18,18,0.8)',
+    color: '#ffffff',
+    boxShadow: '0 6px 20px rgba(179,18,18,0.4), inset 0 1px 0 rgba(255,255,255,0.2)',
+    transform: 'translateY(-1px)'
+  },
+  '&:active': {
+    transform: 'translateY(0)'
+  }
+});
+
+const TopButtonReplay = styled('button')({
+  padding: '12px 24px',
+  background: 'linear-gradient(135deg, rgba(11,11,13,0.95) 0%, rgba(23,23,27,0.85) 50%, rgba(15,15,18,0.95) 100%)',
+  color: '#d6d4cf',
+  border: '1px solid rgba(182,123,3,0.4)',
+  borderRadius: '6px',
+  cursor: 'pointer',
+  fontSize: '13px',
+  fontFamily: '"Cinzel", serif',
+  fontWeight: 600,
+  textTransform: 'uppercase',
+  letterSpacing: '1px',
+  transition: 'all 0.3s ease',
+  backdropFilter: 'blur(8px)',
+  boxShadow: '0 4px 16px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1)',
+  textShadow: '0 1px 2px rgba(0,0,0,0.8)',
+  position: 'relative',
+  overflow: 'hidden',
+  zIndex: 1000,
+  '&:focus-visible': {
+    outline: '2px solid rgba(182,123,3,0.8)',
+    outlineOffset: '2px'
+  },
+  '&:hover': {
+    background: 'linear-gradient(135deg, rgba(182,123,3,0.2) 0%, rgba(218,165,32,0.3) 50%, rgba(182,123,3,0.2) 100%)',
+    borderColor: 'rgba(182,123,3,0.8)',
+    color: '#ffffff',
+    boxShadow: '0 6px 20px rgba(182,123,3,0.4), inset 0 1px 0 rgba(255,255,255,0.2)',
+    transform: 'translateY(-1px)'
+  },
+  '&:active': {
+    transform: 'translateY(0)'
+  }
+});
+
+const CTAButton = styled('button')({
+  padding: '15px 30px',
+  background: 'linear-gradient(135deg, rgba(139,0,0,0.95) 0%, rgba(179,18,18,0.9) 100%)',
+  color: '#F5DEB3',
+  border: 'none',
+  borderRadius: '8px',
+  fontSize: '16px',
+  fontFamily: '"Cinzel", serif',
+  fontWeight: 700,
+  textTransform: 'uppercase',
+  letterSpacing: '2px',
+  textShadow: '2px 2px 4px rgba(0,0,0,1)',
+  boxShadow: '0 6px 20px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.1)',
+  cursor: 'pointer',
+  transition: 'all 0.3s ease',
+  outline: 'none',
+  userSelect: 'none',
+  position: 'relative',
+  zIndex: 9999,
+  '&:focus-visible': {
+    outline: '2px solid rgba(179,18,18,0.9)',
+    outlineOffset: '3px'
+  },
+  '&:hover': {
+    background: 'linear-gradient(135deg, rgba(179,18,18,1) 0%, rgba(139,0,0,0.95) 100%)',
+    color: '#e68585ff',
+    transform: 'scale(1.05)',
+    boxShadow: '0 8px 25px rgba(179,18,18,0.7), inset 0 1px 0 rgba(255,255,255,0.2)'
+  },
+  '&:active': {
+    transform: 'scale(0.95)'
+  }
+});
+
+const GateButton = styled('button')({
+  padding: '10px 24px',
+  background: 'linear-gradient(135deg, rgba(139,0,0,0.95) 0%, rgba(179,18,18,0.9) 100%)',
+  color: '#F5DEB3',
+  border: 'none',
+  borderRadius: '8px',
+  fontSize: '14px',
+  fontFamily: '"Cinzel", serif',
+  fontWeight: 700,
+  textTransform: 'uppercase',
+  letterSpacing: '2px',
+  textShadow: '2px 2px 4px rgba(0,0,0,1)',
+  boxShadow: '0 6px 20px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.1)',
+  cursor: 'pointer',
+  transition: 'all 0.3s ease',
+  outline: 'none',
+  userSelect: 'none',
+  position: 'relative',
+  zIndex: 9999,
+  '&:focus-visible': {
+    outline: '2px solid rgba(179,18,18,0.9)',
+    outlineOffset: '3px'
+  },
+  '&:hover': {
+    background: 'linear-gradient(135deg, rgba(179,18,18,1) 0%, rgba(139,0,0,0.95) 100%)',
+    color: '#FFFFFF',
+    transform: 'scale(1.05)',
+    boxShadow: '0 8px 25px rgba(179,18,18,0.7), inset 0 1px 0 rgba(255,255,255,0.2)'
+  },
+  '&:active': {
+    transform: 'scale(0.95)'
+  }
+});
+
 // ==========
 // Partículas
 // ==========
@@ -538,6 +688,12 @@ function Particles() {
     opacity: number;
     id: number;
   }[]>([]);
+  const timeoutRef = useRef<number | null>(null);
+  const prefersReducedMotion = useRef(
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
 
   const spawn = () => {
     const count = 40;
@@ -552,13 +708,28 @@ function Particles() {
   };
 
   useEffect(() => {
+    if (prefersReducedMotion.current) {
+      setPs([]);
+      return;
+    }
     spawn();
     const onResize = () => {
-      const t = setTimeout(spawn, 250);
-      return () => clearTimeout(t);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = window.setTimeout(() => {
+        spawn();
+        timeoutRef.current = null;
+      }, 250);
     };
     window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
+    return () => {
+      window.removeEventListener("resize", onResize);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
   }, []);
 
   return (
@@ -693,7 +864,7 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [gateOpen]);
+  }, [gateOpen, skip, replay]);
 
   // Cleanup: Para todos os áudios quando o componente for desmontado
   useEffect(() => {
@@ -701,13 +872,16 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
       console.log('🎬 Limpando áudios da cinematográfica... (APENAS quando sair)');
       // Para a música de fundo quando sair da cinematográfica
       try {
+        // Cancela timeline e áudios residuais
+        stopTimeline();
         api.fade("music", 0, 300); // Fade out rápido da música
         api.fade("tavern", 0, 300); // Fade out rápido da taverna
+        api.wind(false);
       } catch (error) {
         console.log('Erro ao fazer fade out dos áudios:', error);
       }
     };
-  }, []); // ← REMOVIDO [api] para evitar re-execução
+  }, []); // ← Mantém vazio para executar apenas no unmount
 
   return (
     <Screen 
@@ -718,92 +892,24 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
       }}
     >
         <TopBar>
-        <button
+        <TopButtonSkip
           onClick={(e) => {
             e.stopPropagation();
             skip();
             playClick();
           }}
-          style={{
-            padding: '12px 24px',
-            background: 'linear-gradient(135deg, rgba(11,11,13,0.95) 0%, rgba(23,23,27,0.85) 50%, rgba(15,15,18,0.95) 100%)',
-            color: '#d6d4cf',
-            border: '1px solid rgba(179,18,18,0.4)',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontSize: '13px',
-            fontFamily: '"Cinzel", serif',
-            fontWeight: '600',
-            textTransform: 'uppercase',
-            letterSpacing: '1px',
-            transition: 'all 0.3s ease',
-            backdropFilter: 'blur(8px)',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1)',
-            textShadow: '0 1px 2px rgba(0,0,0,0.8)',
-            position: 'relative',
-            overflow: 'hidden',
-            zIndex: 1000
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(179,18,18,0.2) 0%, rgba(139,0,0,0.3) 50%, rgba(179,18,18,0.2) 100%)';
-            e.currentTarget.style.borderColor = 'rgba(179,18,18,0.8)';
-            e.currentTarget.style.color = '#ffffff';
-            e.currentTarget.style.boxShadow = '0 6px 20px rgba(179,18,18,0.4), inset 0 1px 0 rgba(255,255,255,0.2)';
-            e.currentTarget.style.transform = 'translateY(-1px)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(11,11,13,0.95) 0%, rgba(23,23,27,0.85) 50%, rgba(15,15,18,0.95) 100%)';
-            e.currentTarget.style.borderColor = 'rgba(179,18,18,0.4)';
-            e.currentTarget.style.color = '#d6d4cf';
-            e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1)';
-            e.currentTarget.style.transform = 'translateY(0)';
-          }}
         >
           Pular
-        </button>
-        <button
+        </TopButtonSkip>
+        <TopButtonReplay
           onClick={(e) => {
             e.stopPropagation();
             replay();
             playClick();
           }}
-          style={{
-            padding: '12px 24px',
-            background: 'linear-gradient(135deg, rgba(11,11,13,0.95) 0%, rgba(23,23,27,0.85) 50%, rgba(15,15,18,0.95) 100%)',
-            color: '#d6d4cf',
-            border: '1px solid rgba(182,123,3,0.4)',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontSize: '13px',
-            fontFamily: '"Cinzel", serif',
-            fontWeight: '600',
-            textTransform: 'uppercase',
-            letterSpacing: '1px',
-            transition: 'all 0.3s ease',
-            backdropFilter: 'blur(8px)',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1)',
-            textShadow: '0 1px 2px rgba(0,0,0,0.8)',
-            position: 'relative',
-            overflow: 'hidden',
-            zIndex: 1000
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(182,123,3,0.2) 0%, rgba(218,165,32,0.3) 50%, rgba(182,123,3,0.2) 100%)';
-            e.currentTarget.style.borderColor = 'rgba(182,123,3,0.8)';
-            e.currentTarget.style.color = '#ffffff';
-            e.currentTarget.style.boxShadow = '0 6px 20px rgba(182,123,3,0.4), inset 0 1px 0 rgba(255,255,255,0.2)';
-            e.currentTarget.style.transform = 'translateY(-1px)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(11,11,13,0.95) 0%, rgba(23,23,27,0.85) 50%, rgba(15,15,18,0.95) 100%)';
-            e.currentTarget.style.borderColor = 'rgba(182,123,3,0.4)';
-            e.currentTarget.style.color = '#d6d4cf';
-            e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1)';
-            e.currentTarget.style.transform = 'translateY(0)';
-          }}
         >
           Rever
-        </button>
+        </TopButtonReplay>
       </TopBar>
 
       <Particles />
@@ -820,7 +926,7 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
           ))}
         </Box>
         <Box sx={{ mt: 2, opacity: ended ? 1 : 0, transform: `translateY(${ended ? 0 : 10}px)`, transition: ".6s ease all" }}>
-          <button
+          <CTAButton
             onClick={(e) => {
               playClick();
               e.stopPropagation();
@@ -835,47 +941,9 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
                 console.log('🎬 [ERRO] onFinish não existe!');
               }
             }}
-            style={{
-              padding: '15px 30px',
-              background: 'linear-gradient(135deg, rgba(139,0,0,0.95) 0%, rgba(179,18,18,0.9) 100%)',
-              color: '#F5DEB3',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '16px',
-              fontFamily: '"Cinzel", serif',
-              fontWeight: '700',
-              textTransform: 'uppercase',
-              letterSpacing: '2px',
-              textShadow: '2px 2px 4px rgba(0,0,0,1)',
-              boxShadow: '0 6px 20px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.1)',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              outline: 'none',
-              userSelect: 'none',
-              position: 'relative',
-              zIndex: 9999
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'linear-gradient(135deg, rgba(179,18,18,1) 0%, rgba(139,0,0,0.95) 100%)';
-              e.currentTarget.style.color = '#e68585ff';
-              e.currentTarget.style.transform = 'scale(1.05)';
-              e.currentTarget.style.boxShadow = '0 8px 25px rgba(179,18,18,0.7), inset 0 1px 0 rgba(255,255,255,0.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'linear-gradient(135deg, rgba(139,0,0,0.95) 0%, rgba(179,18,18,0.9) 100%)';
-              e.currentTarget.style.color = '#FFFFFF';
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.1)';
-            }}
-            onMouseDown={(e) => {
-              e.currentTarget.style.transform = 'scale(0.95)';
-            }}
-            onMouseUp={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-            }}
           >
             Ir para o mapa de Gallantaria
-          </button>
+          </CTAButton>
         </Box>
       </Center>
 
@@ -891,53 +959,15 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
             <Typography variant="body1" sx={{ color: "#d6d4cf", mb: 4 }}>
               Prepare-se para adentrar o mundo sombrio do Cavaleiro das Trevas.
             </Typography>
-            <button
+            <GateButton
               onClick={(e) => {
                 e.stopPropagation();
                 console.log('🎬 [DEBUG] Clicou em Ok - Iniciando cinematográfica');
                 begin();
               }}
-              style={{
-                padding: '10px 24px',
-                background: 'linear-gradient(135deg, rgba(139,0,0,0.95) 0%, rgba(179,18,18,0.9) 100%)',
-                color: '#F5DEB3',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '14px',
-                fontFamily: '"Cinzel", serif',
-                fontWeight: '700',
-                textTransform: 'uppercase',
-                letterSpacing: '2px',
-                textShadow: '2px 2px 4px rgba(0,0,0,1)',
-                boxShadow: '0 6px 20px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.1)',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                outline: 'none',
-                userSelect: 'none',
-                position: 'relative',
-                zIndex: 9999
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(179,18,18,1) 0%, rgba(139,0,0,0.95) 100%)';
-                e.currentTarget.style.color = '#FFFFFF';
-                e.currentTarget.style.transform = 'scale(1.05)';
-                e.currentTarget.style.boxShadow = '0 8px 25px rgba(179,18,18,0.7), inset 0 1px 0 rgba(255,255,255,0.2)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(139,0,0,0.95) 0%, rgba(179,18,18,0.9) 100%)';
-                e.currentTarget.style.color = '#F5DEB3';
-                e.currentTarget.style.transform = 'scale(1)';
-                e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.1)';
-              }}
-              onMouseDown={(e) => {
-                e.currentTarget.style.transform = 'scale(0.95)';
-              }}
-              onMouseUp={(e) => {
-                e.currentTarget.style.transform = 'scale(1.05)';
-              }}
             >
               Ok
-            </button>
+            </GateButton>
           </CardContent>
         </Card>
       </Dialog>
