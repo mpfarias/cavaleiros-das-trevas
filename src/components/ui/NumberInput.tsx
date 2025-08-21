@@ -1,5 +1,6 @@
 import React, { memo, useCallback } from 'react';
 import { Box, Typography } from '@mui/material';
+import { styled } from '@mui/material/styles';
 
 interface NumberInputProps {
   value: number;
@@ -43,7 +44,7 @@ const NumberInput: React.FC<NumberInputProps> = memo(({
       >
         {label} (entre {min} e {max}):
       </Typography>
-      <input
+      <StyledInput
         id={`number-input-${label.toLowerCase().replace(/\s+/g, '-')}`}
         type="number"
         min={min}
@@ -54,26 +55,6 @@ const NumberInput: React.FC<NumberInputProps> = memo(({
         placeholder={placeholder}
         aria-describedby={ariaDescribedBy}
         aria-label={`${label}, valor entre ${min} e ${max}`}
-        style={{
-          width: '100%',
-          padding: '8px 12px',
-          fontSize: '14px',
-          fontFamily: '"Spectral", serif',
-          background: 'rgba(255,255,255,0.08)',
-          border: '1px solid rgba(179,18,18,0.4)',
-          borderRadius: '6px',
-          color: '#E0DFDB',
-          outline: 'none',
-          transition: 'all 0.2s ease',
-        }}
-        onFocus={(e) => {
-          e.target.style.border = '1px solid rgba(179,18,18,0.7)';
-          e.target.style.background = 'rgba(255,255,255,0.12)';
-        }}
-        onBlur={(e) => {
-          e.target.style.border = '1px solid rgba(179,18,18,0.4)';
-          e.target.style.background = 'rgba(255,255,255,0.08)';
-        }}
       />
     </Box>
   );
@@ -82,3 +63,21 @@ const NumberInput: React.FC<NumberInputProps> = memo(({
 NumberInput.displayName = 'NumberInput';
 
 export default NumberInput;
+
+// Mantém o mesmo visual e move focus/hover para CSS
+const StyledInput = styled('input')({
+  width: '100%',
+  padding: '8px 12px',
+  fontSize: '14px',
+  fontFamily: '"Spectral", serif',
+  background: 'rgba(255,255,255,0.08)',
+  border: '1px solid rgba(179,18,18,0.4)',
+  borderRadius: '6px',
+  color: '#E0DFDB',
+  outline: 'none',
+  transition: 'all 0.2s ease',
+  '&:focus': {
+    border: '1px solid rgba(179,18,18,0.7)',
+    background: 'rgba(255,255,255,0.12)'
+  }
+});

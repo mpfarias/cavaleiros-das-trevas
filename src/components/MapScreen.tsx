@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, IconButton, Tooltip } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import PauseIcon from '@mui/icons-material/Pause';
 
 // Import da imagem do mapa
 import mapaImage from '../assets/images/mapa.jpg';
@@ -249,6 +251,7 @@ interface MapScreenProps {
 }
 
 const MapScreen: React.FC<MapScreenProps> = ({ onLocationSelect }) => {
+  const [isLocalMusicPlaying, setIsLocalMusicPlaying] = useState(false);
   const [hoveredLocation, setHoveredLocation] = useState<string | null>(null);
   const [isRevealed, setIsRevealed] = useState(false);
   const [audioBlocked, setAudioBlocked] = useState(false);
@@ -334,6 +337,7 @@ const MapScreen: React.FC<MapScreenProps> = ({ onLocationSelect }) => {
     console.log('🗺️ Iniciando sistema de áudio do mapa...');
     initMapAudio().then(() => {
       playMapAudio();
+      setIsLocalMusicPlaying(true);
     });
 
     // Cleanup quando sair do mapa
@@ -360,22 +364,44 @@ const MapScreen: React.FC<MapScreenProps> = ({ onLocationSelect }) => {
     console.log('🔊 Som de seleção de local');
   };
 
+  const toggleLocalMusic = () => {
+    if (isLocalMusicPlaying) {
+      pauseMapAudio();
+      setIsLocalMusicPlaying(false);
+    } else {
+      playMapAudio();
+      setIsLocalMusicPlaying(true);
+    }
+  };
+
   return (
     <MapContainer>
-      {/* Botão de música caso autoplay seja bloqueado */}
-      {audioBlocked && (
-        <Box
-          sx={{
-            position: 'absolute',
-            top: 20,
-            right: 20,
-            zIndex: 1000,
-            animation: `${fadeIn} 1s ease-out 2s both`
-          }}
-        >
-          <AudioPlayButton onClick={playMapAudio}>🎵 Tocar Música</AudioPlayButton>
-        </Box>
-      )}
+      {/* Botão de controle de música */}
+      <Box
+        sx={{
+          position: 'absolute',
+          bottom: '20px',
+          right: '20px',
+          zIndex: 1000,
+        }}
+      >
+        <Tooltip title={isLocalMusicPlaying ? 'Pausar música' : 'Tocar música'}>
+          <IconButton
+            onClick={toggleLocalMusic}
+            sx={{
+              color: isLocalMusicPlaying ? '#B31212' : '#E0DFDB',
+              background: 'rgba(15,17,20,0.8)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              '&:hover': {
+                background: 'rgba(179,18,18,0.2)',
+                borderColor: 'rgba(255,255,255,0.3)',
+              },
+            }}
+          >
+            {isLocalMusicPlaying ? <PauseIcon /> : <PlayArrowIcon />}
+          </IconButton>
+        </Tooltip>
+      </Box>
 
       <MapTitle>
         Gallantaria

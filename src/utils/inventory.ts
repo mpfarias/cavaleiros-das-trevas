@@ -85,7 +85,7 @@ export const buscarItemPorNome = (ficha: Ficha, nome: string): Item | undefined 
 export const totalOuro = (ficha: Ficha): number => {
   return ficha.bolsa
     .filter(item => item.tipo === 'ouro')
-    .reduce((total, item) => total + (item.quantidade || 1), 0);
+    .reduce((total, item) => total + (item.quantidade || 0), 0);
 };
 
 /**
@@ -94,7 +94,7 @@ export const totalOuro = (ficha: Ficha): number => {
 export const totalProvisoes = (ficha: Ficha): number => {
   return ficha.bolsa
     .filter(item => item.tipo === 'provisao')
-    .reduce((total, item) => total + (item.quantidade || 1), 0);
+    .reduce((total, item) => total + (item.quantidade || 0), 0);
 };
 
 /**

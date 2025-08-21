@@ -34,9 +34,10 @@ import {
   Restaurant as RestaurantIcon,
   Build as BuildIcon,
   Close as CloseIcon,
+
 } from '@mui/icons-material';
 import type { Ficha, Item } from '../types';
-import { createEmptyFicha } from '../types';
+import { createTrulyEmptyFicha } from '../types';
 import { adicionarItem, totalOuro } from '../utils/inventory';
 import { DICE_FORMULAS, ITEM_COLORS } from '../constants/character';
 
@@ -52,6 +53,7 @@ import AudioControls from './AudioControls';
 import AttributeCard from './character/AttributeCard';
 import CustomCheckbox from './ui/CustomCheckbox';
 import NotificationToast from './ui/NotificationToast';
+import DiceRollModal3D from './ui/DiceRollModal3D';
 
 
 import bgmFicha from '../assets/sounds/bgm-ficha.mp3';
@@ -61,6 +63,24 @@ import { useCoinSound } from '../hooks/useCoinsSound';
 import { useDiceSound } from '../hooks/useDiceSound';
 import { useClickSound } from '../hooks/useClickSound';
 
+
+// Input estilizado para o nome, movido para fora do componente para evitar recriação a cada render
+const StyledInput = styled('input')({
+	flex: 1,
+	padding: '12px 16px',
+	fontSize: '16px',
+	fontFamily: '"Spectral", serif',
+	background: 'rgba(255,255,255,0.05)',
+	border: '1px solid rgba(255,255,255,0.1)',
+	borderRadius: '8px',
+	color: '#E0DFDB',
+	outline: 'none',
+	transition: 'all 0.2s ease',
+	'&:focus': {
+		border: '1px solid rgba(179,18,18,0.5)',
+		background: 'rgba(255,255,255,0.08)'
+	}
+});
 
 interface CharacterSheetProps {
   ficha: Ficha;
@@ -75,6 +95,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
   const [abaAtiva, setAbaAtiva] = useState(0);
   const [usarMeusDados, setUsarMeusDados] = useState(false);
   const [confirmStartOpen, setConfirmStartOpen] = useState(false);
+  const [goldDiceModalOpen, setGoldDiceModalOpen] = useState(false);
 
   // Contador de rolagens para cada atributo (máximo 3 por atributo)
   const [rolagensDados, setRolagensDados] = useState({
@@ -87,16 +108,59 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
   const [limpezasRealizadas, setLimpezasRealizadas] = useState(0);
   const maxLimpezas = 3;
 
+  // Sincroniza o estado local rolagensDados com os dados da ficha persistida
+  useEffect(() => {
+    // Só executa uma vez na inicialização do componente
+    // Não interfere com rolagens normais em andamento
+    
+    // Se a ficha tem valores iniciais mas não tem moedas, há inconsistência
+    const hasInitialValues = ficha.pericia.inicial && ficha.forca.inicial && ficha.sorte.inicial;
+    const hasGold = ficha.bolsa.find(item => item.nome === 'Moedas de Ouro');
+    
+    // Só corrige se TODOS os atributos estão preenchidos mas NÃO há moedas
+    // Isso indica uma inconsistência real, não uma rolagem em andamento
+    if (hasInitialValues && !hasGold) {
+      console.log('🔄 [CharacterSheet] Inconsistência detectada: atributos com valores mas sem moedas. Resetando...');
+      
+      // Resetar atributos para forçar nova rolagem
+      const fichaCorrigida = {
+        ...ficha,
+        pericia: { inicial: 0, atual: 0 },
+        forca: { inicial: 0, atual: 0 },
+        sorte: { inicial: 0, atual: 0 }
+      };
+      
+      onFichaChange(fichaCorrigida);
+      
+      // Resetar contadores locais
+      setRolagensDados({
+        pericia: 0,
+        forca: 0,
+        sorte: 0
+      });
+    } else if (hasInitialValues && hasGold) {
+      // Se tem valores E moedas, significa que os dados foram rolados
+      // Vamos sincronizar o estado local
+      setRolagensDados({
+        pericia: 3, // Máximo atingido
+        forca: 3,   // Máximo atingido
+        sorte: 3    // Máximo atingido
+      });
+    }
+  }, []); // Executa apenas uma vez na montagem do componente
+
   // Hooks
   const { changeTrack, tryStartMusic, autoplayBlocked, pause } = useAudio();
   const { notification, showNotification, hideNotification } = useNotification();
   const { validateForStart } = useCharacterValidation();
-  const { rollAttribute, rollWithDetails } = useDiceRoller();
+  const { rollWithDetails } = useDiceRoller();
   const { isLoading, loadFromFile, clearLocalStorage } = useFileOperations();
   const playBag = useBagSound(1);
   const playCoin = useCoinSound(1);
   const playDice = useDiceSound(1);
   const playClick = useClickSound(1);
+
+
 
   // Carrega a música específica da ficha quando o componente monta
   useEffect(() => {
@@ -132,89 +196,53 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
     onFichaChange(newFicha);
   }, [ficha, onFichaChange]);
 
-  const rolarPericia = useCallback(() => {
-    if (rolagensDados.pericia >= 3) {
-      console.log('🚫 Limite de rolagens atingido para Perícia:', rolagensDados.pericia);
-      showNotification('Você já rolou os dados de Perícia 3 vezes. Limite máximo atingido.', 'warning');
-      return;
-    }
-
+  const rolarPericia = useCallback((): { dice: number[]; total: number } => {
     playDice();
-    const valor = rollAttribute('pericia');
-    updateFicha({
-      pericia: { inicial: valor, atual: valor },
-    });
-
+    const resultado = rollWithDetails('pericia');
+    
     setRolagensDados(prev => {
       const newCount = prev.pericia + 1;
-      console.log('🎲 Rolagem de Perícia:', newCount, '/ 3');
-      if (newCount === 3) {
-        setTimeout(() => {
-          showNotification('⚠️ Você atingiu o limite máximo de rolagens para Perícia (3/3)', 'info');
-        }, 500);
-      }
+      console.log('Rolagem de Perícia:', newCount, '/ 3');
       return {
         ...prev,
         pericia: newCount
       };
     });
-  }, [rollAttribute, updateFicha, rolagensDados.pericia, playDice, showNotification]);
+    
+    return resultado; // retorna dados e total para o modal
+  }, [rollWithDetails, playDice]);
 
-  const rolarForca = useCallback(() => {
-    if (rolagensDados.forca >= 3) {
-      console.log('🚫 Limite de rolagens atingido para Força:', rolagensDados.forca);
-      showNotification('Você já rolou os dados de Força 3 vezes. Limite máximo atingido.', 'warning');
-      return;
-    }
-
+  const rolarForca = useCallback((): { dice: number[]; total: number } => {
     playDice();
-    const valor = rollAttribute('forca');
-    updateFicha({
-      forca: { inicial: valor, atual: valor },
-    });
+    const resultado = rollWithDetails('forca');
 
     setRolagensDados(prev => {
       const newCount = prev.forca + 1;
-      console.log('🎲 Rolagem de Força:', newCount, '/ 3');
-      if (newCount === 3) {
-        setTimeout(() => {
-          showNotification('⚠️ Você atingiu o limite máximo de rolagens para Força (3/3)', 'info');
-        }, 500);
-      }
+      console.log('Rolagem de Força:', newCount, '/ 3');
       return {
         ...prev,
         forca: newCount
       };
     });
-  }, [rollAttribute, updateFicha, rolagensDados.forca, playDice, showNotification]);
+    
+    return resultado; // retorna dados e total para o modal
+  }, [rollWithDetails, playDice]);
 
-  const rolarSorte = useCallback(() => {
-    if (rolagensDados.sorte >= 3) {
-      console.log('🚫 Limite de rolagens atingido para Sorte:', rolagensDados.sorte);
-      showNotification('Você já rolou os dados de Sorte 3 vezes. Limite máximo atingido.', 'warning');
-      return;
-    }
-
+  const rolarSorte = useCallback((): { dice: number[]; total: number } => {
     playDice();
-    const valor = rollAttribute('sorte');
-    updateFicha({
-      sorte: { inicial: valor, atual: valor },
-    });
+    const resultado = rollWithDetails('sorte');
 
     setRolagensDados(prev => {
       const newCount = prev.sorte + 1;
-      console.log('🎲 Rolagem de Sorte:', newCount, '/ 3');
-      if (newCount === 3) {
-        setTimeout(() => {
-          showNotification('⚠️ Você atingiu o limite máximo de rolagens para Sorte (3/3)', 'info');
-        }, 500);
-      }
+      console.log('Rolagem de Sorte:', newCount, '/ 3');
       return {
         ...prev,
         sorte: newCount
       };
     });
-  }, [rollAttribute, updateFicha, rolagensDados.sorte, playDice, showNotification]);
+    
+    return resultado; // retorna dados e total para o modal
+  }, [rollWithDetails, playDice]);
 
   const handleAtributoChange = useCallback((attr: 'pericia' | 'forca' | 'sorte', valor: number) => {
     updateFicha({
@@ -222,15 +250,13 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
     });
   }, [updateFicha]);
 
-  const rolarMoedasOuro = useCallback(() => {
-    const rollResult = rollWithDetails('ouro');
-
+  const handleGoldDiceComplete = useCallback((_dice: number[], total: number) => {
     // Adiciona as moedas de ouro à bolsa
     let novaFicha = ficha;
     novaFicha = adicionarItem(novaFicha, {
       nome: 'Moedas de Ouro',
       tipo: 'ouro',
-      quantidade: rollResult.total,
+      quantidade: total,
       descricao: 'Moedas de ouro iniciais do personagem',
       adquiridoEm: 'Criação do Personagem'
     });
@@ -238,11 +264,8 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
     // Atualiza a ficha com as moedas na bolsa
     updateFicha(novaFicha);
 
-    showNotification(
-      `Moedas de ouro roladas: ${rollResult.dice.join(' + ')} + ${rollResult.bonus} = ${rollResult.total} moedas adicionadas à bolsa!`,
-      'success'
-    );
-  }, [rollWithDetails, ficha, updateFicha, showNotification]);
+    setGoldDiceModalOpen(false);
+  }, [ficha, updateFicha, showNotification]);
 
 
 
@@ -316,23 +339,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
     return ITEM_COLORS[tipo] || '#757575';
   }, []);
 
-  // Input estilizado para o nome, mantendo o mesmo visual
-  const StyledInput = styled('input')({
-    flex: 1,
-    padding: '12px 16px',
-    fontSize: '16px',
-    fontFamily: '"Spectral", serif',
-    background: 'rgba(255,255,255,0.05)',
-    border: '1px solid rgba(255,255,255,0.1)',
-    borderRadius: '8px',
-    color: '#E0DFDB',
-    outline: 'none',
-    transition: 'all 0.2s ease',
-    '&:focus': {
-      border: '1px solid rgba(179,18,18,0.5)',
-      background: 'rgba(255,255,255,0.08)'
-    }
-  });
+  // StyledInput declarado fora para manter foco entre renders
 
   const BolsaCard = () => (
     <Card>
@@ -405,16 +412,18 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
                         </Box>
                       }
                       secondary={
-                        <Box>
-                          <Typography variant="caption" color="text.secondary">
-                            {item.tipo.charAt(0).toUpperCase() + item.tipo.slice(1)}
-                          </Typography>
-                          {item.descricao && (
-                            <Typography variant="caption" display="block" color="text.secondary">
-                              {item.descricao}
+                        <Typography component="div" variant="body2" color="text.secondary">
+                          <Box>
+                            <Typography variant="caption" color="text.secondary">
+                              {item.tipo.charAt(0).toUpperCase() + item.tipo.slice(1)}
                             </Typography>
-                          )}
-                        </Box>
+                            {item.descricao && (
+                              <Typography variant="caption" display="block" color="text.secondary">
+                                {item.descricao}
+                              </Typography>
+                            )}
+                          </Box>
+                        </Typography>
                       }
                     />
                   </ListItem>
@@ -452,8 +461,8 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
 
     // Não redirecionar mais - apenas limpar a ficha localmente
     if (result.success) {
-      // Criar uma ficha vazia usando a função padrão
-      const fichaVazia = createEmptyFicha();
+      // Criar uma ficha realmente vazia (sem moedas)
+      const fichaVazia = createTrulyEmptyFicha();
 
       // Atualizar a ficha com dados vazios
       onFichaChange(fichaVazia);
@@ -501,8 +510,11 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
         borderRadius: '24px',
         backdropFilter: 'blur(3px)',
         fontFamily: '"Spectral", serif',
+        position: 'relative',
       }}
     >
+
+
       {/* Notificação */}
       <NotificationToast
         open={notification.open}
@@ -548,17 +560,17 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
       </Card>
 
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 2, mb: 3 }}>
-        {attributeCards.map(({ title, attr, onRoll, rolagensFeitas }) => (
+        {attributeCards.map(({ title, attr, rolagensFeitas, onRoll }) => (
           <AttributeCard
             key={attr}
             title={title}
             attr={attr}
             ficha={ficha}
             usarMeusDados={usarMeusDados}
-            onRoll={onRoll}
             onAtributoChange={handleAtributoChange}
             rolagensFeitas={rolagensFeitas}
             maxRolagens={3}
+            onRoll={onRoll}
           />
         ))}
         <Card>
@@ -581,7 +593,8 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
                 size="small"
                 onClick={() => {
                   playCoin();
-                  rolarMoedasOuro();
+                  playDice();
+                  setGoldDiceModalOpen(true);
                 }}
                 startIcon={<CasinoIcon />}
                 disabled={!!ficha.bolsa.find(item => item.nome === 'Moedas de Ouro') || isLoading}
@@ -1072,6 +1085,14 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
           </CardContent>
         </Card>
       </Dialog>
+      {/* Modal 3D para moedas de ouro */}
+      <DiceRollModal3D
+        open={goldDiceModalOpen}
+        numDice={2}
+        onComplete={handleGoldDiceComplete}
+        bonus={12}
+      />
+
       {/* Controles de música */}
       <AudioControls />
 

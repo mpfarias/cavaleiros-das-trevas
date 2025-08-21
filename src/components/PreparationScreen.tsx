@@ -319,7 +319,7 @@ const PreparationScreen: React.FC<PreparationScreenProps> = ({
 
           <Box sx={{ textAlign: 'center' }}>
             <ActionButton onClick={onFinishPreparation}>
-              ⚔️ Partir para Karnstein
+              Partir para Karnstein
             </ActionButton>
           </Box>
         </CardContent>

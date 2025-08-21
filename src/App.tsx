@@ -1,17 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CssBaseline, Box } from '@mui/material';
+import { Routes, Route, Navigate, useNavigate, useLocation, useInRouterContext, BrowserRouter } from 'react-router-dom';
+import ScreenRouter from './GamePath/ScreenRouter';
 import Home from './components/Home';
 import CharacterSheet from './components/CharacterSheet';
 import IntroCinematic from './components/IntroCinematic';
 import MapScreen from './components/MapScreen';
 import RoyalLendleScreen from './components/RoyalLendleScreen';
-import BartolphGameScreen from './components/BartolphGameScreen';
-import PreparationScreen from './components/PreparationScreen';
+
 import type { Ficha } from './types';
-import { FichaSchema, createEmptyFicha } from './types';
+import { FichaSchema } from './types';
 import { AudioProvider } from './contexts/AudioContext';
 import './index.css';
+import InventoryModal from './components/InventoryModal';
+import { styled } from '@mui/material/styles';
+import { totalOuro } from './utils/inventory';
 
 const darkTheme = createTheme({
   palette: {
@@ -131,38 +135,140 @@ const darkTheme = createTheme({
   },
 });
 
-function App() {
-  const [currentView, setCurrentView] = useState<'home' | 'sheet' | 'cinematic' | 'map' | 'royallendle' | 'bartolph' | 'preparation'>('home');
-  const [ficha, setFicha] = useState<Ficha>(createEmptyFicha());
+function AppContent() {
+  console.log('🎲 [App] Função AppContent executada!');
+  
+  const navigate = useNavigate();
+  const location = useLocation();
+  // Função helper para criar ficha vazia sem moedas
+  const createEmptyFichaWithoutGold = (): Ficha => ({
+    nome: '',
+    pericia: { inicial: 0, atual: 0 },
+    forca: { inicial: 0, atual: 0 },
+    sorte: { inicial: 0, atual: 0 },
+    bolsa: [
+      {
+        id: 'espada_inicial',
+        nome: 'Espada de Aço',
+        tipo: 'arma',
+        descricao: 'Espada básica de aço, arma padrão de todo cavaleiro',
+        adquiridoEm: 'Criação do Personagem'
+      }
+    ]
+  });
+
+  const [ficha, setFicha] = useState<Ficha>(() => {
+    // Estado inicial vazio - será preenchido pelo useEffect
+    return createEmptyFichaWithoutGold();
+  });
+
+  // Wrapper para setFicha com logs de debug
+  const setFichaWithLog = useCallback((newFicha: Ficha | ((prev: Ficha) => Ficha)) => {
+    console.log('🎲 [App] setFicha sendo chamado com:', newFicha);
+    if (typeof newFicha === 'function') {
+      const prevFicha = ficha;
+      const nextFicha = newFicha(prevFicha);
+      console.log('🎲 [App] setFicha (função) - Anterior:', prevFicha);
+      console.log('🎲 [App] setFicha (função) - Próximo:', nextFicha);
+      setFicha(nextFicha);
+    } else {
+      console.log('🎲 [App] setFicha (valor) - Anterior:', ficha);
+      console.log('🎲 [App] setFicha (valor) - Próximo:', newFicha);
+      setFicha(newFicha);
+    }
+  }, [ficha]);
   const [currentLocation, setCurrentLocation] = useState<string>('');
+  const [globalInventoryOpen, setGlobalInventoryOpen] = useState(false);
+  const showGlobalStatus = !['/', '/sheet', '/intro'].includes(location.pathname);
 
   useEffect(() => {
+    const timestamp = Date.now();
+    console.log('🎲 [App] useEffect de inicialização executado - TIMESTAMP:', timestamp);
+    console.log('🎲 [App] Ficha atual no estado antes do useEffect:', ficha);
+    
+    // Contador para rastrear execuções múltiplas
+    const executionCount = (window as any).__useEffectCount = ((window as any).__useEffectCount || 0) + 1;
+    console.log('🎲 [App] useEffect executado pela', executionCount, 'vez');
+    
     const savedData = localStorage.getItem('cavaleiro:ficha');
+    const savedScreenId = localStorage.getItem('cavaleiro:screenId');
+    
+    console.log('🎲 [App] Dados salvos encontrados:', { savedData: !!savedData, savedScreenId });
+    
     if (savedData) {
       try {
         const parsed = JSON.parse(savedData);
+        console.log('🎲 [App] Ficha parseada:', parsed);
+        
         const validated = FichaSchema.safeParse(parsed);
         if (validated.success) {
-          setFicha({ ...createEmptyFicha(), ...validated.data });
+          // Se a ficha for válida, usa ela diretamente sem mesclar com createEmptyFicha
+          console.log('🎲 [App] Ficha validada com sucesso:', validated.data);
+          console.log('🎲 [App] - Nome:', validated.data.nome);
+          console.log('🎲 [App] - Perícia:', validated.data.pericia);
+          console.log('🎲 [App] - Força:', validated.data.forca);
+          console.log('🎲 [App] - Sorte:', validated.data.sorte);
+          console.log('🎲 [App] - Bolsa:', validated.data.bolsa);
+          
+          // Verificar se a ficha atual é diferente da validada
+          if (ficha && (ficha.nome !== validated.data.nome || 
+                        ficha.pericia.inicial !== validated.data.pericia.inicial ||
+                        ficha.forca.inicial !== validated.data.forca.inicial ||
+                        ficha.sorte.inicial !== validated.data.sorte.inicial)) {
+            console.log('🎲 [App] ATENÇÃO: Ficha atual diferente da validada!');
+            console.log('🎲 [App] - Ficha atual:', ficha);
+            console.log('🎲 [App] - Ficha validada:', validated.data);
+          }
+          
+          setFichaWithLog(validated.data);
         } else {
-          console.warn('Ficha salva inválida. Usando defaults.');
+          console.warn('🎲 [App] Ficha salva inválida. Usando defaults.');
+          console.warn('🎲 [App] Erros de validação:', validated.error);
+          // Se a validação falhar, cria uma ficha vazia sem moedas
+          const fallbackFicha = createEmptyFichaWithoutGold();
+          console.log('🎲 [App] Usando ficha de fallback vazia:', fallbackFicha);
+          setFichaWithLog(fallbackFicha);
         }
       } catch (error) {
-        console.error('Erro ao carregar ficha:', error);
+        console.error('🎲 [App] Erro ao carregar ficha:', error);
+        const fallbackFicha = createEmptyFichaWithoutGold();
+        console.log('🎲 [App] Erro no parse, usando ficha de fallback vazia:', fallbackFicha);
+        setFichaWithLog(fallbackFicha);
       }
+    } else {
+      console.log('🎲 [App] Nenhuma ficha salva encontrada, usando padrão');
+      const defaultFicha = createEmptyFichaWithoutGold();
+      console.log('🎲 [App] Ficha padrão criada (sem moedas):', defaultFicha);
+      setFichaWithLog(defaultFicha);
     }
+    // screenId salvo é usado apenas para retomar via rota /game/:id
   }, []);
 
   const handleStartAdventure = () => {
-    setCurrentView('sheet');
+    navigate('/sheet');
   };
 
   const handleFichaChange = (newFicha: Ficha) => {
-    setFicha(newFicha);
+    console.log('🎲 [App] handleFichaChange chamado com:', newFicha);
+    
+    // Verificação de segurança
+    if (!newFicha || !newFicha.bolsa || !Array.isArray(newFicha.bolsa)) {
+      console.error('🎲 [App] ERRO: Tentativa de salvar ficha inválida em handleFichaChange');
+      return;
+    }
+    
+    console.log('🎲 [App] - Nome recebido:', newFicha.nome);
+    console.log('🎲 [App] - Perícia recebida:', newFicha.pericia);
+    console.log('🎲 [App] - Força recebida:', newFicha.forca);
+    console.log('🎲 [App] - Sorte recebida:', newFicha.sorte);
+    console.log('🎲 [App] - Bolsa recebida:', newFicha.bolsa);
+    
+    setFichaWithLog(newFicha);
     try {
       localStorage.setItem('cavaleiro:ficha', JSON.stringify(newFicha));
+      console.log('🎲 [App] Ficha atualizada e salva com sucesso');
     } catch (e) {
-      console.error('Falha ao salvar no localStorage:', e);
+      console.error('🎲 [App] Falha ao salvar no localStorage:', e);
     }
   };
 
@@ -173,7 +279,7 @@ function App() {
     // Roteamento baseado na localização
     switch (location) {
       case 'Royal':
-        setCurrentView('royallendle');
+        navigate('/royal');
         break;
       case 'Karnstein':
         // TODO: Implementar tela de Karnstein
@@ -185,17 +291,19 @@ function App() {
   };
 
   const handleGameChoice = (choice: string) => {
-    console.log(`🎲 Escolha feita: ${choice} em ${currentLocation}`);
+    console.log(`Escolha feita: ${choice} em ${currentLocation}`);
     
-    // Lógica específica baseada na escolha
+    // Roteamento baseado na escolha
     switch (choice) {
       case 'aceitar_jogo':
-        console.log('🎲 Jogador aceitou o jogo de Bartolph');
-        setCurrentView('bartolph');
+        console.log('Jogador aceitou o jogo de Bartolph');
+        try { localStorage.setItem('cavaleiro:screenId', '86'); } catch {}
+        navigate('/game/86');
         break;
       case 'recusar_jogo':
         console.log('🚶 Jogador recusou o jogo e vai se preparar');
-        setCurrentView('preparation');
+        try { localStorage.setItem('cavaleiro:screenId', '30'); } catch {}
+        navigate('/game/30');
         break;
       default:
         console.log(`❓ Escolha não reconhecida: ${choice}`);
@@ -203,58 +311,67 @@ function App() {
   };
 
   const handleGameResult = (won: boolean, goldChange: number) => {
-    console.log(`🎲 Resultado do jogo: ${won ? 'Vitória' : 'Derrota'}, Mudança de ouro: ${goldChange}`);
+    console.log(`🎲 [App] handleGameResult chamado: ${won ? 'Vitória' : 'Derrota'}, Mudança de ouro: ${goldChange}`);
+    console.log(`🎲 [App] Ficha antes da atualização:`, ficha);
+    
+    // Verificação de segurança
+    if (!ficha || !ficha.bolsa || !Array.isArray(ficha.bolsa)) {
+      console.error('🎲 [App] ERRO: Ficha inválida em handleGameResult');
+      return;
+    }
     
     // Atualizar ouro na ficha
     const updatedFicha = { ...ficha };
     const goldItemIndex = updatedFicha.bolsa.findIndex(item => item.tipo === 'ouro');
     
+    console.log(`🎲 [App] Índice do item de ouro: ${goldItemIndex}`);
+    
     if (goldItemIndex !== -1) {
       const currentGold = updatedFicha.bolsa[goldItemIndex].quantidade || 0;
-      updatedFicha.bolsa[goldItemIndex].quantidade = Math.max(0, currentGold + goldChange);
+      const newGold = Math.max(0, currentGold + goldChange);
+      updatedFicha.bolsa[goldItemIndex].quantidade = newGold;
+      
+      console.log(`🎲 [App] Ouro atual: ${currentGold}, Mudança: ${goldChange}, Novo ouro: ${newGold}`);
+      console.log(`🎲 [App] Item de ouro atualizado:`, updatedFicha.bolsa[goldItemIndex]);
+    } else {
+      console.log(`🎲 [App] ERRO: Item de ouro não encontrado na bolsa!`);
     }
     
-    setFicha(updatedFicha);
-    localStorage.setItem('cavaleiro:ficha', JSON.stringify(updatedFicha));
+    console.log(`🎲 [App] Ficha após atualização:`, updatedFicha);
     
-    // Voltar para o mapa após o jogo
-    setCurrentView('map');
-  };
-
-  const handlePurchase = (item: any) => {
-    console.log(`🛒 Comprando: ${item.nome} por ${item.preco} moedas`);
-    
-    // Atualizar ficha com nova compra
-    const updatedFicha = { ...ficha };
-    
-    // Reduzir ouro
-    const goldItemIndex = updatedFicha.bolsa.findIndex(item => item.tipo === 'ouro');
-    if (goldItemIndex !== -1) {
-      const currentGold = updatedFicha.bolsa[goldItemIndex].quantidade || 0;
-      updatedFicha.bolsa[goldItemIndex].quantidade = currentGold - item.preco;
+    // Verificação adicional antes de salvar
+    if (updatedFicha.bolsa && Array.isArray(updatedFicha.bolsa)) {
+      setFichaWithLog(updatedFicha);
+      
+              try {
+          localStorage.setItem('cavaleiro:ficha', JSON.stringify(updatedFicha));
+          console.log(`🎲 [App] Ficha salva no localStorage com sucesso`);
+          
+          // DEBUG: Verificar o que foi salvo
+          const savedData = localStorage.getItem('cavaleiro:ficha');
+          console.log(`🎲 [App] DEBUG: Dados salvos no localStorage:`, savedData);
+          try {
+            const parsed = JSON.parse(savedData || '');
+            console.log(`🎲 [App] DEBUG: Ficha parseada do localStorage:`, parsed);
+            console.log(`🎲 [App] DEBUG: - Nome salvo:`, parsed.nome);
+            console.log(`🎲 [App] DEBUG: - Perícia salva:`, parsed.pericia);
+            console.log(`🎲 [App] DEBUG: - Força salva:`, parsed.forca);
+            console.log(`🎲 [App] DEBUG: - Sorte salva:`, parsed.sorte);
+            console.log(`🎲 [App] DEBUG: - Bolsa salva:`, parsed.bolsa);
+          } catch (error) {
+            console.error(`🎲 [App] DEBUG: Erro ao parsear dados salvos:`, error);
+          }
+        } catch (error) {
+        console.error(`🎲 [App] ERRO ao salvar no localStorage:`, error);
+      }
+    } else {
+      console.error(`🎲 [App] ERRO: Ficha inválida após atualização`);
     }
-    
-    // Adicionar item comprado
-    const newItem = {
-      id: `${item.id}_${Date.now()}`,
-      nome: item.nome,
-      tipo: item.tipo,
-      quantidade: 1,
-      descricao: item.descricao,
-      adquiridoEm: 'Royal Lendle - Mercador'
-    };
-    
-    updatedFicha.bolsa.push(newItem);
-    
-    setFicha(updatedFicha);
-    localStorage.setItem('cavaleiro:ficha', JSON.stringify(updatedFicha));
   };
 
-  const handleFinishPreparation = () => {
-    console.log('✅ Preparação concluída - Partindo para Karnstein');
-    // Voltar para o mapa após preparação
-    setCurrentView('map');
-  };
+
+
+
 
   return (
     <ThemeProvider theme={darkTheme}>
@@ -269,6 +386,19 @@ function App() {
             overflow: 'hidden',
           }}
         >
+        {/* Bolsa global visível apenas após início da aventura */}
+        {showGlobalStatus && (
+          <>
+            <GlobalPlayerStatus onClick={() => setGlobalInventoryOpen(true)}>
+              {ficha.nome || 'Herói'} | 💰 {totalOuro(ficha)} Moedas de Ouro
+            </GlobalPlayerStatus>
+            <InventoryModal
+              open={globalInventoryOpen}
+              onClose={() => setGlobalInventoryOpen(false)}
+              ficha={ficha}
+            />
+          </>
+        )}
         {/* Backdrop */}
         <Box
           sx={{
@@ -316,66 +446,61 @@ function App() {
           aria-hidden="true"
         />
 
-        {currentView === 'home' ? (
-          <Home onStart={handleStartAdventure} />
-        ) : currentView === 'sheet' ? (
-          <CharacterSheet 
-            ficha={ficha} 
-            onFichaChange={handleFichaChange} 
-            onVoltar={() => setCurrentView('home')}
-            onStartCinematic={() => setCurrentView('cinematic')}
-          />
-        ) : currentView === 'cinematic' ? (
-          <Box
-            sx={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              zIndex: 10,
-              '&::after': {
-                display: 'none !important'
-              }
-            }}
-          >
-            <IntroCinematic 
-              onFinish={() => setCurrentView('map')} 
-            />
-          </Box>
-                ) : currentView === 'map' ? (
-          <MapScreen
-            onLocationSelect={handleLocationSelect}
-          />
-        ) : currentView === 'royallendle' ? (
-          <RoyalLendleScreen
-            onChoice={handleGameChoice}
-            onBackToMap={() => setCurrentView('map')}
-            ficha={ficha}
-          />
-        ) : currentView === 'bartolph' ? (
-          <BartolphGameScreen
-            ficha={ficha}
-            onGameResult={handleGameResult}
-            onBackToRoyal={() => setCurrentView('royallendle')}
-          />
-        ) : currentView === 'preparation' ? (
-          <PreparationScreen
-            ficha={ficha}
-            onPurchase={handlePurchase}
-            onFinishPreparation={handleFinishPreparation}
-            onBackToRoyal={() => setCurrentView('royallendle')}
-          />
-        ) : (
-          <Box>
-            <h1>Tela do Jogo - {ficha.nome} em {currentLocation}</h1>
-            <button onClick={() => setCurrentView('map')}>Voltar ao Mapa</button>
-          </Box>
-        )}
+        <Routes>
+          <Route path="/" element={<Home onStart={handleStartAdventure} />} />
+          <Route path="/sheet" element={<CharacterSheet ficha={ficha} onFichaChange={handleFichaChange} onVoltar={() => navigate('/')} onStartCinematic={() => navigate('/intro')} />} />
+          <Route path="/intro" element={<Box sx={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10, '&::after': { display: 'none !important' } }}><IntroCinematic onFinish={() => navigate('/map')} /></Box>} />
+          <Route path="/map" element={<MapScreen onLocationSelect={handleLocationSelect} />} />
+          <Route path="/royal" element={<RoyalLendleScreen onChoice={handleGameChoice} onBackToMap={() => navigate('/map')} ficha={ficha} />} />
+
+          <Route path="/game/:id" element={<ScreenRouter ficha={ficha} onGameResult={handleGameResult} onAdjustSorte={(delta:number)=>{
+            setFichaWithLog(prev=>{
+              const next = { ...prev } as Ficha;
+              const inicial = next.sorte.inicial;
+              const novoAtual = Math.max(0, Math.min(inicial, next.sorte.atual + delta));
+              next.sorte = { ...next.sorte, atual: novoAtual };
+              try { localStorage.setItem('cavaleiro:ficha', JSON.stringify(next)); } catch {}
+              return next;
+            });
+          }} onFichaChange={handleFichaChange} />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
         </Box>
       </AudioProvider>
     </ThemeProvider>
   );
 }
 
-export default App;
+export default function App() {
+  const inRouter = useInRouterContext();
+  const content = <AppContent />;
+  return inRouter ? content : <BrowserRouter>{content}</BrowserRouter>;
+}
+
+// Componente de status global (bolsa sempre visível)
+const GlobalPlayerStatus = styled('div')({
+  position: 'fixed',
+  top: 16,
+  right: 16,
+  padding: '10px 14px',
+  background: 'rgba(139,69,19,0.85)',
+  color: '#F5DEB3',
+  border: '2px solid #D2B48C',
+  borderRadius: 8,
+  fontSize: 14,
+  fontFamily: '"Cinzel", serif',
+  fontWeight: 600,
+  textShadow: '0 1px 2px rgba(0,0,0,0.8)',
+  boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+  cursor: 'pointer',
+  zIndex: 20000,
+  userSelect: 'none',
+  transition: 'transform 0.2s ease',
+  '&:hover': {
+    transform: 'scale(1.03)'
+  },
+  '&:focus-visible': {
+    outline: '2px solid #FFD700',
+    outlineOffset: 2
+  }
+});

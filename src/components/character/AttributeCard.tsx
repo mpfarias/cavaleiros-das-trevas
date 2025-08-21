@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from 'react';
+import React, { memo, useCallback, useState } from 'react';
 import {
   Box,
   Typography,
@@ -12,16 +12,18 @@ import { Casino as CasinoIcon } from '@mui/icons-material';
 import type { Ficha } from '../../types';
 import { ATTRIBUTE_LIMITS, DICE_FORMULAS } from '../../constants/character';
 import NumberInput from '../ui/NumberInput';
+import DiceRollModal3D from '../ui/DiceRollModal3D';
+import { useDiceSound } from '../../hooks/useDiceSound';
 
 interface AttributeCardProps {
   title: string;
   attr: 'pericia' | 'forca' | 'sorte';
   ficha: Ficha;
   usarMeusDados: boolean;
-  onRoll: () => void;
   onAtributoChange: (attr: 'pericia' | 'forca' | 'sorte', valor: number) => void;
   rolagensFeitas?: number;
   maxRolagens?: number;
+  onRoll?: () => void; // Função para executar a rolagem
 }
 
 const AttributeCard: React.FC<AttributeCardProps> = memo(({
@@ -29,17 +31,38 @@ const AttributeCard: React.FC<AttributeCardProps> = memo(({
   attr,
   ficha,
   usarMeusDados,
-  onRoll,
   onAtributoChange,
   rolagensFeitas = 0,
-  maxRolagens = 3
+  maxRolagens = 3,
+  onRoll
 }) => {
   const limits = ATTRIBUTE_LIMITS[attr];
   const formula = DICE_FORMULAS[attr];
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const playDice = useDiceSound();
 
   const handleAtributoChange = useCallback((valor: number) => {
     onAtributoChange(attr, valor);
   }, [attr, onAtributoChange]);
+
+  const handleRollClick = useCallback(() => {
+    if (rolagensFeitas >= maxRolagens) return;
+    
+    // Executar a rolagem se a função foi fornecida
+    if (onRoll) {
+      onRoll();
+    }
+    
+    playDice();
+    setIsModalOpen(true);
+  }, [rolagensFeitas, maxRolagens, onRoll, playDice]);
+
+  const handleRollComplete = useCallback((_dice: number[], total: number) => {
+    setIsModalOpen(false);
+    onAtributoChange(attr, total);
+  }, [attr, onAtributoChange]);
+
+
 
   const getDescription = () => {
     switch (attr) {
@@ -83,11 +106,11 @@ const AttributeCard: React.FC<AttributeCardProps> = memo(({
             aria-describedby={`${attr}-description`}
           />
         ) : (
-          <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
+          <Stack direction="row" spacing={1} sx={{ mb: 1, alignItems: 'center' }}>
             <Button
               variant="outlined"
               size="small"
-              onClick={onRoll}
+              onClick={handleRollClick}
               startIcon={<CasinoIcon />}
               disabled={rolagensFeitas >= maxRolagens}
               aria-label={`Rolar dados para ${title}: ${formula.text}`}
@@ -113,6 +136,14 @@ const AttributeCard: React.FC<AttributeCardProps> = memo(({
             )}
           </Stack>
         )}
+
+        <DiceRollModal3D
+          open={isModalOpen}
+          numDice={formula.dice === '2d6' ? 2 : 1}
+          onComplete={handleRollComplete}
+          title={`Rolando ${title}`}
+          bonus={formula.bonus}
+        />
         
         <Typography 
           id={`${attr}-description`}

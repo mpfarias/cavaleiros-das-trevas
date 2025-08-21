@@ -819,7 +819,7 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
     api.wind(false);
     api.boom();
     setFadeKey(prev => prev + 1); // Novo fade para o texto final
-    setLines([["big", "Você parte para Karnstein… as sombras aguardam."]]);
+    setLines([["big", "Você está em Gallantaria… as sombras aguardam."]]);
     setEnded(true);
   }, [stopTimeline, api]);
 

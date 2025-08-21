@@ -1,10 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Box, Typography, Card, CardContent } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { useAudioGroup } from '../hooks/useAudioGroup';
+import { Box, Typography, Card, CardContent, IconButton, Tooltip } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import InventoryModal from './InventoryModal';
 import type { Ficha } from '../types';
 import { useClickSound } from '../hooks/useClickSound';
-import peopleSound from '../assets/sounds/people.mp3';
+
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import PauseIcon from '@mui/icons-material/Pause';
 
 // Animações
 const fadeIn = keyframes`
@@ -135,30 +138,7 @@ const BackButton = styled('button')({
   }
 });
 
-const PlayerStatus = styled(Box)({
-  position: 'absolute',
-  top: '20px',
-  right: '20px',
-  padding: '12px 16px',
-  background: 'rgba(139,69,19,0.8)',
-  color: '#F5DEB3',
-  border: '2px solid #D2B48C',
-  borderRadius: '8px',
-  fontSize: '14px',
-  fontFamily: '"Cinzel", serif',
-  fontWeight: '600',
-  textShadow: '0 1px 2px rgba(0,0,0,0.8)',
-  boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-  cursor: 'pointer',
-  transition: 'all 0.3s ease',
-  zIndex: 10,
-  '&:hover': {
-    background: 'rgba(179,18,18,0.8)',
-    borderColor: '#FFD700',
-    transform: 'scale(1.05)',
-    boxShadow: '0 6px 20px rgba(179,18,18,0.4)'
-  }
-});
+// Removido: status duplicava a bolsa global do App
 
 // Botão de escolha estilizado
 const ChoiceButton = styled('button')({
@@ -205,50 +185,13 @@ const RoyalLendleScreen: React.FC<RoyalLendleScreenProps> = ({
   ficha
 }) => {
   const [textVisible, setTextVisible] = useState(false);
-  const [choicesVisible, setChoicesVisible] = useState(false);
+  const [choicesVisible, setChoicesVisible] = useState(false); // TODO: usar para fade das escolhas
   const [inventoryOpen, setInventoryOpen] = useState(false);
-  const [showMusicButton, setShowMusicButton] = useState(false);
+  const { currentGroup, isPlaying, togglePlay } = useAudioGroup('royal');
 
-  // Ref para o áudio ambiente
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  // Calcular total de moedas de ouro
-  const totalGold = ficha.bolsa
-    .filter(item => item.tipo === 'ouro')
-    .reduce((total, item) => total + (item.quantidade || 0), 0);
+  // Total de ouro é exibido globalmente pelo App
 
   useEffect(() => {
-    // Configurar e iniciar áudio ambiente
-    const setupAudio = async () => {
-      try {
-        console.log('🎵 [RoyalLendle] Configurando áudio ambiente people.mp3...');
-
-        if (audioRef.current) {
-          audioRef.current.pause();
-          audioRef.current = null;
-        }
-
-        const audio = new Audio(peopleSound);
-        audio.volume = 0.1; // Volume moderado para ambiente
-        audio.loop = true;
-        audioRef.current = audio;
-
-        // Tentar tocar automaticamente
-        try {
-          await audio.play();
-          console.log('🎵 [RoyalLendle] Áudio ambiente iniciado automaticamente');
-        } catch (autoplayError) {
-          console.warn('🎵 [RoyalLendle] Autoplay bloqueado, mostrando botão manual');
-          setShowMusicButton(true);
-        }
-      } catch (error) {
-        console.error('🎵 [RoyalLendle] Erro ao configurar áudio:', error);
-        setShowMusicButton(true);
-      }
-    };
-
-    setupAudio();
-
     // Animar entrada do texto
     const textTimer = setTimeout(() => {
       setTextVisible(true);
@@ -262,20 +205,16 @@ const RoyalLendleScreen: React.FC<RoyalLendleScreenProps> = ({
     return () => {
       clearTimeout(textTimer);
       clearTimeout(choicesTimer);
-
-      // Pausar áudio ao sair da tela
-      if (audioRef.current) {
-        console.log('🎵 [RoyalLendle] Pausando áudio ambiente...');
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
+      // Não pausa o áudio ao sair - continua tocando para outras telas
     };
   }, []);
 
   const handleChoice = (choice: string) => {
-    console.log(`🎲 Jogador escolheu: ${choice}`);
+    console.log(`Jogador escolheu: ${choice}`);
     onChoice(choice);
   };
+
+  // Usa o sistema global de áudio
 
 const playClick = useClickSound(0.2);
 
@@ -287,22 +226,39 @@ const playClick = useClickSound(0.2);
         Voltar ao Mapa
       </BackButton>
 
-      <PlayerStatus onClick={() => setInventoryOpen(true)}>
-        {ficha.nome} | 💰 {totalGold} Moedas de Ouro
-      </PlayerStatus>
+      {/* Status global já é exibido pelo App; removido status local para evitar duplicidade */}
 
-      {/* Botão para iniciar música manualmente se autoplay falhar */}
-      {showMusicButton && (
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '80px',
-            right: '20px',
-            zIndex: 20
-          }}
-        >
-        </Box>
-      )}
+      {/* Botão de controle de música */}
+      <Box
+        sx={{
+          position: 'absolute',
+          bottom: '20px',
+          right: '20px',
+          zIndex: 1000,
+        }}
+      >
+        <Tooltip title={currentGroup ? (isPlaying ? 'Pausar música' : 'Tocar música') : 'Nenhuma música carregada'}>
+          <IconButton
+            onClick={togglePlay}
+            disabled={!currentGroup}
+            sx={{
+              color: currentGroup ? (isPlaying ? '#B31212' : '#E0DFDB') : '#666',
+              background: 'rgba(15,17,20,0.8)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              opacity: currentGroup ? 1 : 0.5,
+              '&:hover': currentGroup ? {
+                background: 'rgba(179,18,18,0.2)',
+                borderColor: 'rgba(255,255,255,0.3)',
+              } : {},
+              '&:disabled': {
+                cursor: 'not-allowed'
+              }
+            }}
+          >
+            {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
+          </IconButton>
+        </Tooltip>
+      </Box>
 
       <StoryCard>
         <CardContent sx={{

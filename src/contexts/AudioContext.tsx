@@ -119,16 +119,24 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
 
   // Função para pausar música
   const pause = useCallback((): void => {
+    console.log('🎵 [AudioContext] Função pause() chamada');
     if (audioRef.current && !audioRef.current.paused) {
+      console.log('🎵 [AudioContext] Pausando áudio...');
       audioRef.current.pause();
+      console.log('🎵 [AudioContext] Áudio pausado com sucesso');
+    } else {
+      console.log('🎵 [AudioContext] Áudio já estava pausado ou audioRef não disponível');
     }
   }, []);
 
   // Função para alternar play/pause
   const togglePlay = useCallback(async (): Promise<void> => {
+    console.log('🎵 [AudioContext] togglePlay() chamado, isPlaying:', isPlaying);
     if (isPlaying) {
+      console.log('🎵 [AudioContext] Música está tocando, pausando...');
       pause();
     } else {
+      console.log('🎵 [AudioContext] Música está pausada, tocando...');
       await play();
     }
   }, [isPlaying, pause, play]);

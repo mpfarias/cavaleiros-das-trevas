@@ -8,7 +8,7 @@ export const DICE_FORMULAS = {
   pericia: { dice: '1d6', bonus: 6, text: 'Definir perícia' },
   forca: { dice: '2d6', bonus: 12, text: 'Definir força' },
   sorte: { dice: '1d6', bonus: 6, text: 'Definir sorte' },
-  ouro: { dice: '2d6', bonus: 12, text: 'Gerar moedas de ouro' }
+  ouro: { dice: '2d6', bonus: 12, text: '2d6 + 12' }
 } as const;
 
 export const NOTIFICATION_CONFIG = {
