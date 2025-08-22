@@ -164,7 +164,7 @@ const Screen115: React.FC<Screen115Props> = ({ onGoToScreen, ficha, onAdjustSort
               </Typography>
             </DialogContent>
             <DialogActions sx={{ justifyContent: 'center' }}>
-              <Button variant="contained" onClick={() => { setOpen(false); onGoToScreen(teveSorte ? 222 : 30); }}>
+              <Button variant="contained" onClick={() => { setOpen(false); onGoToScreen(teveSorte ? 222 : 140); }}>
                 Ir
               </Button>
             </DialogActions>

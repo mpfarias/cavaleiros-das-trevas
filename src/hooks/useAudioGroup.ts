@@ -36,8 +36,12 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   
   // Bartolph e jogo de dados
   86: 'bartolph-game',          // Bartolph (rota /game/86)
+  94: 'bartolph-game',
   54: 'bartolph-game',          // Ganhou (rota /game/54)
   43: 'bartolph-game',          // Perdeu (rota /game/43)
+  140: 'bartolph-game',
+  151: 'bartolph-game',
+  162: 'bartolph-game',
   
   // Character Sheet
   'sheet': 'character-sheet',   // Character Sheet (rota /sheet)
@@ -51,9 +55,7 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   
   // Screen 115 (Testar a Sorte)
   115: 'bartolph-game',         // Continua música do jogo de dados
-  
-  // Screen 222 (Bartolph descoberto como trapaceiro)
-  222: 'bartolph-game',         // Continua música do jogo de dados
+  222: 'bartolph-game',         // Sucesso no teste de sorte - continua música
 };
 
 export const useAudioGroup = (screenId: number | string) => {

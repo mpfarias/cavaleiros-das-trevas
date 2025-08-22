@@ -1,9 +1,11 @@
 
-import { Box, Card, CardContent, Typography, IconButton, Tooltip } from '@mui/material';
+import { Box, Card, CardContent, Typography, IconButton, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
+import { useEffect, useState } from 'react';
+import type { Ficha } from '../types';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -89,11 +91,89 @@ const ChoiceButton = styled('button')({
 
 interface Screen54Props {
   onGoToScreen: (id: number) => void;
+  ficha: Ficha;
+  onUpdateFicha: (ficha: Ficha) => void;
 }
 
-const Screen54: React.FC<Screen54Props> = ({ onGoToScreen }) => {
+const Screen54: React.FC<Screen54Props> = ({ onGoToScreen, ficha, onUpdateFicha }) => {
   // Usa o sistema de grupos de áudio - automaticamente gerencia música do grupo 'bartolph-game'
   const { isPlaying, togglePlay, currentTrack } = useAudioGroup(54);
+  
+  // Estado para controlar se as moedas já foram perdidas
+  const [moedasPerdidas, setMoedasPerdidas] = useState(false);
+  
+  // Estado para controlar o modal de confirmação
+  const [modalConfirmacao, setModalConfirmacao] = useState(false);
+  
+  // Calcular moedas atuais
+  const currentGold = ficha.bolsa
+    .filter(item => item.tipo === 'ouro')
+    .reduce((total, item) => total + (item.quantidade || 0), 0);
+  
+  useEffect(() => {
+    // Implementar lógica de perda de moedas quando necessário
+    // Esta função será chamada quando o jogador escolher "Ir embora"
+  }, []);
+
+  const perderMoedas = () => {
+    if (moedasPerdidas) return; // Evita perder moedas múltiplas vezes
+    
+    // Encontrar o item de ouro na bolsa
+    const ouroIndex = ficha.bolsa.findIndex(item => item.tipo === 'ouro');
+    
+    if (ouroIndex !== -1) {
+      const novaFicha = { ...ficha };
+      
+      // Tentar recuperar o valor da aposta do localStorage
+      const apostaAnterior = localStorage.getItem('cavaleiro:apostaBartolph');
+      const valorApostado = apostaAnterior ? parseInt(apostaAnterior) : 0;
+      
+      // Se não conseguir recuperar a aposta, estimar baseado no ouro atual
+      let moedasParaPerder = 0;
+      if (valorApostado > 0) {
+        // Perde as moedas que ganhou (valorApostado) + as que eram suas (valorApostado)
+        moedasParaPerder = valorApostado * 2;
+      } else {
+        // Estimativa: perde metade do ouro atual
+        moedasParaPerder = Math.floor(currentGold / 2);
+      }
+      
+      // Garantir que não perca mais do que tem
+      moedasParaPerder = Math.min(moedasParaPerder, currentGold);
+      
+      novaFicha.bolsa[ouroIndex].quantidade = Math.max(0, currentGold - moedasParaPerder);
+      
+      onUpdateFicha(novaFicha);
+      setMoedasPerdidas(true);
+      
+      // Limpar a aposta do localStorage
+      localStorage.removeItem('cavaleiro:apostaBartolph');
+      
+      console.log(`💰 [Screen54] Jogador perdeu ${moedasParaPerder} moedas por escolher ir embora`);
+    }
+  };
+  
+  // Função para ir embora (mostra modal de confirmação)
+  const handleIrEmbora = () => {
+    setModalConfirmacao(true);
+  };
+  
+  // Função para confirmar ir embora (perde moedas)
+  const confirmarIrEmbora = () => {
+    perderMoedas();
+    setModalConfirmacao(false);
+    onGoToScreen(30);
+  };
+  
+  // Função para cancelar ir embora
+  const cancelarIrEmbora = () => {
+    setModalConfirmacao(false);
+  };
+  
+  // Função para acusar Bartolph (mantém moedas)
+  const handleAcusar = () => {
+    onGoToScreen(115);
+  };
 
   return (
     <Container data-screen="screen-54">
@@ -137,11 +217,147 @@ const Screen54: React.FC<Screen54Props> = ({ onGoToScreen }) => {
             — Lamento — diz Bartolph, agarrando seu ouro. É óbvio que o dado está viciado e que ele é um trapaceiro!
           </NarrativeText>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
-            <ChoiceButton onClick={() => onGoToScreen(115)}>Acusar Bartolph de trapaça</ChoiceButton>
-            <ChoiceButton onClick={() => onGoToScreen(30)}>Evitar confusão e ir embora</ChoiceButton>
+            <ChoiceButton onClick={handleAcusar}>Acusar Bartolph de trapaça</ChoiceButton>
+            <ChoiceButton onClick={handleIrEmbora}>Evitar confusão e ir embora</ChoiceButton>
           </Box>
         </CardContent>
       </CardWrap>
+
+      {/* Modal de confirmação */}
+      <Dialog 
+        open={modalConfirmacao} 
+        onClose={cancelarIrEmbora} 
+        maxWidth="sm" 
+        fullWidth
+        PaperProps={{
+          sx: {
+            background: `
+              linear-gradient(135deg, rgba(245,222,179,0.98) 0%, rgba(222,184,135,0.95) 50%, rgba(205,133,63,0.98) 100%)
+            `,
+            border: '3px solid #8B4513',
+            borderRadius: '16px',
+            boxShadow: `
+              0 20px 60px rgba(0,0,0,0.7),
+              inset 0 1px 0 rgba(255,255,255,0.3),
+              0 0 0 1px rgba(139,69,19,0.4)
+            `,
+            overflow: 'visible'
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          textAlign: 'center', 
+          color: '#B31212',
+          fontFamily: '"Cinzel", serif',
+          fontWeight: '700',
+          fontSize: '20px',
+          padding: '24px 24px 16px 24px',
+          textShadow: '0 1px 2px rgba(245,222,179,0.8)',
+          borderBottom: '2px solid rgba(139,69,19,0.3)'
+        }}>
+          ⚠️ ATENÇÃO: Perda de Moedas
+        </DialogTitle>
+        <DialogContent sx={{ padding: '24px' }}>
+          <Typography sx={{ 
+            fontSize: '16px', 
+            lineHeight: 1.6, 
+            textAlign: 'center',
+            fontFamily: '"Spectral", serif',
+            color: '#3d2817',
+            textShadow: '0 1px 2px rgba(245,222,179,0.8)'
+          }}>
+            {(() => {
+              const apostaAnterior = localStorage.getItem('cavaleiro:apostaBartolph');
+              const valorApostado = apostaAnterior ? parseInt(apostaAnterior) : 0;
+              
+              if (valorApostado > 0) {
+                return (
+                  <>
+                    <strong>Você tem certeza que deseja ir embora?</strong>
+                    <br /><br />
+                    Na aposta anterior, você apostou <strong>{valorApostado} moedas</strong> e ganhou.
+                    <br /><br />
+                    Se escolher ir embora, Bartolph ficará com <strong>{valorApostado * 2} moedas</strong>:
+                    <br />
+                    • {valorApostado} moedas que você ganhou
+                    <br />
+                    • {valorApostado} moedas que eram suas
+                    <br /><br />
+                    <strong style={{ color: '#B31212' }}>
+                      Você perderá {valorApostado * 2} moedas no total!
+                    </strong>
+                  </>
+                );
+              } else {
+                return (
+                  <>
+                    <strong>Você tem certeza que deseja ir embora?</strong>
+                    <br /><br />
+                    Se escolher ir embora, Bartolph ficará com suas moedas.
+                    <br /><br />
+                    <strong style={{ color: '#B31212' }}>
+                      Você perderá todas as suas moedas!
+                    </strong>
+                  </>
+                );
+              }
+            })()}
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ 
+          justifyContent: 'center', 
+          padding: '20px 24px 24px 24px',
+          gap: '16px'
+        }}>
+          <Button 
+            onClick={cancelarIrEmbora} 
+            variant="outlined"
+            sx={{
+              padding: '12px 24px',
+              border: '2px solid #8B4513',
+              borderRadius: '12px',
+              color: '#8B4513',
+              fontSize: '16px',
+              fontFamily: '"Cinzel", serif',
+              fontWeight: '600',
+              textShadow: '0 1px 2px rgba(0,0,0,0.8)',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                borderColor: '#654321',
+                backgroundColor: 'rgba(139,69,19,0.1)',
+                transform: 'translateY(-1px)',
+                boxShadow: '0 6px 16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.2)'
+              }
+            }}
+          >
+            Cancelar
+          </Button>
+          <Button 
+            onClick={confirmarIrEmbora} 
+            variant="contained"
+            sx={{
+              padding: '12px 24px',
+              background: 'linear-gradient(135deg, rgba(179,18,18,0.9) 0%, rgba(139,0,0,0.8) 100%)',
+              border: '2px solid #8B0000',
+              borderRadius: '12px',
+              fontSize: '16px',
+              fontFamily: '"Cinzel", serif',
+              fontWeight: '600',
+              textShadow: '0 1px 2px rgba(0,0,0,0.8)',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                background: 'linear-gradient(135deg, rgba(139,0,0,0.9) 0%, rgba(105,0,0,0.8) 100%)',
+                transform: 'translateY(-1px)',
+                boxShadow: '0 6px 16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.2)'
+              }
+            }}
+          >
+            Ir Embora (Perder Moedas)
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

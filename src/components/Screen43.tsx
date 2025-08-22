@@ -1,9 +1,11 @@
 
+import { useEffect, useState, useRef } from 'react';
 import { Box, Card, CardContent, Typography, IconButton, Tooltip } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
+import type { Ficha } from '../types';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -52,7 +54,7 @@ const NarrativeText = styled(Typography)({
   color: '#3d2817',
   textAlign: 'justify',
   marginBottom: '32px',
-  textShadow: '0 1px 2px rgba(245,222,179,0.8)'
+  textShadow: '1px 1px 2px rgba(245,222,179,0.8)'
 });
 
 const ChoiceButton = styled('button')({
@@ -87,16 +89,79 @@ const ChoiceButton = styled('button')({
   }
 });
 
+// Estilo para os alertas de perda
+const LossAlert = styled(Box)<{ $isVisible: boolean }>(({ $isVisible }) => ({
+  position: 'fixed',
+  right: '16px',
+  padding: '12px 16px',
+  background: 'rgba(179,18,18,0.95)',
+  color: '#FFFFFF',
+  border: '2px solid #8B0000',
+  borderRadius: '8px',
+  fontSize: '14px',
+  fontFamily: '"Cinzel", serif',
+  fontWeight: 600,
+  textShadow: '0 1px 2px rgba(0,0,0,0.8)',
+  boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+  zIndex: 1500,
+  userSelect: 'none',
+  opacity: $isVisible ? 1 : 0,
+  transform: $isVisible ? 'translateX(0)' : 'translateX(100%)',
+  transition: 'all 0.5s ease-in-out',
+  animation: $isVisible ? 'slideInRight 0.5s ease-out' : 'none',
+  '@keyframes slideInRight': {
+    from: {
+      transform: 'translateX(100%)',
+      opacity: 0
+    },
+    to: {
+      transform: 'translateX(0)',
+      opacity: 1
+    }
+  }
+}));
+
 interface Screen43Props {
   onGoToScreen: (id: number) => void;
+  ficha: Ficha;
 }
 
-const Screen43: React.FC<Screen43Props> = ({ onGoToScreen }) => {
+const Screen43: React.FC<Screen43Props> = ({ onGoToScreen, ficha }) => {
   // Usa o sistema de grupos de áudio - automaticamente gerencia música do grupo 'bartolph-game'
   const { isPlaying, togglePlay, currentTrack } = useAudioGroup(43);
+  
+  // Estado para controlar o alerta de perda
+  const [showMoneyAlert, setShowMoneyAlert] = useState(false);
+  const [moedasPerdidas, setMoedasPerdidas] = useState(0);
+  
+  // Ref para garantir que o alerta seja mostrado apenas uma vez
+  const alertShownRef = useRef(false);
+
+  // Calcular moedas perdidas e mostrar alerta automaticamente quando a tela carrega
+  useEffect(() => {
+    // Calcular moedas perdidas baseado na aposta anterior
+    try {
+      const apostaAnterior = localStorage.getItem('cavaleiro:apostaBartolph');
+      if (apostaAnterior) {
+        const valorApostado = parseInt(apostaAnterior);
+        setMoedasPerdidas(valorApostado);
+        console.log(`💰 [Screen43] Jogador perdeu ${valorApostado} moedas na aposta`);
+        
+        // Marcar que veio da tela 43 para suprimir alert em Screen140
+        localStorage.setItem('cavaleiro:veioDaTela43', 'true');
+      }
+    } catch (error) {
+      console.error('❌ [Screen43] Erro ao ler aposta anterior:', error);
+    }
+  }, []);
 
   return (
     <Container data-screen="screen-43">
+      {/* Alerta de perda de dinheiro */}
+      <LossAlert sx={{ top: '120px' }} $isVisible={showMoneyAlert}>
+        💰 {moedasPerdidas > 0 ? `${moedasPerdidas} moedas perdidas na aposta!` : 'Moedas perdidas na aposta!'}
+      </LossAlert>
+
       {/* Botão de controle de música */}
       <Box
         sx={{
@@ -139,7 +204,16 @@ const Screen43: React.FC<Screen43Props> = ({ onGoToScreen }) => {
             <ChoiceButton onClick={() => onGoToScreen(151)}>
               Deixar Bartolph levar o ouro
             </ChoiceButton>
-            <ChoiceButton onClick={() => onGoToScreen(140)}>
+            <ChoiceButton onClick={() => {
+              // Marcar que veio da tela 43 para suprimir alert de moedas na tela 140
+              try {
+                localStorage.setItem('cavaleiro:veioDaTela43', 'true');
+                console.log('🔗 [Screen43] Marcado: jogador veio da tela 43 para tela 140');
+              } catch (error) {
+                console.error('❌ [Screen43] Erro ao marcar origem:', error);
+              }
+              onGoToScreen(140);
+            }}>
               Segurar o pulso dele e acusá-lo de trapaça
             </ChoiceButton>
           </Box>

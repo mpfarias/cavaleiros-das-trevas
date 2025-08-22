@@ -5,11 +5,9 @@ import react from '@vitejs/plugin-react-swc'
 export default defineConfig({
   plugins: [react()],
   server: {
-    // Força recarregamento completo para evitar problemas de cache
-    force: true,
-    // HMR mais robusto
+    port: 3000,
     hmr: {
-      overlay: true
+      overlay: false
     }
   },
   build: {

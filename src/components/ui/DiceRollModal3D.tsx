@@ -1,10 +1,29 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Dialog, DialogContent, Box, Typography, Button } from '@mui/material';
-import { styled } from '@mui/material/styles';
+import { styled, keyframes } from '@mui/material/styles';
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 
+// Animações sutis para o modal
+const modalEntrance = keyframes`
+  0% { 
+    opacity: 0; 
+    transform: scale(0.95); 
+  }
+  100% { 
+    opacity: 1; 
+    transform: scale(1); 
+  }
+`;
 
+const subtleGlow = keyframes`
+  0%, 100% { 
+    box-shadow: 0 0 15px rgba(245,222,179,0.3); 
+  }
+  50% { 
+    box-shadow: 0 0 25px rgba(245,222,179,0.5); 
+  }
+`;
 
 const ModalContainer = styled(Dialog)({
   '& .MuiDialog-paper': {
@@ -15,7 +34,8 @@ const ModalContainer = styled(Dialog)({
     minWidth: '600px',
     maxWidth: '800px',
     padding: '20px',
-    overflow: 'hidden'
+    overflow: 'hidden',
+    animation: `${modalEntrance} 0.3s ease-out`
   }
 });
 
@@ -25,7 +45,8 @@ const CanvasContainer = styled(Box)({
   background: '#0b0d10',
   borderRadius: '12px',
   overflow: 'hidden',
-  position: 'relative'
+  position: 'relative',
+  border: '2px solid rgba(139,69,19,0.2)'
 });
 
 const ResultsPanel = styled(Box)({
@@ -36,14 +57,15 @@ const ResultsPanel = styled(Box)({
   padding: '12px 16px',
   border: '1px solid #2a2f3a',
   borderRadius: '12px',
-  background: 'rgba(18,21,26,0.8)',
-  backdropFilter: 'blur(6px)',
+  background: 'rgba(18,21,26,0.9)',
+  backdropFilter: 'blur(8px)',
   color: '#e7e7e7',
   fontFamily: 'ui-monospace, Menlo, Consolas, monospace',
   fontSize: '14px',
-  lineHeight: '1.35'
+  lineHeight: '1.35',
+  boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+  animation: `${subtleGlow} 3s ease-in-out infinite`
 });
-
 
 
 interface DiceRollModal3DProps {
@@ -58,7 +80,6 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
   open,
   numDice,
   onComplete,
-
   bonus = 0
 }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -74,7 +95,7 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
   const animationFrameRef = useRef<number | null>(null);
 
   // Configurações
-  const POWER_MULT = 2.0;
+  const POWER_MULT = 2.2; // Ajustado para meio termo - força moderada
   const WORLD_UP = new THREE.Vector3(0, 1, 0);
   
   // Face normais para detectar valores dos dados
@@ -129,20 +150,29 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
       roughness: 0.35,
       metalness: 0.0,
       clearcoat: 0.2,
-      clearcoatRoughness: 0.6
+      clearcoatRoughness: 0.6,
+      // Otimizações de performance
+      transparent: false,
+      depthTest: true,
+      depthWrite: true
     }));
     
     const mesh = new THREE.Mesh(new THREE.BoxGeometry(size, size, size), faces);
     mesh.castShadow = true;
+    mesh.receiveShadow = false; // Otimização: dados não recebem sombra
+    
+    // Otimizações de renderização
+    mesh.frustumCulled = true;
+    mesh.matrixAutoUpdate = false; // Controle manual da matriz para melhor performance
 
     const shape = new CANNON.Box(new CANNON.Vec3(size/2, size/2, size/2));
     const body = new CANNON.Body({
       mass: 1,
       material: new CANNON.Material('dice'),
-      linearDamping: 0.12,
-      angularDamping: 0.16,
-      sleepSpeedLimit: 0.06,
-      sleepTimeLimit: 0.35
+      linearDamping: 0.14, // Meio termo - nem muito rápido nem muito lento
+      angularDamping: 0.18, // Meio termo - nem muito rápido nem muito lento
+      sleepSpeedLimit: 0.06, // Meio termo
+      sleepTimeLimit: 0.22   // Meio termo
     });
     
     body.addShape(shape);
@@ -167,14 +197,14 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
 
     console.log('🎲 [DiceRollModal3D] Cena criada, configurando câmera...');
 
-    // Camera ortográfica (top-down)
-    const orthoSize = 2.1;
+    // Camera ortográfica (top-down) ajustada para mesa maior com paredes mais altas
+    const orthoSize = 3.2; // Aumentado de 2.8 para 3.2 para visualizar paredes mais altas
     const aspect = canvasRef.current.clientWidth / canvasRef.current.clientHeight;
     const camera = new THREE.OrthographicCamera(
       -orthoSize * aspect, orthoSize * aspect, orthoSize, -orthoSize, 0.1, 50
     );
-    const target = new THREE.Vector3(0, 0.6, 0);
-    camera.position.set(0, 9, 0);
+    const target = new THREE.Vector3(0, 1.1, 0); // Ajustado para paredes mais altas
+    camera.position.set(0, 15, 0); // Aumentado de 12 para 15 para visualizar paredes mais altas
     camera.up.set(0, 0, -1);
     camera.lookAt(target);
 
@@ -198,12 +228,12 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
     dirLight.shadow.mapSize.set(1024, 1024);
     scene.add(dirLight);
 
-    // Mesa de feltro
+    // Mesa de feltro - aumentada para acompanhar paredes mais altas
     const table = new THREE.Mesh(
-      new THREE.BoxGeometry(3, 1, 3),
+      new THREE.BoxGeometry(4, 1.5, 4), // Aumentado altura de 1 para 1.5
       new THREE.MeshStandardMaterial({ color: '#123325', roughness: 0.95 })
     );
-    table.position.y = -0.5;
+    table.position.y = -0.75; // Ajustado para mesa mais alta
     table.receiveShadow = true;
     scene.add(table);
 
@@ -214,9 +244,9 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
       metalness: 0.1 
     });
     
-    const inner = 3;
-    const wallT = 0.30;
-    const wallH = 1.40;
+    const inner = 4; // Aumentado de 3 para 4 (área interna maior)
+    const wallT = 0.60; // Aumentado de 0.40 para 0.60 (paredes muito mais grossas)
+    const wallH = 2.20; // Aumentado de 1.60 para 2.20 (paredes muito mais altas)
     const yBorder = wallH / 2;
 
     // Frente/trás
@@ -249,9 +279,13 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
     world.broadphase = new CANNON.SAPBroadphase(world);
     world.allowSleep = true;
     worldRef.current = world;
+    
+    console.log('🎲 [DiceRollModal3D] Mundo físico criado com sucesso');
 
     const groundMat = new CANNON.Material('ground');
     const diceMat = new CANNON.Material('dice');
+    
+    console.log('🎲 [DiceRollModal3D] Materiais físicos criados com sucesso');
 
     // Materiais de contato
     world.addContactMaterial(new CANNON.ContactMaterial(groundMat, diceMat, {
@@ -265,6 +299,8 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
       friction: 0.30,
       restitution: 0.06
     }));
+    
+    console.log('🎲 [DiceRollModal3D] Materiais de contato criados com sucesso');
 
     // Adicionar corpos estáticos
     const addStaticBox = (x: number, y: number, z: number, sx: number, sy: number, sz: number, mat: CANNON.Material = groundMat) => {
@@ -273,28 +309,37 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
       body.addShape(shape);
       body.position.set(x, y, z);
       world.addBody(body);
+      console.log('🎲 [DiceRollModal3D] Parede física criada:', { x, y, z, sx, sy, sz });
       return body;
     };
 
     // Chão
     addStaticBox(0, -0.5, 0, inner, 1, inner, groundMat);
+    console.log('🎲 [DiceRollModal3D] Chão físico criado com sucesso');
 
-    // Bordas físicas
-    const wallLen = inner + wallT*2 + 0.02;
-    addStaticBox(inner/2 + wallT/2, yBorder, 0, wallT, wallH, wallLen, groundMat);
-    addStaticBox(-inner/2 - wallT/2, yBorder, 0, wallT, wallH, wallLen, groundMat);
-    addStaticBox(0, yBorder, inner/2 + wallT/2, wallLen, wallH, wallT, groundMat);
-    addStaticBox(0, yBorder, -inner/2 - wallT/2, wallLen, wallH, wallT, groundMat);
+    // Bordas físicas - ajustadas para garantir contenção
+    console.log('🎲 [DiceRollModal3D] Criando paredes físicas:', { inner, wallT, wallH });
+    
+    // Paredes laterais (X)
+    addStaticBox(inner/2 + wallT/2, yBorder, 0, wallT, wallH, inner + wallT*2, groundMat);
+    addStaticBox(-inner/2 - wallT/2, yBorder, 0, wallT, wallH, inner + wallT*2, groundMat);
+    
+    // Paredes frontal/traseira (Z)
+    addStaticBox(0, yBorder, inner/2 + wallT/2, inner + wallT*2, wallH, wallT, groundMat);
+    addStaticBox(0, yBorder, -inner/2 - wallT/2, inner + wallT*2, wallH, wallT, groundMat);
+    
+    console.log('🎲 [DiceRollModal3D] Paredes físicas criadas com sucesso');
 
-    // Tetos invisíveis
-    const ceilSize = inner + wallT*2 + 0.40;
-    addStaticBox(0, wallH + 0.8, 0, ceilSize, 0.3, ceilSize, groundMat);
+    // Tetos invisíveis - aumentados para conter dados mais fortes
+    const ceilSize = inner + wallT*2 + 0.80; // Aumentado de 0.40 para 0.80
+    addStaticBox(0, wallH + 1.2, 0, ceilSize, 0.5, ceilSize, groundMat); // Aumentado altura e espessura
+    console.log('🎲 [DiceRollModal3D] Teto físico criado com sucesso');
 
     // Adicionar dados
     diceRef.current = [];
     for (let i = 0; i < numDice; i++) {
       const die = createDie(0.45);
-      die.body.position.set(-0.55 + i*1.1, 0.9, (i === 0 ? -0.45 : +0.45));
+      die.body.position.set(-0.8 + i*1.6, 2.0, (i === 0 ? -0.8 : +0.8)); // Ajustado para paredes mais altas
       scene.add(die.mesh);
       world.addBody(die.body);
       diceRef.current.push(die);
@@ -308,19 +353,12 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
         worldRef.current.step(1/60, 1/60, 3);
       }
 
-      // Sincronizar posições
+      // Sincronizar posições com otimizações
       diceRef.current.forEach((die) => {
-        die.mesh.position.set(
-          die.body.position.x,
-          die.body.position.y,
-          die.body.position.z
-        );
-        die.mesh.quaternion.set(
-          die.body.quaternion.x,
-          die.body.quaternion.y,
-          die.body.quaternion.z,
-          die.body.quaternion.w
-        );
+        // Atualizar matriz manualmente para melhor performance
+        die.mesh.position.copy(die.body.position);
+        die.mesh.quaternion.copy(die.body.quaternion);
+        die.mesh.updateMatrix();
       });
 
       if (rendererRef.current && sceneRef.current) {
@@ -372,29 +410,29 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
       die.body.torque.set(0, 0, 0);
       die.body.wakeUp();
 
-      // Posição inicial
-      const startX = -1.35 + Math.random() * 0.1;
-      const baseZ = (i === 0 ? -0.5 : +0.5);
-      const startZ = baseZ + (Math.random() * 0.15 - 0.075);
-      const startY = 0.95 + Math.random() * 0.15;
+      // Posição inicial ajustada para mesa maior com paredes mais altas
+      const startX = -1.8 + Math.random() * 0.2; // Ajustado para mesa 4x4
+      const baseZ = (i === 0 ? -1.0 : +1.0); // Ajustado para mesa 4x4
+      const startZ = baseZ + (Math.random() * 0.3 - 0.15); // Ajustado para mesa 4x4
+      const startY = 2.0 + Math.random() * 0.3; // Aumentado de 1.4 para 2.0 para paredes mais altas
       die.body.position.set(startX, startY, startZ);
 
-      // Impulso
-      const fx = (1.8 + Math.random() * 1.8) * POWER_MULT;
-      const fy = (1.2 + Math.random() * 0.8);
-      const fz = (Math.random() * 2 - 1) * 0.35;
+      // Impulso equilibrado - nem muito forte nem muito fraco
+      const fx = (1.6 + Math.random() * 1.2) * POWER_MULT; // Meio termo
+      const fy = (1.1 + Math.random() * 0.8); // Meio termo
+      const fz = (Math.random() * 2 - 1) * 0.6; // Meio termo
       const impulse = new CANNON.Vec3(fx, fy, fz);
 
-      // Aplicar impulso fora do centro para rotação
+      // Aplicar impulso fora do centro para rotação equilibrada
       const r = new CANNON.Vec3(
-        0.09 * (Math.random() * 2 - 1),
-        0.10,
-        0.09 * (Math.random() * 2 - 1)
+        0.10 * (Math.random() * 2 - 1), // Meio termo
+        0.08, // Meio termo
+        0.10 * (Math.random() * 2 - 1)  // Meio termo
       );
       die.body.applyImpulse(impulse, die.body.position.vadd(r));
 
-      // Spin
-      const spin = 12 * POWER_MULT;
+      // Spin equilibrado - nem muito forte nem muito fraco
+      const spin = 9 * POWER_MULT; // Meio termo
       die.body.angularVelocity.set(
         (Math.random() * 2 - 1) * spin,
         (Math.random() * 2 - 1) * spin,
@@ -426,7 +464,7 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
 
         const allSlow = diceRef.current.every(die => 
           die.body.sleepState === CANNON.Body.SLEEPING ||
-          (die.body.velocity.length() < 0.05 && die.body.angularVelocity.length() < 0.05)
+          (die.body.velocity.length() < 0.04 && die.body.angularVelocity.length() < 0.04) // Ajustado para dados mais controlados
         );
 
 
@@ -457,7 +495,7 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
           
           resolve(results);
         } else {
-          setTimeout(checkStable, 50);
+          setTimeout(checkStable, 30); // Reduzido de 50ms para 30ms para verificação mais frequente
         }
       };
 
@@ -538,7 +576,8 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
             fontFamily: '"Cinzel", serif',
             fontWeight: '700',
             color: '#4a2c00',
-            marginBottom: '20px'
+            marginBottom: '20px',
+            animation: `${modalEntrance} 0.3s ease-out`
           }}
         >
           {isRolling ? 'Rolando...' : 'Resultado'}
@@ -554,7 +593,8 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
                 fontFamily: '"Cinzel", serif',
                 fontWeight: '700',
                 color: '#4a2c00',
-                textShadow: '1px 1px 2px rgba(245,222,179,0.8)'
+                textShadow: '1px 1px 2px rgba(245,222,179,0.8)',
+                animation: `${modalEntrance} 0.4s ease-out`
               }}
             >
               {formatResult()}
@@ -571,6 +611,7 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
                 padding: '10px 24px',
                 borderRadius: '8px',
                 boxShadow: '0 4px 12px rgba(79,70,229,0.35)',
+                transition: 'all 0.2s ease',
                 '&:hover': {
                   background: 'linear-gradient(135deg, #4338ca 0%, #5b21b6 100%)',
                   transform: 'translateY(-1px)',
