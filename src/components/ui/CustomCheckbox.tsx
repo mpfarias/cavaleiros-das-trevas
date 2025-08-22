@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from 'react';
+import { memo, useCallback } from 'react';
 import { Box, Typography } from '@mui/material';
 import { Check as CheckIcon } from '@mui/icons-material';
 

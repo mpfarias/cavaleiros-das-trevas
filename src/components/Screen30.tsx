@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Box, Card, CardContent, Typography, IconButton, Tooltip } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
@@ -93,14 +93,14 @@ interface Screen30Props {
 
 const Screen30: React.FC<Screen30Props> = ({ onGoToScreen }) => {
   // Usa o sistema de grupos de áudio - automaticamente gerencia música do grupo 'royal-lendle'
-  const { currentGroup, isPlaying, togglePlay, currentTrack } = useAudioGroup(30);
+  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(30);
 
   return (
     <Container data-screen="screen-30">
       {/* Botão de controle de música */}
       <Box
         sx={{
-          position: 'absolute',
+          position: 'fixed', // Mudado de 'absolute' para 'fixed' para ficar sempre visível
           bottom: '20px',
           right: '20px',
           zIndex: 1000,
@@ -109,8 +109,7 @@ const Screen30: React.FC<Screen30Props> = ({ onGoToScreen }) => {
         <Tooltip title={currentGroup ? (isPlaying ? 'Pausar música' : 'Tocar música') : 'Nenhuma música carregada'}>
           <IconButton
             onClick={() => {
-              console.log('🎵 [Screen30] Botão clicado!');
-              console.log('🎵 [Screen30] Estado atual:', { currentGroup, isPlaying, currentTrack });
+
               togglePlay();
             }}
             disabled={!currentGroup}

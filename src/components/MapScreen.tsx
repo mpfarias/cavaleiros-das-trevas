@@ -1,13 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Box, Typography, IconButton, Tooltip } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
+import { useAudioGroup } from '../hooks/useAudioGroup';
 
 // Import da imagem do mapa
 import mapaImage from '../assets/images/mapa.jpg';
-// Import do áudio do mapa
-import mapMusic from '../assets/sounds/nature-sound-map.mp3';
 
 // Animações
 const fadeIn = keyframes`
@@ -135,37 +134,7 @@ const MapImage = styled('img')({
   transition: 'filter 0.3s ease'
 });
 
-// Botões estilizados
-const AudioPlayButton = styled('button')({
-  padding: '12px 16px',
-  background: 'linear-gradient(135deg, rgba(139,69,19,0.95) 0%, rgba(160,82,45,0.9) 100%)',
-  color: '#F5DEB3',
-  border: '2px solid #D2B48C',
-  borderRadius: '8px',
-  fontSize: '14px',
-  fontFamily: '"Cinzel", serif',
-  fontWeight: 600,
-  textTransform: 'uppercase',
-  letterSpacing: '1px',
-  textShadow: '0 1px 2px rgba(0,0,0,0.8)',
-  boxShadow: '0 4px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1)',
-  cursor: 'pointer',
-  transition: 'all 0.3s ease',
-  outline: 'none',
-  '&:focus-visible': {
-    outline: '2px solid #FFD700',
-    outlineOffset: '2px'
-  },
-  '&:hover': {
-    background: 'linear-gradient(135deg, rgba(179,18,18,0.95) 0%, rgba(139,0,0,0.9) 100%)',
-    borderColor: '#FFD700',
-    color: '#FFFFFF',
-    transform: 'scale(1.05)'
-  },
-  '&:active': {
-    transform: 'scale(0.98)'
-  }
-});
+
 
 const LocationButton = styled('button')<{ accessible: boolean }>(({ accessible }) => ({
   position: 'absolute',
@@ -250,33 +219,16 @@ interface MapScreenProps {
   onLocationSelect: (location: string) => void;
 }
 
-const MapScreen: React.FC<MapScreenProps> = ({ onLocationSelect }) => {
-  const [isLocalMusicPlaying, setIsLocalMusicPlaying] = useState(false);
-  const [hoveredLocation, setHoveredLocation] = useState<string | null>(null);
+export default function MapScreen({ onLocationSelect }: MapScreenProps) {
   const [isRevealed, setIsRevealed] = useState(false);
-  const [audioBlocked, setAudioBlocked] = useState(false);
+  const [hoveredLocation, setHoveredLocation] = useState<string | null>(null);
   
-  // Sistema de áudio independente para o mapa
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  // Usar sistema global de áudio ao invés do local
+  const { currentGroup, isPlaying, togglePlay } = useAudioGroup('map');
 
-  // Posições dos locais no mapa (em porcentagem)
   const locations = [
     { 
       name: 'Karnstein', 
-      x:53, 
-      y: 71,
-      description: 'KARNSTEIN: Uma cidade sombria onde camponeses relatam avistamentos de criaturas estranhas. Lendas antigas sussurram sobre uma maldição que assombra os moradores.',
-      discovered: false
-    },
-    { 
-      name: 'Floresta Sombria', 
-      x: 25, 
-      y: 60,
-      description: 'Árvores retorcidas escondem segredos antigos. Poucos retornam deste lugar maldito.',
-      discovered: false // Será desbloqueado após completar Karnstein
-    },
-    { 
-      name: 'Cabana', 
       x: 63, 
       y: 27,
       description: 'Ruínas de um castelo onde ecos do passado ainda ressoam pelos corredores vazios.',
@@ -291,62 +243,6 @@ const MapScreen: React.FC<MapScreenProps> = ({ onLocationSelect }) => {
     },
   ];
 
-  // Funções de controle de áudio
-  const initMapAudio = async () => {
-    if (!audioRef.current) {
-      audioRef.current = new Audio(mapMusic);
-      audioRef.current.loop = true;
-      audioRef.current.volume = 1.0; // Volume 100%
-      
-      // Event listeners
-      audioRef.current.addEventListener('canplaythrough', () => {
-        console.log('🗺️ Áudio do mapa carregado');
-      });
-      
-      audioRef.current.addEventListener('play', () => {
-        console.log('🗺️ Música do mapa iniciada');
-        setAudioBlocked(false);
-      });
-      
-      audioRef.current.addEventListener('pause', () => {
-        console.log('🗺️ Música do mapa pausada');
-      });
-    }
-  };
-
-  const playMapAudio = async () => {
-    try {
-      if (audioRef.current) {
-        await audioRef.current.play();
-        setAudioBlocked(false);
-      }
-    } catch (error) {
-      console.log('🗺️ Autoplay bloqueado - usuário precisa interagir');
-      setAudioBlocked(true);
-    }
-  };
-
-  const pauseMapAudio = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-    }
-  };
-
-  // Inicializar música do mapa
-  useEffect(() => {
-    console.log('🗺️ Iniciando sistema de áudio do mapa...');
-    initMapAudio().then(() => {
-      playMapAudio();
-      setIsLocalMusicPlaying(true);
-    });
-
-    // Cleanup quando sair do mapa
-    return () => {
-      console.log('🗺️ Limpando áudio do mapa...');
-      pauseMapAudio();
-    };
-  }, []);
-
   // Animação inicial de revelação do mapa
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -357,21 +253,11 @@ const MapScreen: React.FC<MapScreenProps> = ({ onLocationSelect }) => {
 
   // Efeito sonoro ao passar o mouse (simulado com console)
   const playHoverSound = () => {
-    console.log('🔊 Som de hover no local');
+    // TODO: Implementar efeito sonoro de hover
   };
 
   const playClickSound = () => {
-    console.log('🔊 Som de seleção de local');
-  };
-
-  const toggleLocalMusic = () => {
-    if (isLocalMusicPlaying) {
-      pauseMapAudio();
-      setIsLocalMusicPlaying(false);
-    } else {
-      playMapAudio();
-      setIsLocalMusicPlaying(true);
-    }
+    // TODO: Implementar efeito sonoro de clique
   };
 
   return (
@@ -379,26 +265,31 @@ const MapScreen: React.FC<MapScreenProps> = ({ onLocationSelect }) => {
       {/* Botão de controle de música */}
       <Box
         sx={{
-          position: 'absolute',
+          position: 'fixed', // Mudado de 'absolute' para 'fixed' para ficar sempre visível
           bottom: '20px',
           right: '20px',
           zIndex: 1000,
         }}
       >
-        <Tooltip title={isLocalMusicPlaying ? 'Pausar música' : 'Tocar música'}>
+        <Tooltip title={currentGroup ? (isPlaying ? 'Pausar música' : 'Tocar música') : 'Nenhuma música carregada'}>
           <IconButton
-            onClick={toggleLocalMusic}
+            onClick={togglePlay}
+            disabled={!currentGroup}
             sx={{
-              color: isLocalMusicPlaying ? '#B31212' : '#E0DFDB',
+              color: currentGroup ? (isPlaying ? '#B31212' : '#E0DFDB') : '#666',
               background: 'rgba(15,17,20,0.8)',
               border: '1px solid rgba(255,255,255,0.1)',
-              '&:hover': {
+              opacity: currentGroup ? 1 : 0.5,
+              '&:hover': currentGroup ? {
                 background: 'rgba(179,18,18,0.2)',
                 borderColor: 'rgba(255,255,255,0.3)',
-              },
+              } : {},
+              '&:disabled': {
+                cursor: 'not-allowed'
+              }
             }}
           >
-            {isLocalMusicPlaying ? <PauseIcon /> : <PlayArrowIcon />}
+            {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
           </IconButton>
         </Tooltip>
       </Box>
@@ -465,5 +356,3 @@ const MapScreen: React.FC<MapScreenProps> = ({ onLocationSelect }) => {
     </MapContainer>
   );
 };
-
-export default MapScreen;

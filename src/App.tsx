@@ -136,7 +136,7 @@ const darkTheme = createTheme({
 });
 
 function AppContent() {
-  console.log('🎲 [App] Função AppContent executada!');
+
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -164,83 +164,107 @@ function AppContent() {
 
   // Wrapper para setFicha com logs de debug
   const setFichaWithLog = useCallback((newFicha: Ficha | ((prev: Ficha) => Ficha)) => {
-    console.log('🎲 [App] setFicha sendo chamado com:', newFicha);
+
     if (typeof newFicha === 'function') {
       const prevFicha = ficha;
       const nextFicha = newFicha(prevFicha);
-      console.log('🎲 [App] setFicha (função) - Anterior:', prevFicha);
-      console.log('🎲 [App] setFicha (função) - Próximo:', nextFicha);
+
       setFicha(nextFicha);
     } else {
-      console.log('🎲 [App] setFicha (valor) - Anterior:', ficha);
-      console.log('🎲 [App] setFicha (valor) - Próximo:', newFicha);
+
       setFicha(newFicha);
     }
   }, [ficha]);
-  const [currentLocation, setCurrentLocation] = useState<string>('');
+
   const [globalInventoryOpen, setGlobalInventoryOpen] = useState(false);
   const showGlobalStatus = !['/', '/sheet', '/intro'].includes(location.pathname);
 
+  // 🔄 FASE 2: Sistema de detecção de saída inesperada
   useEffect(() => {
-    const timestamp = Date.now();
-    console.log('🎲 [App] useEffect de inicialização executado - TIMESTAMP:', timestamp);
-    console.log('🎲 [App] Ficha atual no estado antes do useEffect:', ficha);
-    
-    // Contador para rastrear execuções múltiplas
-    const executionCount = (window as any).__useEffectCount = ((window as any).__useEffectCount || 0) + 1;
-    console.log('🎲 [App] useEffect executado pela', executionCount, 'vez');
-    
+    const handleBeforeUnload = () => {
+      // Marcar como saída inesperada quando o jogo está ativo
+      if (location.pathname !== '/') {
+        try {
+          localStorage.setItem('cavaleiro:unexpectedExit', 'true');
+          console.log('🚨 [App] Saída inesperada detectada - marcando para recuperação');
+        } catch (e) {
+          console.warn('🚨 [App] Erro ao marcar saída inesperada:', e);
+        }
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      // Detectar quando a aba fica escondida por muito tempo
+      if (document.hidden && location.pathname !== '/') {
+        try {
+          localStorage.setItem('cavaleiro:unexpectedExit', 'true');
+          console.log('🚨 [App] Aba escondida - marcando para recuperação');
+        } catch (e) {
+          console.warn('🚨 [App] Erro ao marcar aba escondida:', e);
+        }
+      }
+    };
+
+    // Adicionar listeners
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Limpeza
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [location.pathname]);
+
+  // 🧹 Sistema de limpeza de saída inesperada quando navegação é normal
+  // 📍 Sistema de rastreamento de tela atual
+  useEffect(() => {
+    // Se navegar para Home de forma normal, limpar flag de saída inesperada
+    if (location.pathname === '/') {
+      try {
+        localStorage.removeItem('cavaleiro:unexpectedExit');
+        console.log('🏠 [App] Navegação normal para Home - removendo flag de saída inesperada');
+      } catch (e) {
+        console.warn('🏠 [App] Erro ao remover flag de saída inesperada:', e);
+      }
+    } else {
+      // 🎯 Salvar a tela atual para recuperação
+      try {
+        localStorage.setItem('cavaleiro:lastScreen', location.pathname);
+        console.log('📍 [App] Salvando tela atual:', location.pathname);
+      } catch (e) {
+        console.warn('📍 [App] Erro ao salvar tela atual:', e);
+      }
+    }
+  }, [location.pathname]);
+
+  useEffect(() => {
+    // 🎯 FASE 1 IMPLEMENTADA: Home sempre limpa localStorage
+    // 🎮 Carregar dados salvos (refresh, navegação, etc.)
     const savedData = localStorage.getItem('cavaleiro:ficha');
-    const savedScreenId = localStorage.getItem('cavaleiro:screenId');
-    
-    console.log('🎲 [App] Dados salvos encontrados:', { savedData: !!savedData, savedScreenId });
     
     if (savedData) {
       try {
         const parsed = JSON.parse(savedData);
-        console.log('🎲 [App] Ficha parseada:', parsed);
-        
         const validated = FichaSchema.safeParse(parsed);
         if (validated.success) {
-          // Se a ficha for válida, usa ela diretamente sem mesclar com createEmptyFicha
-          console.log('🎲 [App] Ficha validada com sucesso:', validated.data);
-          console.log('🎲 [App] - Nome:', validated.data.nome);
-          console.log('🎲 [App] - Perícia:', validated.data.pericia);
-          console.log('🎲 [App] - Força:', validated.data.forca);
-          console.log('🎲 [App] - Sorte:', validated.data.sorte);
-          console.log('🎲 [App] - Bolsa:', validated.data.bolsa);
-          
-          // Verificar se a ficha atual é diferente da validada
-          if (ficha && (ficha.nome !== validated.data.nome || 
-                        ficha.pericia.inicial !== validated.data.pericia.inicial ||
-                        ficha.forca.inicial !== validated.data.forca.inicial ||
-                        ficha.sorte.inicial !== validated.data.sorte.inicial)) {
-            console.log('🎲 [App] ATENÇÃO: Ficha atual diferente da validada!');
-            console.log('🎲 [App] - Ficha atual:', ficha);
-            console.log('🎲 [App] - Ficha validada:', validated.data);
-          }
-          
+          console.log('🎮 [App] Carregando ficha salva da sessão ativa');
           setFichaWithLog(validated.data);
         } else {
           console.warn('🎲 [App] Ficha salva inválida. Usando defaults.');
-          console.warn('🎲 [App] Erros de validação:', validated.error);
-          // Se a validação falhar, cria uma ficha vazia sem moedas
           const fallbackFicha = createEmptyFichaWithoutGold();
-          console.log('🎲 [App] Usando ficha de fallback vazia:', fallbackFicha);
           setFichaWithLog(fallbackFicha);
         }
       } catch (error) {
         console.error('🎲 [App] Erro ao carregar ficha:', error);
         const fallbackFicha = createEmptyFichaWithoutGold();
-        console.log('🎲 [App] Erro no parse, usando ficha de fallback vazia:', fallbackFicha);
         setFichaWithLog(fallbackFicha);
       }
     } else {
-      console.log('🎲 [App] Nenhuma ficha salva encontrada, usando padrão');
       const defaultFicha = createEmptyFichaWithoutGold();
-      console.log('🎲 [App] Ficha padrão criada (sem moedas):', defaultFicha);
       setFichaWithLog(defaultFicha);
     }
+    
     // screenId salvo é usado apenas para retomar via rota /game/:id
   }, []);
 
@@ -248,8 +272,30 @@ function AppContent() {
     navigate('/sheet');
   };
 
+  // 🔄 FASE 2: Recuperação completa do jogo
+  const handleRecoverGame = (recoveredFicha: Ficha, lastScreen: string) => {
+    console.log('🔄 [App] Recuperando jogo para tela:', lastScreen);
+    
+    // 🎯 Carregar ficha recuperada
+    setFichaWithLog(recoveredFicha);
+    
+    // 💾 Salvar no localStorage
+    try {
+      localStorage.setItem('cavaleiro:ficha', JSON.stringify(recoveredFicha));
+      console.log('🔄 [App] Ficha recuperada salva no localStorage');
+    } catch (e) {
+      console.error('🔄 [App] Erro ao salvar ficha recuperada:', e);
+    }
+    
+    // 🚀 Redirecionar para a última tela jogada
+    setTimeout(() => {
+      navigate(lastScreen);
+      console.log('🔄 [App] Redirecionado para:', lastScreen);
+    }, 100); // Pequeno delay para garantir que a ficha foi carregada
+  };
+
   const handleFichaChange = (newFicha: Ficha) => {
-    console.log('🎲 [App] handleFichaChange chamado com:', newFicha);
+
     
     // Verificação de segurança
     if (!newFicha || !newFicha.bolsa || !Array.isArray(newFicha.bolsa)) {
@@ -257,62 +303,57 @@ function AppContent() {
       return;
     }
     
-    console.log('🎲 [App] - Nome recebido:', newFicha.nome);
-    console.log('🎲 [App] - Perícia recebida:', newFicha.pericia);
-    console.log('🎲 [App] - Força recebida:', newFicha.forca);
-    console.log('🎲 [App] - Sorte recebida:', newFicha.sorte);
-    console.log('🎲 [App] - Bolsa recebida:', newFicha.bolsa);
+
     
     setFichaWithLog(newFicha);
     try {
       localStorage.setItem('cavaleiro:ficha', JSON.stringify(newFicha));
-      console.log('🎲 [App] Ficha atualizada e salva com sucesso');
+  
     } catch (e) {
       console.error('🎲 [App] Falha ao salvar no localStorage:', e);
     }
   };
 
   const handleLocationSelect = (location: string) => {
-    console.log(`🗺️ Navegando para: ${location}`);
-    setCurrentLocation(location);
-    
+    console.log(`🗺️ [App] Navegando para localização: ${location}`);
+
     // Roteamento baseado na localização
     switch (location) {
       case 'Royal':
+        console.log('🏰 [App] Navegando para Royal Lendle');
         navigate('/royal');
         break;
       case 'Karnstein':
+        console.log('🏰 [App] Navegando para Karnstein (não implementado)');
         // TODO: Implementar tela de Karnstein
-        console.log('🏰 Karnstein ainda não implementado');
         break;
       default:
-        console.log(`📍 Localização ${location} ainda não implementada`);
+        console.warn('⚠️ [App] Localização desconhecida:', location);
     }
   };
 
   const handleGameChoice = (choice: string) => {
-    console.log(`Escolha feita: ${choice} em ${currentLocation}`);
-    
+    console.log(`🎲 [App] Escolha do jogo: ${choice}`);
+
     // Roteamento baseado na escolha
     switch (choice) {
       case 'aceitar_jogo':
-        console.log('Jogador aceitou o jogo de Bartolph');
+        console.log('✅ [App] Jogador aceitou o jogo, navegando para tela 86');
         try { localStorage.setItem('cavaleiro:screenId', '86'); } catch {}
         navigate('/game/86');
         break;
       case 'recusar_jogo':
-        console.log('🚶 Jogador recusou o jogo e vai se preparar');
+        console.log('❌ [App] Jogador recusou o jogo, navegando para tela 30');
         try { localStorage.setItem('cavaleiro:screenId', '30'); } catch {}
         navigate('/game/30');
         break;
       default:
-        console.log(`❓ Escolha não reconhecida: ${choice}`);
+        console.warn('⚠️ [App] Escolha desconhecida:', choice);
     }
   };
 
-  const handleGameResult = (won: boolean, goldChange: number) => {
-    console.log(`🎲 [App] handleGameResult chamado: ${won ? 'Vitória' : 'Derrota'}, Mudança de ouro: ${goldChange}`);
-    console.log(`🎲 [App] Ficha antes da atualização:`, ficha);
+  const handleGameResult = (_won: boolean, goldChange: number) => {
+
     
     // Verificação de segurança
     if (!ficha || !ficha.bolsa || !Array.isArray(ficha.bolsa)) {
@@ -324,20 +365,19 @@ function AppContent() {
     const updatedFicha = { ...ficha };
     const goldItemIndex = updatedFicha.bolsa.findIndex(item => item.tipo === 'ouro');
     
-    console.log(`🎲 [App] Índice do item de ouro: ${goldItemIndex}`);
+    
     
     if (goldItemIndex !== -1) {
       const currentGold = updatedFicha.bolsa[goldItemIndex].quantidade || 0;
       const newGold = Math.max(0, currentGold + goldChange);
       updatedFicha.bolsa[goldItemIndex].quantidade = newGold;
       
-      console.log(`🎲 [App] Ouro atual: ${currentGold}, Mudança: ${goldChange}, Novo ouro: ${newGold}`);
-      console.log(`🎲 [App] Item de ouro atualizado:`, updatedFicha.bolsa[goldItemIndex]);
+      
     } else {
-      console.log(`🎲 [App] ERRO: Item de ouro não encontrado na bolsa!`);
+
     }
     
-    console.log(`🎲 [App] Ficha após atualização:`, updatedFicha);
+
     
     // Verificação adicional antes de salvar
     if (updatedFicha.bolsa && Array.isArray(updatedFicha.bolsa)) {
@@ -345,22 +385,9 @@ function AppContent() {
       
               try {
           localStorage.setItem('cavaleiro:ficha', JSON.stringify(updatedFicha));
-          console.log(`🎲 [App] Ficha salva no localStorage com sucesso`);
+  
           
-          // DEBUG: Verificar o que foi salvo
-          const savedData = localStorage.getItem('cavaleiro:ficha');
-          console.log(`🎲 [App] DEBUG: Dados salvos no localStorage:`, savedData);
-          try {
-            const parsed = JSON.parse(savedData || '');
-            console.log(`🎲 [App] DEBUG: Ficha parseada do localStorage:`, parsed);
-            console.log(`🎲 [App] DEBUG: - Nome salvo:`, parsed.nome);
-            console.log(`🎲 [App] DEBUG: - Perícia salva:`, parsed.pericia);
-            console.log(`🎲 [App] DEBUG: - Força salva:`, parsed.forca);
-            console.log(`🎲 [App] DEBUG: - Sorte salva:`, parsed.sorte);
-            console.log(`🎲 [App] DEBUG: - Bolsa salva:`, parsed.bolsa);
-          } catch (error) {
-            console.error(`🎲 [App] DEBUG: Erro ao parsear dados salvos:`, error);
-          }
+
         } catch (error) {
         console.error(`🎲 [App] ERRO ao salvar no localStorage:`, error);
       }
@@ -447,11 +474,27 @@ function AppContent() {
         />
 
         <Routes>
-          <Route path="/" element={<Home onStart={handleStartAdventure} />} />
-          <Route path="/sheet" element={<CharacterSheet ficha={ficha} onFichaChange={handleFichaChange} onVoltar={() => navigate('/')} onStartCinematic={() => navigate('/intro')} />} />
-          <Route path="/intro" element={<Box sx={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10, '&::after': { display: 'none !important' } }}><IntroCinematic onFinish={() => navigate('/map')} /></Box>} />
+          <Route path="/" element={<Home onStart={handleStartAdventure} onRecoverGame={handleRecoverGame} />} />
+          <Route path="/sheet" element={<CharacterSheet ficha={ficha} onFichaChange={handleFichaChange} onVoltar={() => navigate('/')} onStartCinematic={() => {
+            console.log('🎬 [App] Navegando para tela de introdução...');
+            try {
+              navigate('/intro');
+              console.log('✅ [App] Navegação para introdução bem-sucedida');
+            } catch (error) {
+              console.error('❌ [App] Erro ao navegar para introdução:', error);
+              // Fallback: tentar novamente
+              setTimeout(() => navigate('/intro'), 100);
+            }
+          }} />} />
+          <Route path="/intro" element={<Box sx={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10, '&::after': { display: 'none !important' } }}><IntroCinematic onFinish={() => {
+            console.log('🎬 [App] Introdução finalizada, navegando para mapa...');
+            navigate('/map');
+          }} /></Box>} />
           <Route path="/map" element={<MapScreen onLocationSelect={handleLocationSelect} />} />
-          <Route path="/royal" element={<RoyalLendleScreen onChoice={handleGameChoice} onBackToMap={() => navigate('/map')} ficha={ficha} />} />
+          <Route path="/royal" element={<RoyalLendleScreen onChoice={handleGameChoice} onBackToMap={() => {
+            console.log('🗺️ [App] Usuário voltando do Royal para o Mapa');
+            navigate('/map');
+          }} ficha={ficha} />} />
 
           <Route path="/game/:id" element={<ScreenRouter ficha={ficha} onGameResult={handleGameResult} onAdjustSorte={(delta:number)=>{
             setFichaWithLog(prev=>{

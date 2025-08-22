@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Box, Card, CardContent, Typography, IconButton, Tooltip } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
@@ -93,14 +93,14 @@ interface Screen54Props {
 
 const Screen54: React.FC<Screen54Props> = ({ onGoToScreen }) => {
   // Usa o sistema de grupos de áudio - automaticamente gerencia música do grupo 'bartolph-game'
-  const { currentGroup, isPlaying, togglePlay, currentTrack } = useAudioGroup(54);
+  const { isPlaying, togglePlay, currentTrack } = useAudioGroup(54);
 
   return (
     <Container data-screen="screen-54">
       {/* Botão de controle de música */}
       <Box
         sx={{
-          position: 'absolute',
+          position: 'fixed', // Mudado de 'absolute' para 'fixed' para ficar sempre visível
           bottom: '20px',
           right: '20px',
           zIndex: 1000,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { 
   Dialog, 
   DialogTitle, 
@@ -11,7 +11,6 @@ import {
   CardContent,
   IconButton,
   Divider,
-  Grid,
   Chip
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
@@ -251,8 +250,8 @@ const InventoryModal: React.FC<InventoryModalProps> = ({ open, onClose, ficha })
                 <Card key={key} sx={{ border: '2px solid #8B4513', background: 'linear-gradient(135deg, rgba(255,255,255,0.85), rgba(245,222,179,0.6))' }}>
                   <CardContent>
                     <Typography variant="h6" sx={{ fontFamily: '"Cinzel", serif', color: '#4a2c00', mb: 1 }}>{label}</Typography>
-                    <Grid container spacing={1} alignItems="center">
-                      <Grid item xs={6}>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, alignItems: 'center' }}>
+                      <Box>
                         <Typography variant="caption" sx={{ color: '#8B4513' }}>Inicial</Typography>
                         <Chip 
                           label={atr.inicial} 
@@ -265,8 +264,8 @@ const InventoryModal: React.FC<InventoryModalProps> = ({ open, onClose, ficha })
                             border: '1px solid #D2B48C'
                           }} 
                         />
-                      </Grid>
-                      <Grid item xs={6}>
+                      </Box>
+                      <Box>
                         <Typography variant="caption" sx={{ color: '#8B4513' }}>Atual</Typography>
                         <Chip 
                           label={atualClamped} 
@@ -279,8 +278,8 @@ const InventoryModal: React.FC<InventoryModalProps> = ({ open, onClose, ficha })
                             border: '1px solid #D2B48C'
                           }} 
                         />
-                      </Grid>
-                    </Grid>
+                      </Box>
+                    </Box>
                   </CardContent>
                 </Card>
               );

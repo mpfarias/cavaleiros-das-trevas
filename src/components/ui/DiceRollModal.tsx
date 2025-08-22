@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, Box, Typography } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 
@@ -92,7 +92,6 @@ interface DiceRollModalProps {
   open: boolean;
   numDice: 1 | 2;
   onComplete: (dice: number[], total: number) => void;
-  title?: string;
   bonus?: number;
   rollFunction: () => { dice: number[]; total: number } | number[];
 }
@@ -101,7 +100,6 @@ const DiceRollModal: React.FC<DiceRollModalProps> = ({
   open,
   numDice,
   onComplete,
-  title = "Rolando dados...",
   bonus = 0,
   rollFunction
 }) => {
@@ -140,10 +138,10 @@ const DiceRollModal: React.FC<DiceRollModalProps> = ({
         // Auto-close após mostrar resultado
         const closeTimer = setTimeout(() => {
           onComplete(dice, finalTotal);
-        }, 2000); // 2 segundos para apreciar o resultado
+        }, 2000); // Mantido em 2000ms para garantir precisão na leitura dos resultados
 
         return () => clearTimeout(closeTimer);
-      }, 2000); // 2 segundos de animação para dar tempo de ver os dados parando
+      }, 800); // Reduzido de 2000ms para 800ms para maior responsividade na inicialização
 
       return () => clearTimeout(rollTimer);
     }

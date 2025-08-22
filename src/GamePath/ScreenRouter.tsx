@@ -20,7 +20,7 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({ ficha, onGameResult, onAdju
   const navigate = useNavigate();
   const screenId = Number(id);
 
-  console.log('🎲 [ScreenRouter] Renderizando tela', screenId, 'com ficha:', ficha);
+
 
   // Verificação de segurança: se a ficha for inválida, redireciona para a tela inicial
   if (!ficha || !ficha.bolsa || !Array.isArray(ficha.bolsa)) {

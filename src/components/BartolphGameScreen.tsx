@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Box, Typography, Card, CardContent, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, Tooltip } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import type { Ficha } from '../types';
@@ -103,12 +103,7 @@ const BartolphGameScreen: React.FC<BartolphGameScreenProps> = ({
   onGameResult, 
   onNavigateToScreen
 }) => {
-  console.log('🎲 [Screen86] Renderizando com ficha:', ficha);
-  console.log('🎲 [Screen86] - Nome:', ficha?.nome);
-  console.log('🎲 [Screen86] - Perícia:', ficha?.pericia);
-  console.log('🎲 [Screen86] - Força:', ficha?.forca);
-  console.log('🎲 [Screen86] - Sorte:', ficha?.sorte);
-  console.log('🎲 [Screen86] - Bolsa:', ficha?.bolsa);
+
   
   const { currentGroup, isPlaying, togglePlay } = useAudioGroup(86);
   const [rolled, setRolled] = useState<number | null>(null);
@@ -145,14 +140,10 @@ const BartolphGameScreen: React.FC<BartolphGameScreenProps> = ({
   const finishGame = () => {
     if (won == null || nextScreenId == null) return;
     
-    console.log('🎲 [Screen86] finishGame chamado:');
-    console.log('🎲 [Screen86] - won:', won);
-    console.log('🎲 [Screen86] - bet:', bet);
-    console.log('🎲 [Screen86] - currentGold antes:', currentGold);
-    console.log('🎲 [Screen86] - ficha antes:', ficha);
+
     
     const goldChange = won ? bet : -bet;
-    console.log('🎲 [Screen86] - goldChange:', goldChange);
+
     
     onGameResult(won, goldChange);
     onNavigateToScreen(nextScreenId);
@@ -342,7 +333,7 @@ const BartolphGameScreen: React.FC<BartolphGameScreenProps> = ({
       {/* Botão de controle de música */}
       <Box
         sx={{
-          position: 'absolute',
+          position: 'fixed', // Mudado de 'absolute' para 'fixed' para ficar sempre visível
           bottom: '20px',
           right: '20px',
           zIndex: 1000,

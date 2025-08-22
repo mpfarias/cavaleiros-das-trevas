@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Box,
   Typography,
@@ -120,7 +120,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
     // Só corrige se TODOS os atributos estão preenchidos mas NÃO há moedas
     // Isso indica uma inconsistência real, não uma rolagem em andamento
     if (hasInitialValues && !hasGold) {
-      console.log('🔄 [CharacterSheet] Inconsistência detectada: atributos com valores mas sem moedas. Resetando...');
+
       
       // Resetar atributos para forçar nova rolagem
       const fichaCorrigida = {
@@ -167,9 +167,9 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
     const loadMusic = async () => {
       try {
         await changeTrack(bgmFicha);
-        console.log('Música de fundo carregada para a ficha do personagem');
+
       } catch (error) {
-        console.log('Erro ao carregar música da ficha:', error);
+
       }
     };
 
@@ -202,7 +202,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
     
     setRolagensDados(prev => {
       const newCount = prev.pericia + 1;
-      console.log('Rolagem de Perícia:', newCount, '/ 3');
+
       return {
         ...prev,
         pericia: newCount
@@ -218,7 +218,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
 
     setRolagensDados(prev => {
       const newCount = prev.forca + 1;
-      console.log('Rolagem de Força:', newCount, '/ 3');
+
       return {
         ...prev,
         forca: newCount
@@ -234,7 +234,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
 
     setRolagensDados(prev => {
       const newCount = prev.sorte + 1;
-      console.log('Rolagem de Sorte:', newCount, '/ 3');
+
       return {
         ...prev,
         sorte: newCount
@@ -288,26 +288,43 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
     setConfirmStartOpen(true);
   }, [ficha, validateForStart, showNotification]);
 
-
-
-  const handleConfirmStart = useCallback(async () => {
-    setConfirmStartOpen(false);
-
-    // Tocar som de grito
+  const handleStartAdventure = useCallback(async () => {
     try {
-      const screamAudio = new Audio(screamWoman);
-      screamAudio.volume = 0.7;
-      await screamAudio.play();
-    } catch (error) {
-      console.log('Erro ao tocar som de grito:', error);
-    }
-
-    // Pequeno delay para o som e depois navegar para cinematográfica
-    setTimeout(() => {
-      // Pausar música da ficha antes de navegar
+      console.log('🎬 [CharacterSheet] Iniciando aventura...');
+      
+      // Pausar música da ficha
       pause();
-      onStartCinematic();
-    }, 500);
+      
+      // Pequeno delay para garantir que a música foi pausada
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Tocar som de grito
+      try {
+        const screamAudio = new Audio(screamWoman);
+        screamAudio.volume = 0.7;
+        await screamAudio.play();
+      } catch (error) {
+        console.warn('⚠️ [CharacterSheet] Erro ao tocar som de grito:', error);
+      }
+
+      // Delay para o som e depois navegar para cinematográfica
+      setTimeout(() => {
+        console.log('🎬 [CharacterSheet] Navegando para tela de introdução...');
+        try {
+          onStartCinematic();
+          console.log('✅ [CharacterSheet] Navegação para introdução iniciada');
+        } catch (error) {
+          console.error('❌ [CharacterSheet] Erro ao navegar para introdução:', error);
+          // Fallback: tentar novamente
+          setTimeout(() => onStartCinematic(), 100);
+        }
+      }, 500);
+      
+    } catch (error) {
+      console.error('❌ [CharacterSheet] Erro ao iniciar aventura:', error);
+      // Fallback: tentar navegar mesmo com erro
+      setTimeout(() => onStartCinematic(), 100);
+    }
   }, [pause, onStartCinematic]);
 
   const handleCancelStart = useCallback(() => {
@@ -1069,7 +1086,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
                 Não, ainda não
               </Button>
               <Button
-                onClick={() => { playClick(); handleConfirmStart() }}
+                onClick={() => { playClick(); handleStartAdventure() }}
                 variant="contained"
                 color="error"
                 sx={{

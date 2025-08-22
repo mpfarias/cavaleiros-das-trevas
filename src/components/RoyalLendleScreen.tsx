@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { Box, Typography, Card, CardContent, IconButton, Tooltip } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
@@ -185,7 +185,6 @@ const RoyalLendleScreen: React.FC<RoyalLendleScreenProps> = ({
   ficha
 }) => {
   const [textVisible, setTextVisible] = useState(false);
-  const [choicesVisible, setChoicesVisible] = useState(false); // TODO: usar para fade das escolhas
   const [inventoryOpen, setInventoryOpen] = useState(false);
   const { currentGroup, isPlaying, togglePlay } = useAudioGroup('royal');
 
@@ -199,7 +198,7 @@ const RoyalLendleScreen: React.FC<RoyalLendleScreenProps> = ({
 
     // Animar entrada das escolhas
     const choicesTimer = setTimeout(() => {
-      setChoicesVisible(true);
+      // TODO: Implementar fade das escolhas
     }, 1000);
 
     return () => {
@@ -210,7 +209,7 @@ const RoyalLendleScreen: React.FC<RoyalLendleScreenProps> = ({
   }, []);
 
   const handleChoice = (choice: string) => {
-    console.log(`Jogador escolheu: ${choice}`);
+
     onChoice(choice);
   };
 
@@ -231,7 +230,7 @@ const playClick = useClickSound(0.2);
       {/* Botão de controle de música */}
       <Box
         sx={{
-          position: 'absolute',
+          position: 'fixed', // Mudado de 'absolute' para 'fixed' para ficar sempre visível
           bottom: '20px',
           right: '20px',
           zIndex: 1000,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Dialog, DialogContent, Box, Typography, Button } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import * as THREE from 'three';
@@ -151,14 +151,21 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
 
   // Inicializar cena 3D
   const initScene = useCallback(() => {
+    console.log('🎲 [DiceRollModal3D] Iniciando inicialização da cena...');
+    
     if (!canvasRef.current) {
+      console.error('❌ [DiceRollModal3D] Canvas ref não disponível');
       return;
     }
+
+    console.log('🎲 [DiceRollModal3D] Canvas encontrado, criando cena...');
 
     // Scene
     const scene = new THREE.Scene();
     scene.background = new THREE.Color('#0b0d10');
     sceneRef.current = scene;
+
+    console.log('🎲 [DiceRollModal3D] Cena criada, configurando câmera...');
 
     // Camera ortográfica (top-down)
     const orthoSize = 2.1;
@@ -171,6 +178,8 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
     camera.up.set(0, 0, -1);
     camera.lookAt(target);
 
+    console.log('🎲 [DiceRollModal3D] Câmera configurada, criando renderer...');
+
     // Renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(canvasRef.current.clientWidth, canvasRef.current.clientHeight);
@@ -179,7 +188,7 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
     canvasRef.current.appendChild(renderer.domElement);
     rendererRef.current = renderer;
     
-
+    console.log('🎲 [DiceRollModal3D] Renderer criado, adicionando luzes...');
 
     // Luzes
     scene.add(new THREE.HemisphereLight(0xffffff, 0x223344, 0.9));
@@ -312,14 +321,16 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
           die.body.quaternion.z,
           die.body.quaternion.w
         );
-        
-
       });
 
-      renderer.render(scene, camera);
+      if (rendererRef.current && sceneRef.current) {
+        rendererRef.current.render(sceneRef.current, camera);
+      }
     };
 
+    console.log('🎲 [DiceRollModal3D] Iniciando loop de animação...');
     animate();
+    console.log('🎲 [DiceRollModal3D] Cena inicializada com sucesso!');
   }, [numDice, createDie]);
 
   // Limpar recursos
@@ -342,9 +353,14 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
 
   // Rolar dados
   const rollDice = useCallback(() => {
+    console.log('🎲 [DiceRollModal3D] Função rollDice chamada');
+    
     if (!worldRef.current || !diceRef.current.length) {
+      console.error('❌ [DiceRollModal3D] Mundo físico ou dados não disponíveis para rolagem');
       return;
     }
+    
+    console.log('🎲 [DiceRollModal3D] Iniciando rolagem dos dados...');
     setIsRolling(true);
     setResults(null);
     setTotal(null);
@@ -396,7 +412,7 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
       setIsRolling(false);
 
       // Não fechar automaticamente - usuário clica em "Ok"
-    }, 2000);
+    }, 2000); // Mantido em 2000ms para garantir precisão na leitura dos resultados
   }, [bonus, onComplete]);
 
   // Ler resultados dos dados
@@ -451,23 +467,28 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
 
   // Efeitos
   useEffect(() => {
+    console.log('🎲 [DiceRollModal3D] useEffect executado, open:', open);
+    
     if (open) {
       // Resetar estados imediatamente quando o modal abre
       setIsRolling(true);
       setResults(null);
       setTotal(null);
       
-      // Aguardar o DOM ser renderizado antes de inicializar
+      console.log('🎲 [DiceRollModal3D] Modal aberto, aguardando renderização...');
+      
+      // Pequeno delay mínimo para garantir que o DOM esteja renderizado
+      // antes de inicializar a cena 3D (necessário para Three.js)
       const timer = setTimeout(() => {
+        console.log('🎲 [DiceRollModal3D] Inicializando cena após delay...');
         initScene();
-        // Rolar automaticamente após inicializar a cena
-        setTimeout(() => {
-          rollDice();
-        }, 1000);
-      }, 100);
+        // Rolar dados imediatamente após inicializar a cena
+        rollDice();
+      }, 50); // Delay mínimo de apenas 50ms para garantir renderização
       
       return () => clearTimeout(timer);
     } else {
+      console.log('🎲 [DiceRollModal3D] Modal fechado, limpando recursos...');
       cleanup();
     }
 

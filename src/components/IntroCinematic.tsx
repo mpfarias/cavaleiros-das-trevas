@@ -45,12 +45,8 @@ const TIMELINE: Scene[] = [
       ["mid", "Pronto para empunhar sua espada por qualquer um… quase."],
     ],
     sfx: (s) => {
-      console.log('🎬 Cena 1: Iniciando aventura');
-      console.log('🎵 Tentando tocar música bgm-intro...');
       s.playTag("music", 0.3, true);  // Música principal volume máximo
-      console.log('🎵 Comando de música enviado');
       s.wind(true);  // Vento reativado com volume baixo (0.2)
-      console.log('🌪️ Comando de vento enviado (volume baixo)');
     },
   },
   {
@@ -183,9 +179,11 @@ function useAudioManager(audioSources: AudioMap | undefined) {
   // carrega HTMLAudio quando URLs são fornecidas
   const loadTags = async () => {
     if (!finalAudioSources) return;
-    console.log('🎵 Carregando áudios da cinematográfica:', finalAudioSources);
+
+    console.log('🎵 [IntroCinematic] Iniciando carregamento de áudios...');
+    
     const entries = Object.entries(finalAudioSources);
-    const promises = entries.map(([k, url]) => new Promise<void>((res) => {
+    const promises = entries.map(([k, url]) => new Promise<void>((res, rej) => {
       const a = new Audio(url);
       a.preload = "auto";
       a.crossOrigin = "anonymous";
@@ -197,11 +195,47 @@ function useAudioManager(audioSources: AudioMap | undefined) {
                  k === "mug" ? 0.8 :       // laugh.wav para taverna
                  k === "thunder" ? 0.7 :   // rain.wav para trovão
                  0.9;
+      
+      // Timeout de segurança para cada áudio
+      const timeout = setTimeout(() => {
+        console.warn(`⚠️ [IntroCinematic] Timeout carregando áudio: ${k}`);
+        rej(new Error(`Timeout: ${k}`));
+      }, 10000);
+      
       audioTags.current[k] = a;
-      a.addEventListener("canplaythrough", () => res(), { once: true });
-      a.load();
+      
+      const handleCanPlay = () => {
+        clearTimeout(timeout);
+        console.log(`✅ [IntroCinematic] Áudio carregado: ${k}`);
+        res();
+      };
+      
+      const handleError = (error: Event) => {
+        clearTimeout(timeout);
+        console.error(`❌ [IntroCinematic] Erro carregando áudio ${k}:`, error);
+        rej(new Error(`Falha ao carregar: ${k}`));
+      };
+      
+      a.addEventListener("canplaythrough", handleCanPlay, { once: true });
+      a.addEventListener("error", handleError, { once: true });
+      
+      // Tentar carregar
+      try {
+        a.load();
+      } catch (error) {
+        clearTimeout(timeout);
+        console.error(`❌ [IntroCinematic] Erro ao chamar load() para ${k}:`, error);
+        rej(error);
+      }
     }));
-    await Promise.all(promises);
+    
+    try {
+      await Promise.all(promises);
+      console.log('🎵 [IntroCinematic] Todos os áudios carregados com sucesso');
+    } catch (error) {
+      console.error('❌ [IntroCinematic] Erro ao carregar áudios:', error);
+      throw error;
+    }
   };
 
   // inicializa WebAudio (fallback)
@@ -223,28 +257,26 @@ function useAudioManager(audioSources: AudioMap | undefined) {
   };
 
   const playTag = (name: string, vol?: number, loop?: boolean) => {
-    console.log(`🎵 playTag chamado: ${name}, vol: ${vol}, loop: ${loop}`);
+
     const a = audioTags.current[name];
     if (!a) {
-      console.log(`❌ Áudio não encontrado: ${name}`);
-      console.log(`📋 Áudios carregados:`, Object.keys(audioTags.current));
+
       return;
     }
-    console.log(`✅ Áudio encontrado: ${name}, src: ${a.src}`);
-    console.log(`🔊 Volume atual: ${a.volume}, Novo volume: ${vol}`);
+
     if (typeof vol === "number") a.volume = vol;
     if (typeof loop === "boolean") a.loop = loop;
     a.currentTime = 0;
     
     // Garantir que está carregado
     if (a.readyState < 2) {
-      console.log(`⏳ Áudio ${name} ainda carregando... readyState: ${a.readyState}`);
+
     }
     
     a.play().then(() => {
-      console.log(`🎵 Áudio iniciado com sucesso: ${name}, volume: ${a.volume}, tocando: ${!a.paused}`);
-    }).catch((error) => {
-      console.log(`❌ Erro ao tocar áudio ${name}:`, error);
+
+    }).catch((_error) => {
+
     });
   };
 
@@ -755,8 +787,10 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
   const [lines, setLines] = useState<Array<[LineKind, string]>>([]);
   const [ended, setEnded] = useState(false);
   const [fadeKey, setFadeKey] = useState(0); // Para forçar re-render com nova animação
+  const [isLoading, setIsLoading] = useState(false); // Novo estado para controle de carregamento
   const running = useRef(false);
   const raf = useRef<number | null>(null);
+  const audioLoaded = useRef(false); // Novo ref para controlar se o áudio foi carregado
 
   const playClick = useClickSound(1);
 
@@ -769,7 +803,12 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
   }, []);
 
   const playTimeline = useCallback(() => {
-    console.log('🎬 Iniciando timeline da cinematográfica');
+    if (!audioLoaded.current) {
+      console.warn('🎵 [IntroCinematic] Áudio ainda não carregado, aguardando...');
+      setTimeout(() => playTimeline(), 100);
+      return;
+    }
+
     setEnded(false);
     setLines([]);
     running.current = true;
@@ -793,7 +832,7 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
       if (idx >= TIMELINE.length) {
         running.current = false;
         setEnded(true);
-        console.log('🎬 Timeline finalizada');
+
         return;
       }
       raf.current = requestAnimationFrame(step);
@@ -802,7 +841,6 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
   }, [api]);
 
   const replay = useCallback(() => {
-    console.log('🔄 Reiniciando cinematográfica');
     setGateOpen(false); // Fecha modal se estiver aberto
     stopTimeline();
     setFadeKey(0); // Reset do fade
@@ -813,7 +851,6 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
   }, [stopTimeline, playTimeline, api]);
 
   const skip = useCallback(() => {
-    console.log('⏭️ Pulando cinematográfica');
     setGateOpen(false); // Fecha modal se estiver aberto
     stopTimeline();
     api.wind(false);
@@ -825,26 +862,44 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
 
   // Gate para habilitar áudio por gesto do usuário
   const begin = async () => {
-    console.log('🔓 Fechando modal e habilitando botões');
-    setGateOpen(false);
-    console.log('🎬 Iniciando cinematográfica com áudios do projeto');
-    console.log('🎵 Áudios disponíveis:', Object.keys(audioSources || PROJECT_AUDIO_MAP));
-    
-    // Teste direto removido - problema identificado e corrigido
-    
-    ensureAudioContext();
-    await loadTags().catch((err) => {
-      console.warn('Erro ao carregar áudios:', err);
-    });
-    
-    // FORÇAR MÚSICA PRINCIPAL IMEDIATAMENTE
-    console.log('🎵 FORÇANDO bgm-intro.mp3 AGORA...');
-    setTimeout(() => {
-      api.playTag("music", 0.3, true);
-      console.log('🎵 Comando FORÇADO de música enviado');
-    }, 100);
-    
-    playTimeline();
+    try {
+      setIsLoading(true);
+      setGateOpen(false);
+
+      console.log('🎬 [IntroCinematic] Iniciando carregamento de áudio...');
+      
+      // Garantir que o contexto de áudio está disponível
+      ensureAudioContext();
+      
+      // Carregar áudios com timeout de segurança
+      const loadPromise = loadTags();
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout carregando áudio')), 5000)
+      );
+      
+      await Promise.race([loadPromise, timeoutPromise]);
+      
+      console.log('🎵 [IntroCinematic] Áudio carregado com sucesso');
+      audioLoaded.current = true;
+      
+      // Pequeno delay para garantir que tudo está pronto
+      setTimeout(() => {
+        api.playTag("music", 0.3, true);
+        playTimeline();
+        setIsLoading(false);
+      }, 200);
+      
+    } catch (error) {
+      console.error('❌ [IntroCinematic] Erro ao carregar áudio:', error);
+      
+      // Fallback: continuar mesmo sem áudio
+      audioLoaded.current = true;
+      setIsLoading(false);
+      
+      setTimeout(() => {
+        playTimeline();
+      }, 100);
+    }
   };
 
   // Atalhos de teclado
@@ -869,7 +924,6 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
   // Cleanup: Para todos os áudios quando o componente for desmontado
   useEffect(() => {
     return () => {
-      console.log('🎬 Limpando áudios da cinematográfica... (APENAS quando sair)');
       // Para a música de fundo quando sair da cinematográfica
       try {
         // Cancela timeline e áudios residuais
@@ -878,7 +932,7 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
         api.fade("tavern", 0, 300); // Fade out rápido da taverna
         api.wind(false);
       } catch (error) {
-        console.log('Erro ao fazer fade out dos áudios:', error);
+        console.warn('⚠️ [IntroCinematic] Erro no cleanup:', error);
       }
     };
   }, []); // ← Mantém vazio para executar apenas no unmount
@@ -888,7 +942,6 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
-        console.log('🎬 [DEBUG] Clique na tela bloqueado para evitar navegação indesejada');
       }}
     >
         <TopBar>
@@ -930,15 +983,11 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
             onClick={(e) => {
               playClick();
               e.stopPropagation();
-              console.log('🎬 [DEBUG] Clicou em Ir para Karnstein');
-              console.log('🎬 [DEBUG] ended:', ended);
-              console.log('🎬 [DEBUG] onFinish existe:', !!onFinish);
+
               if (onFinish) {
-                console.log('🎬 [DEBUG] Chamando onFinish...');
                 onFinish();
-                console.log('🎬 [DEBUG] onFinish chamado!');
               } else {
-                console.log('🎬 [ERRO] onFinish não existe!');
+                console.warn('⚠️ [IntroCinematic] onFinish não fornecido');
               }
             }}
           >
@@ -962,11 +1011,11 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
             <GateButton
               onClick={(e) => {
                 e.stopPropagation();
-                console.log('🎬 [DEBUG] Clicou em Ok - Iniciando cinematográfica');
                 begin();
               }}
+              disabled={isLoading}
             >
-              Ok
+              {isLoading ? 'Carregando...' : 'Ok'}
             </GateButton>
           </CardContent>
         </Card>

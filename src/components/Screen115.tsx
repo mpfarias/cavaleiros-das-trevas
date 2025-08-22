@@ -1,9 +1,10 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Box, Card, CardContent, Typography, IconButton, Tooltip } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import DiceRollModal3D from './ui/DiceRollModal3D';
 import { useAudioGroup } from '../hooks/useAudioGroup';
+import { useDiceSound } from '../hooks/useDiceSound';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 
@@ -59,37 +60,7 @@ const NarrativeText = styled(Typography)({
   textShadow: '0 1px 2px rgba(245,222,179,0.8)'
 });
 
-const ChoiceButton = styled('button')({
-  padding: '16px 24px',
-  background: 'linear-gradient(135deg, rgba(139,69,19,0.9) 0%, rgba(160,82,45,0.8) 100%)',
-  color: '#F5DEB3',
-  border: '2px solid #D2B48C',
-  borderRadius: '12px',
-  fontSize: '16px',
-  fontFamily: '"Cinzel", serif',
-  fontWeight: 600,
-  textAlign: 'left',
-  cursor: 'pointer',
-  transition: 'all 0.3s ease',
-  outline: 'none',
-  textShadow: '0 1px 2px rgba(0,0,0,0.8)',
-  boxShadow: '0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
-  width: '100%',
-  '&:focus-visible': {
-    outline: '2px solid #FFD700',
-    outlineOffset: '2px'
-  },
-  '&:hover': {
-    background: 'linear-gradient(135deg, rgba(179,18,18,0.9) 0%, rgba(139,0,0,0.8) 100%)',
-    borderColor: '#FFD700',
-    color: '#FFFFFF',
-    transform: 'translateY(-2px) scale(1.02)',
-    boxShadow: '0 8px 25px rgba(179,18,18,0.4), inset 0 1px 0 rgba(255,255,255,0.2)'
-  },
-  '&:active': {
-    transform: 'translateY(0) scale(0.98)'
-  }
-});
+
 
 interface Screen115Props {
   onGoToScreen: (id: number) => void;
@@ -99,10 +70,13 @@ interface Screen115Props {
 
 const Screen115: React.FC<Screen115Props> = ({ onGoToScreen, ficha, onAdjustSorte }) => {
   // Usa o sistema de grupos de áudio - automaticamente gerencia música do grupo 'bartolph-game'
-  const { currentGroup, isPlaying, togglePlay, currentTrack } = useAudioGroup(115);
+  const { isPlaying, togglePlay, currentTrack } = useAudioGroup(115);
   const [rolled, setRolled] = useState<[number, number] | null>(null);
   const [diceModalOpen, setDiceModalOpen] = useState(false);
   const [open, setOpen] = useState(false);
+  
+  // Hook para som dos dados
+  const playDice = useDiceSound();
 
   const total = useMemo(() => (rolled ? rolled[0] + rolled[1] : null), [rolled]);
   const sorteAtual = ficha.sorte.atual;
@@ -116,6 +90,7 @@ const Screen115: React.FC<Screen115Props> = ({ onGoToScreen, ficha, onAdjustSort
   };
 
   const testarSorte = () => {
+    playDice(); // Tocar som dos dados
     setDiceModalOpen(true);
   };
   return (
@@ -123,7 +98,7 @@ const Screen115: React.FC<Screen115Props> = ({ onGoToScreen, ficha, onAdjustSort
       {/* Botão de controle de música */}
       <Box
         sx={{
-          position: 'absolute',
+          position: 'fixed', // Mudado de 'absolute' para 'fixed' para ficar sempre visível
           bottom: '20px',
           right: '20px',
           zIndex: 1000,

@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { Box, Typography, IconButton, Fade } from '@mui/material';
 import {
   Close as CloseIcon,

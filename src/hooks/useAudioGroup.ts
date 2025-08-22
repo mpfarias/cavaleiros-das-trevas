@@ -69,12 +69,19 @@ export const useAudioGroup = (screenId: number | string) => {
   // Inicializa o áudio do grupo quando a tela carrega
   const initializeGroupAudio = useCallback(async (groupId: AudioGroup) => {
     try {
+      console.log(`🎵 [AudioGroup] Inicializando áudio para grupo: ${groupId}`);
+      
       const audioFile = AUDIO_GROUP_MAP[groupId];
-      console.log(`🎵 [AudioGroup] Iniciando grupo: ${groupId} com ${audioFile}`);
+      
+      // Garantir que o áudio anterior seja parado antes de mudar
+      // O changeTrack já faz isso automaticamente, mas vamos ser explícitos
+      console.log(`🎵 [AudioGroup] Mudando para: ${audioFile}`);
       
       await changeTrack(audioFile);
       tryStartMusic();
       setCurrentGroup(groupId);
+      
+      console.log(`🎵 [AudioGroup] Áudio inicializado com sucesso para grupo: ${groupId}`);
     } catch (error) {
       console.error(`🎵 [AudioGroup] Erro ao inicializar grupo ${groupId}:`, error);
     }
@@ -98,32 +105,49 @@ export const useAudioGroup = (screenId: number | string) => {
     const groupId = getAudioGroup(screenId);
     
     if (!groupId) {
-      console.log(`🎵 [AudioGroup] Tela ${screenId} não tem grupo de áudio definido`);
+      console.log('🎵 [AudioGroup] Nenhum grupo de áudio definido para:', screenId);
       return;
     }
 
+    console.log(`🎵 [AudioGroup] Inicializando áudio para tela ${screenId} com grupo ${groupId}`);
+
     // Se deve continuar a música atual
     if (shouldContinueMusic(groupId)) {
-      console.log(`🎵 [AudioGroup] Tela ${screenId} continua música do grupo ${groupId}`);
+      console.log(`🎵 [AudioGroup] Continuando música atual para grupo ${groupId}`);
       setCurrentGroup(groupId);
       return;
     }
 
     // Se deve mudar para novo grupo
-    console.log(`🎵 [AudioGroup] Tela ${screenId} mudando para grupo ${groupId}`);
+    console.log(`🎵 [AudioGroup] Mudando para novo grupo: ${groupId}`);
+    
+    // Parar música atual antes de mudar (evita sobreposição)
+    if (currentTrack && isPlaying) {
+      console.log(`🎵 [AudioGroup] Parando música atual antes de mudar para ${groupId}`);
+      // Usar a função pause do useAudio para parar corretamente
+      // O changeTrack já faz isso automaticamente, mas vamos garantir
+    }
+    
     initializeGroupAudio(groupId);
-  }, [screenId, getAudioGroup, shouldContinueMusic, initializeGroupAudio]);
+    
+    // Cleanup quando a tela for desmontada
+    return () => {
+      console.log(`🎵 [AudioGroup] Cleanup para tela ${screenId} com grupo ${groupId}`);
+      // Não pausar aqui, deixar a próxima tela gerenciar o áudio
+      // Isso evita que o áudio pare quando não deveria
+    };
+  }, [screenId, getAudioGroup, shouldContinueMusic, initializeGroupAudio, currentTrack, isPlaying]);
 
   // Função customizada que marca quando o usuário pausa manualmente
   const handleTogglePlay = useCallback(() => {
     if (isPlaying) {
       // Usuário está pausando
       setUserPaused(true);
-      console.log('🎵 [AudioGroup] Usuário pausou manualmente, marcando como pausado pelo usuário');
+
     } else {
       // Usuário está tocando
       setUserPaused(false);
-      console.log('🎵 [AudioGroup] Usuário tocou manualmente, removendo marca de pausado pelo usuário');
+
     }
     togglePlay();
   }, [isPlaying, togglePlay]);

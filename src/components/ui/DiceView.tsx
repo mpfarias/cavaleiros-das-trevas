@@ -30,9 +30,11 @@ const Die = styled(Box, { shouldForwardProp: (prop) => prop !== 'isRolling' })<{
   fontWeight: 900,
   color: '#8B4513',
   textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
-  transition: 'transform 0.3s ease',
-  animation: isRolling ? `${diceRoll} 0.6s ease-in-out` : 'none',
-  userSelect: 'none'
+  transition: 'transform 0.1s ease', // Reduzido de 0.3s para 0.1s para maior responsividade
+  animation: isRolling ? `${diceRoll} 0.4s ease-in-out` : 'none', // Reduzido de 0.6s para 0.4s
+  userSelect: 'none',
+  willChange: 'transform', // Otimização de performance
+  backfaceVisibility: 'hidden' // Otimização de performance
 }));
 
 export interface DiceViewProps {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Box, Card, CardContent, Typography, IconButton, Tooltip } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
@@ -128,7 +128,7 @@ interface Screen222Props {
 
 const Screen222: React.FC<Screen222Props> = ({ onGoToScreen, ficha, onFichaChange }) => {
   // Usa o sistema de grupos de áudio - automaticamente gerencia música do grupo 'bartolph-game'
-  const { currentGroup, isPlaying, togglePlay, currentTrack } = useAudioGroup(222);
+  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(222);
   
   // Estado para controlar os alertas de recompensa
   const [showGoldAlert, setShowGoldAlert] = useState(false);
@@ -141,7 +141,7 @@ const Screen222: React.FC<Screen222Props> = ({ onGoToScreen, ficha, onFichaChang
   useEffect(() => {
     // Proteção para evitar aplicar recompensas múltiplas vezes
     if (recompensasAplicadasRef.current) {
-      console.log('🎁 [Screen222] Recompensas já foram aplicadas, pulando...');
+
       return;
     }
 
@@ -189,7 +189,7 @@ const Screen222: React.FC<Screen222Props> = ({ onGoToScreen, ficha, onFichaChang
       // Marcar que as recompensas foram aplicadas
       recompensasAplicadasRef.current = true;
       
-      console.log('🎁 [Screen222] Recompensas aplicadas: +6 Moedas de Ouro + Dado Viciado');
+
       
       // Mostrar alertas de recompensa com delay e ocultar após 5 segundos
       setTimeout(() => {
@@ -222,7 +222,7 @@ const Screen222: React.FC<Screen222Props> = ({ onGoToScreen, ficha, onFichaChang
       {/* Botão de controle de música */}
       <Box
         sx={{
-          position: 'absolute',
+          position: 'fixed', // Mudado de 'absolute' para 'fixed' para ficar sempre visível
           bottom: '20px',
           right: '20px',
           zIndex: 1000,
