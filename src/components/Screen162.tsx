@@ -4,6 +4,7 @@ import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
+import { GameAlert } from './ui/GameAlert';
 import type { Ficha } from '../types';
 
 const fadeIn = keyframes`
@@ -88,27 +89,7 @@ const ChoiceButton = styled('button')({
   }
 });
 
-const LossAlert = styled(Box)(({ $isVisible }: { $isVisible: boolean }) => ({
-  position: 'fixed',
-  top: '20px',
-  left: '50%',
-  transform: 'translateX(-50%)',
-  background: 'linear-gradient(135deg, rgba(179,18,18,0.95) 0%, rgba(139,0,0,0.9) 100%)',
-  color: '#FFFFFF',
-  padding: '16px 24px',
-  borderRadius: '12px',
-  border: '2px solid #FFD700',
-  boxShadow: '0 8px 25px rgba(179,18,18,0.4)',
-  fontFamily: '"Cinzel", serif',
-  fontWeight: 600,
-  fontSize: '18px',
-  textAlign: 'center',
-  zIndex: 2000,
-  opacity: $isVisible ? 1 : 0,
-  visibility: $isVisible ? 'visible' : 'hidden',
-  transition: 'all 0.5s ease-in-out',
-  textShadow: '0 1px 2px rgba(0,0,0,0.8)'
-}));
+
 
 interface Screen162Props {
   onGoToScreen: (id: number) => void;
@@ -149,9 +130,9 @@ const Screen162: React.FC<Screen162Props> = ({ onGoToScreen, ficha, onUpdateFich
   return (
     <Container data-screen="screen-162">
       {/* Alert de perda de moedas */}
-      <LossAlert $isVisible={showMoneyAlert}>
+      <GameAlert sx={{ top: '120px' }} $isVisible={showMoneyAlert}>
         💰 {moedasPerdidas} moedas perdidas na aposta!
-      </LossAlert>
+      </GameAlert>
       
       {/* Botão de controle de música */}
       <Box

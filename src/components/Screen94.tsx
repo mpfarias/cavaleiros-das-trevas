@@ -124,9 +124,10 @@ const BetButton = styled(Button)({
 interface Screen94Props {
   onGoToScreen: (id: number) => void;
   ficha: Ficha;
+  onUpdateFicha: (ficha: Ficha) => void;
 }
 
-const Screen94: React.FC<Screen94Props> = ({ onGoToScreen, ficha }) => {
+const Screen94: React.FC<Screen94Props> = ({ onGoToScreen, ficha, onUpdateFicha }) => {
   const { isPlaying, togglePlay, currentTrack } = useAudioGroup(94);
   const playDice = useDiceSound();
   
@@ -172,9 +173,27 @@ const Screen94: React.FC<Screen94Props> = ({ onGoToScreen, ficha }) => {
     if (result >= 3) {
       setGameResult('win');
       localStorage.setItem('cavaleiro:apostaBartolph', betAmount);
+      
+      // GANHOU: Adicionar o valor da aposta à bolsa
+      const fichaAtualizada = { ...ficha };
+      const moedasOuro = fichaAtualizada.bolsa.find(item => item.tipo === 'ouro');
+      if (moedasOuro && moedasOuro.quantidade !== undefined) {
+        moedasOuro.quantidade += parseInt(betAmount);
+        console.log(`💰 [Screen94] Jogador GANHOU ${betAmount} moedas! Total: ${moedasOuro.quantidade}`);
+        onUpdateFicha(fichaAtualizada);
+      }
     } else {
       setGameResult('lose');
       localStorage.setItem('cavaleiro:apostaBartolph', betAmount);
+      
+      // PERDEU: Remover o valor da aposta da bolsa
+      const fichaAtualizada = { ...ficha };
+      const moedasOuro = fichaAtualizada.bolsa.find(item => item.tipo === 'ouro');
+      if (moedasOuro && moedasOuro.quantidade !== undefined) {
+        moedasOuro.quantidade = Math.max(0, moedasOuro.quantidade - parseInt(betAmount));
+        console.log(`💸 [Screen94] Jogador PERDEU ${betAmount} moedas! Total: ${moedasOuro.quantidade}`);
+        onUpdateFicha(fichaAtualizada);
+      }
     }
   };
   

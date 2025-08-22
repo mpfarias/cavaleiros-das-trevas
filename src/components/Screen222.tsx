@@ -4,6 +4,7 @@ import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
+import { GameAlert } from './ui/GameAlert';
 import type { Ficha, Item } from '../types';
 
 const fadeIn = keyframes`
@@ -88,37 +89,7 @@ const ChoiceButton = styled('button')({
   }
 });
 
-// Estilo para os alertas de recompensa
-const RewardAlert = styled(Box)<{ isVisible: boolean }>(({ isVisible }) => ({
-  position: 'fixed',
-  right: '16px',
-  padding: '12px 16px',
-  background: 'rgba(139,69,19,0.95)',
-  color: '#F5DEB3',
-  border: '2px solid #D2B48C',
-  borderRadius: '8px',
-  fontSize: '14px',
-  fontFamily: '"Cinzel", serif',
-  fontWeight: 600,
-  textShadow: '0 1px 2px rgba(0,0,0,0.8)',
-  boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-  zIndex: 1500,
-  userSelect: 'none',
-  opacity: isVisible ? 1 : 0,
-  transform: isVisible ? 'translateX(0)' : 'translateX(100%)',
-  transition: 'all 0.5s ease-in-out',
-  animation: isVisible ? 'slideInRight 0.5s ease-out' : 'none',
-  '@keyframes slideInRight': {
-    from: {
-      transform: 'translateX(100%)',
-      opacity: 0
-    },
-    to: {
-      transform: 'translateX(0)',
-      opacity: 1
-    }
-  }
-}));
+
 
 interface Screen222Props {
   onGoToScreen: (screenId: number) => void;
@@ -211,13 +182,13 @@ const Screen222: React.FC<Screen222Props> = ({ onGoToScreen, ficha, onFichaChang
   return (
     <Container data-screen="screen-222">
       {/* Alertas de recompensa */}
-      <RewardAlert sx={{ top: '120px' }} isVisible={showGoldAlert}>
+      <GameAlert sx={{ top: '120px' }} $isVisible={showGoldAlert}>
         🪙 +6 Moedas de Ouro adicionadas!
-      </RewardAlert>
+      </GameAlert>
       
-      <RewardAlert sx={{ top: '180px' }} isVisible={showDiceAlert}>
+      <GameAlert sx={{ top: '180px' }} $isVisible={showDiceAlert}>
         🎲 Dado Viciado coletado!
-      </RewardAlert>
+      </GameAlert>
 
       {/* Botão de controle de música */}
       <Box

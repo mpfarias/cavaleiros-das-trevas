@@ -4,6 +4,7 @@ import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
+import { GameAlert } from './ui/GameAlert';
 import type { Ficha } from '../types';
 
 const fadeIn = keyframes`
@@ -88,37 +89,7 @@ const ChoiceButton = styled('button')({
   }
 });
 
-// Estilo para os alertas de perda
-const LossAlert = styled(Box)<{ $isVisible: boolean }>(({ $isVisible }) => ({
-  position: 'fixed',
-  right: '16px',
-  padding: '12px 16px',
-  background: 'rgba(179,18,18,0.95)',
-  color: '#FFFFFF',
-  border: '2px solid #8B0000',
-  borderRadius: '8px',
-  fontSize: '14px',
-  fontFamily: '"Cinzel", serif',
-  fontWeight: 600,
-  textShadow: '0 1px 2px rgba(0,0,0,0.8)',
-  boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-  zIndex: 1500,
-  userSelect: 'none',
-  opacity: $isVisible ? 1 : 0,
-  transform: $isVisible ? 'translateX(0)' : 'translateX(100%)',
-  transition: 'all 0.5s ease-in-out',
-  animation: $isVisible ? 'slideInRight 0.5s ease-out' : 'none',
-  '@keyframes slideInRight': {
-    from: {
-      transform: 'translateX(100%)',
-      opacity: 0
-    },
-    to: {
-      transform: 'translateX(0)',
-      opacity: 1
-    }
-  }
-}));
+
 
 interface Screen140Props {
   onGoToScreen: (id: number) => void;
@@ -238,13 +209,13 @@ const Screen140: React.FC<Screen140Props> = ({ onGoToScreen, ficha, onUpdateFich
   return (
     <Container data-screen="screen-140">
       {/* Alertas de perda */}
-      <LossAlert sx={{ top: '120px' }} $isVisible={showForceAlert}>
+      <GameAlert sx={{ top: '120px' }} $isVisible={showForceAlert}>
         ⚔️ -1 Ponto de Força perdido!
-      </LossAlert>
+      </GameAlert>
       
-      <LossAlert sx={{ top: '180px' }} $isVisible={showMoneyAlert}>
+      <GameAlert sx={{ top: '180px' }} $isVisible={showMoneyAlert}>
         💰 {moedasPerdidas > 0 ? `${moedasPerdidas} moedas perdidas!` : 'Moedas perdidas na aposta!'}
-      </LossAlert>
+      </GameAlert>
 
       {/* Botão de controle de música */}
       <Box

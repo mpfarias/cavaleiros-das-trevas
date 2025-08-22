@@ -72,7 +72,7 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({ ficha, onGameResult, onAdju
 
   if (screenId === 94) {
     return (
-      <Screen94 onGoToScreen={goToScreen} ficha={ficha} />
+      <Screen94 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
     );
   }
 
