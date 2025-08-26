@@ -13,7 +13,7 @@ import {
   Divider,
   Chip
 } from '@mui/material';
-import { Close as CloseIcon } from '@mui/icons-material';
+import { Close as CloseIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import type { Ficha, Item } from '../types';
 
@@ -91,6 +91,7 @@ const ItemCard = styled(Card)({
   margin: '8px 0',
   boxShadow: '0 2px 12px rgba(0,0,0,0.25)',
   transition: 'all 0.3s ease',
+  position: 'relative',
   '&:hover': {
     transform: 'translateY(-2px)',
     boxShadow: '0 6px 20px rgba(0,0,0,0.35)'
@@ -98,39 +99,47 @@ const ItemCard = styled(Card)({
 });
 
 const ItemContent = styled(CardContent)({
-  padding: '12px 16px !important',
+  padding: '12px',
   display: 'flex',
   justifyContent: 'space-between',
-  alignItems: 'center'
+  alignItems: 'center',
+  '&:last-child': {
+    paddingBottom: '12px'
+  }
 });
 
-const ItemName = styled(Typography)({
-  fontFamily: '"Spectral", serif',
-  fontSize: '16px',
-  fontWeight: '600',
-  color: '#E0DFDB'
+const ItemInfo = styled(Box)({
+  flex: 1,
+  marginRight: '12px'
 });
+
+
 
 const ItemQuantity = styled(Typography)({
   fontFamily: '"Cinzel", serif',
-  fontSize: '14px',
   fontWeight: '700',
-  color: '#F5DEB3',
-  background: 'rgba(255,255,255,0.06)',
-  padding: '4px 8px',
-  borderRadius: '4px',
-  border: '1px solid rgba(255,255,255,0.12)'
+  color: '#B67B03',
+  fontSize: '16px',
+  textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+  minWidth: '40px',
+  textAlign: 'center'
 });
 
-const EmptyMessage = styled(Typography)({
-  fontFamily: '"Spectral", serif',
-  fontSize: '16px',
-  fontStyle: 'italic',
-  color: '#8B4513',
-  textAlign: 'center',
-  padding: '32px',
-  opacity: 0.7
+const RemoveButton = styled(IconButton)({
+  color: '#B31212',
+  backgroundColor: 'rgba(179,18,18,0.1)',
+  border: '1px solid rgba(179,18,18,0.3)',
+  padding: '4px',
+  marginLeft: '8px',
+  transition: 'all 0.2s ease',
+  '&:hover': {
+    backgroundColor: 'rgba(179,18,18,0.2)',
+    borderColor: 'rgba(179,18,18,0.5)',
+    transform: 'scale(1.1)'
+  }
 });
+
+
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -159,13 +168,26 @@ interface InventoryModalProps {
   open: boolean;
   onClose: () => void;
   ficha: Ficha;
+  onUpdateFicha?: (ficha: Ficha) => void;
 }
 
-const InventoryModal: React.FC<InventoryModalProps> = ({ open, onClose, ficha }) => {
+const InventoryModal: React.FC<InventoryModalProps> = ({ open, onClose, ficha, onUpdateFicha }) => {
   const [tabValue, setTabValue] = useState(0);
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
+  };
+
+  // Função para remover item da bolsa
+  const handleRemoveItem = (itemToRemove: Item) => {
+    if (!onUpdateFicha) {
+      console.warn('onUpdateFicha não fornecido - não é possível remover itens');
+      return;
+    }
+
+    const newBolsa = ficha.bolsa.filter(item => item.id !== itemToRemove.id);
+    const newFicha = { ...ficha, bolsa: newBolsa };
+    onUpdateFicha(newFicha);
   };
 
   // Organizar itens por categoria
@@ -188,14 +210,45 @@ const InventoryModal: React.FC<InventoryModalProps> = ({ open, onClose, ficha })
 
   const renderItemsList = (items: Item[], emptyMessage: string) => {
     if (items.length === 0) {
-      return <EmptyMessage>{emptyMessage}</EmptyMessage>;
+      return (
+        <Box sx={{ 
+          textAlign: 'center', 
+          padding: '40px 20px',
+          color: '#8B4513',
+          fontStyle: 'italic'
+        }}>
+          {emptyMessage}
+        </Box>
+      );
     }
 
-    return items.map((item, index) => (
-      <ItemCard key={index}>
+    return items.map((item) => (
+      <ItemCard key={item.id}>
         <ItemContent>
-          <Box>
-            <ItemName>{item.nome}</ItemName>
+          <ItemInfo>
+            <Typography 
+              variant="h6" 
+              sx={{ 
+                fontFamily: '"Cinzel", serif',
+                fontWeight: '700',
+                color: '#E0DFDB',
+                marginBottom: '4px'
+              }}
+            >
+              {item.nome}
+            </Typography>
+            {item.adquiridoEm && (
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  color: '#B67B03',
+                  fontSize: '12px',
+                  marginBottom: '4px'
+                }}
+              >
+                Adquirido em: {item.adquiridoEm}
+              </Typography>
+            )}
             {item.descricao && (
               <Typography 
                 variant="body2" 
@@ -209,10 +262,83 @@ const InventoryModal: React.FC<InventoryModalProps> = ({ open, onClose, ficha })
                 {item.descricao}
               </Typography>
             )}
-          </Box>
+            
+            {/* Efeitos dos itens */}
+            {item.efeitos && (
+              <Box sx={{ marginTop: '8px' }}>
+                {/* Efeitos de combate */}
+                {item.efeitos.combat && (
+                  <Box sx={{ marginBottom: '4px' }}>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: '#D32F2F',
+                        fontWeight: 600,
+                        display: 'block'
+                      }}
+                    >
+                      Combate: {item.efeitos.combat.damage} dano à {item.efeitos.combat.damageType === 'forca' ? 'FORÇA' : 'SORTE'}
+                      {item.efeitos.combat.damageCondition && ` (${item.efeitos.combat.damageCondition})`}
+                    </Typography>
+                  </Box>
+                )}
+                
+                {/* Modificadores de atributos */}
+                {item.efeitos.attributes && (
+                  <Box sx={{ marginBottom: '4px' }}>
+                    {Object.entries(item.efeitos.attributes).map(([attr, value]) => {
+                      if (value === 0) return null;
+                      const attrLabel = attr === 'pericia' ? 'PERÍCIA' : 
+                                      attr === 'forca' ? 'FORÇA' : 
+                                      attr === 'sorte' ? 'SORTE' : 
+                                      attr === 'ataque' ? 'ATAQUE' : attr;
+                      return (
+                        <Typography
+                          key={attr}
+                          variant="caption"
+                          sx={{
+                            color: value > 0 ? '#388E3C' : '#D32F2F',
+                            fontWeight: 600,
+                            display: 'block'
+                          }}
+                        >
+                          {attrLabel}: {value > 0 ? '+' : ''}{value}
+                        </Typography>
+                      );
+                    })}
+                  </Box>
+                )}
+                
+                {/* Durabilidade */}
+                {item.efeitos.durability && (
+                  <Box sx={{ marginBottom: '4px' }}>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: '#F57C00',
+                        fontWeight: 600,
+                        display: 'block'
+                      }}
+                    >
+                      Durabilidade: {item.durabilidadeAtual || item.efeitos.durability}/{item.efeitos.durability}
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+            )}
+          </ItemInfo>
           <ItemQuantity>
             {item.quantidade}x
           </ItemQuantity>
+          {onUpdateFicha && (
+            <RemoveButton
+              onClick={() => handleRemoveItem(item)}
+              title="Remover item"
+              size="small"
+            >
+              <DeleteIcon fontSize="small" />
+            </RemoveButton>
+          )}
         </ItemContent>
       </ItemCard>
     ));
@@ -246,38 +372,60 @@ const InventoryModal: React.FC<InventoryModalProps> = ({ open, onClose, ficha })
             {[{ key: 'pericia', label: 'Perícia' }, { key: 'forca', label: 'Força' }, { key: 'sorte', label: 'Sorte' }].map(({ key, label }) => {
               const atr = (ficha as any)[key] as { inicial: number; atual: number };
               const atualClamped = Math.min(atr.atual, atr.inicial);
+              const modificador = ficha.modificadoresAtivos?.[key as keyof typeof ficha.modificadoresAtivos] || 0;
               return (
                 <Card key={key} sx={{ border: '2px solid #8B4513', background: 'linear-gradient(135deg, rgba(255,255,255,0.85), rgba(245,222,179,0.6))' }}>
                   <CardContent>
-                    <Typography variant="h6" sx={{ fontFamily: '"Cinzel", serif', color: '#4a2c00', mb: 1 }}>{label}</Typography>
-                    <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, alignItems: 'center' }}>
-                      <Box>
-                        <Typography variant="caption" sx={{ color: '#8B4513' }}>Inicial</Typography>
+                    <Typography variant="h6" sx={{ fontFamily: '"Cinzel", serif', color: '#4a2c00', mb: 2, textAlign: 'center' }}>{label}</Typography>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, alignItems: 'start' }}>
+                      {/* Coluna Inicial */}
+                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="caption" sx={{ color: '#8B4513', fontWeight: 600 }}>Inicial</Typography>
                         <Chip 
                           label={atr.inicial} 
                           sx={{ 
                             fontWeight: 900, 
-                            fontFamily: '"Cinzel", serif', 
-                            mt: .5,
+                            fontFamily: '"Cinzel", serif',
                             backgroundColor: '#4a2c00',
                             color: '#F5DEB3',
-                            border: '1px solid #D2B48C'
+                            border: '1px solid #D2B48C',
+                            minWidth: 64
                           }} 
                         />
                       </Box>
-                      <Box>
-                        <Typography variant="caption" sx={{ color: '#8B4513' }}>Atual</Typography>
-                        <Chip 
-                          label={atualClamped} 
-                          sx={{ 
-                            fontWeight: 900, 
-                            fontFamily: '"Cinzel", serif', 
-                            mt: .5,
-                            backgroundColor: '#4a2c00',
-                            color: '#F5DEB3',
-                            border: '1px solid #D2B48C'
-                          }} 
-                        />
+                      
+                      {/* Coluna Atual */}
+                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="caption" sx={{ color: '#8B4513', fontWeight: 600 }}>Atual</Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <Chip 
+                            label={atualClamped} 
+                            sx={{ 
+                              fontWeight: 900, 
+                              fontFamily: '"Cinzel", serif',
+                              backgroundColor: '#8B4513',
+                              color: '#F5DEB3',
+                              border: '1px solid #D2B48C',
+                              minWidth: 64
+                            }} 
+                          />
+                          {/* Mostrar modificador ativo */}
+                          {modificador !== 0 && (
+                            <Chip 
+                              label={`${modificador > 0 ? '+' : ''}${modificador}`}
+                              size="small"
+                              sx={{ 
+                                fontWeight: 600,
+                                fontFamily: '"Cinzel", serif',
+                                backgroundColor: modificador > 0 ? '#388E3C' : '#D32F2F',
+                                color: '#FFFFFF',
+                                fontSize: '0.7rem',
+                                height: '20px',
+                                minWidth: 48
+                              }}
+                            />
+                          )}
+                        </Box>
                       </Box>
                     </Box>
                   </CardContent>

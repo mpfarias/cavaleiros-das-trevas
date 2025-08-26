@@ -231,7 +231,7 @@ const Screen222: React.FC<Screen222Props> = ({ onGoToScreen, ficha, onFichaChang
             <br/><br/>
             Alguns homens agarram Bartolph pelos ombros e o arrastam em direção ao fundo da taverna, sob vaias e xingamentos. Antes que ele desapareça, você aproveita a confusão para revirar seus bolsos: recupera o ouro que havia perdido e encontra mais 6 Moedas de Ouro escondidas.
             <br/><br/>
-            Satisfeito com o rumo dos acontecimentos, você sai da taverna sem dar ouvidos aos gemidos de Bartolph. Leva consigo o Dado Viciado, que deverá anotar na sua Ficha de Anotações, junto com as Moedas de Ouro.
+            Satisfeito com o rumo dos acontecimentos, você sai da taverna sem dar ouvidos aos gemidos de Bartolph. Leva consigo o <b>dado viciado</b>, junto com as Moedas de Ouro.
           </NarrativeText>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>

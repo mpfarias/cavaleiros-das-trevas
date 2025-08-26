@@ -104,9 +104,9 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
     sorte: 0
   });
 
-  // Contador de limpezas (máximo 3 vezes)
+  // Contador de limpezas (máximo 1 vez)
   const [limpezasRealizadas, setLimpezasRealizadas] = useState(0);
-  const maxLimpezas = 3;
+  const maxLimpezas = 1;
 
   // Sincroniza o estado local rolagensDados com os dados da ficha persistida
   useEffect(() => {
@@ -489,9 +489,9 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
 
       const limpezasRestantes = maxLimpezas - (limpezasRealizadas + 1);
       if (limpezasRestantes > 0) {
-        showNotification(`Ficha resetada! Você pode limpar mais ${limpezasRestantes} vez(es).`, 'success');
+        showNotification(`Ficha resetada! Você pode limpar mais ${limpezasRestantes} vez.`, 'success');
       } else {
-        showNotification('Ficha resetada! Esta foi sua última limpeza disponível.', 'warning');
+        showNotification('Ficha resetada! Esta foi sua única limpeza disponível.', 'warning');
       }
     }
   }, [clearLocalStorage, showNotification, onFichaChange, limpezasRealizadas, maxLimpezas]);
@@ -753,7 +753,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
             Esta ação removerá sua ficha salva do dispositivo.
           </Typography>
           <Typography variant="body2" color="warning.main">
-            Você pode apagar seus atributos apenas mais {maxLimpezas - limpezasRealizadas} vez(es). Deseja continuar?
+            Você pode apagar seus atributos apenas {maxLimpezas - limpezasRealizadas} vez. Deseja continuar?
           </Typography>
         </DialogContent>
         <DialogActions>

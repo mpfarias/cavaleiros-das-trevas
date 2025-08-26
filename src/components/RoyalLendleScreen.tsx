@@ -267,7 +267,7 @@ const playClick = useClickSound(0.2);
           minHeight: 'auto'
         }}>
           <LocationTitle>
-            Royal Lendle
+            Royal Lendle - Taverna Primeiro Passo
           </LocationTitle>
 
           <NarrativeText

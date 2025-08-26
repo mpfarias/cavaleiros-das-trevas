@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import BartolphGameScreen from '../components/BartolphGameScreen';
+import Screen86 from '../components/Screen86';
 import Screen54 from '../components/Screen54';
 import Screen43 from '../components/Screen43';
 import Screen115 from '../components/Screen115';
@@ -9,6 +9,8 @@ import Screen151 from '../components/Screen151';
 import Screen94 from '../components/Screen94';
 import Screen162 from '../components/Screen162';
 import Screen30 from '../components/Screen30';
+import Screen66 from '../components/Screen66';
+import Screen82 from '../components/Screen82';
 import Screen222 from '../components/Screen222';
 import type { Ficha } from '../types';
 
@@ -40,7 +42,7 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({ ficha, onGameResult, onAdju
 
   if (screenId === 86) {
     return (
-      <BartolphGameScreen
+      <Screen86
         ficha={ficha}
         onGameResult={onGameResult}
         onNavigateToScreen={goToScreen}
@@ -97,6 +99,22 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({ ficha, onGameResult, onAdju
   if (screenId === 30) {
     return (
       <Screen30 onGoToScreen={goToScreen} />
+    );
+  }
+
+  if (screenId === 66) {
+    return (
+      <Screen66 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 82) {
+    return (
+      <Screen82 
+        onGoToScreen={goToScreen} 
+        ficha={ficha} 
+        onUpdateFicha={onFichaChange} 
+      />
     );
   }
 

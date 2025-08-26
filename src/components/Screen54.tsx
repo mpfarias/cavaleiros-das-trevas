@@ -4,7 +4,8 @@ import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { GameAlert } from './ui/GameAlert';
 import type { Ficha } from '../types';
 
 const fadeIn = keyframes`
@@ -105,14 +106,40 @@ const Screen54: React.FC<Screen54Props> = ({ onGoToScreen, ficha, onUpdateFicha 
   // Estado para controlar o modal de confirmação
   const [modalConfirmacao, setModalConfirmacao] = useState(false);
   
+  // Estado para controlar o alert de moedas ganhas
+  const [showMoneyAlert, setShowMoneyAlert] = useState(false);
+  const [moedasGanhas, setMoedasGanhas] = useState(0);
+  
+  // Ref para garantir que o alerta seja mostrado apenas uma vez
+  const alertShownRef = useRef(false);
+  
   // Calcular moedas atuais
   const currentGold = ficha.bolsa
     .filter(item => item.tipo === 'ouro')
     .reduce((total, item) => total + (item.quantidade || 0), 0);
   
   useEffect(() => {
-    // Implementar lógica de perda de moedas quando necessário
-    // Esta função será chamada quando o jogador escolher "Ir embora"
+    // Verificar se o jogador veio da tela 86 (Bartolph) e ganhou
+    try {
+      const apostaAnterior = localStorage.getItem('cavaleiro:apostaBartolph');
+      if (apostaAnterior && !alertShownRef.current) {
+        const valorApostado = parseInt(apostaAnterior);
+        setMoedasGanhas(valorApostado);
+        console.log(`💰 [Screen54] Jogador ganhou ${valorApostado} moedas na aposta`);
+        
+        // Mostrar alerta com delay e ocultar após 5 segundos
+        setTimeout(() => {
+          setShowMoneyAlert(true);
+          // Ocultar após 5 segundos
+          setTimeout(() => setShowMoneyAlert(false), 5000);
+        }, 500);
+        
+        // Marcar que o alerta já foi mostrado
+        alertShownRef.current = true;
+      }
+    } catch (error) {
+      console.error('❌ [Screen54] Erro ao ler aposta anterior:', error);
+    }
   }, []);
 
   const perderMoedas = () => {
@@ -177,6 +204,11 @@ const Screen54: React.FC<Screen54Props> = ({ onGoToScreen, ficha, onUpdateFicha 
 
   return (
     <Container data-screen="screen-54">
+      {/* Alerta de moedas ganhas na aposta */}
+      <GameAlert sx={{ top: '120px' }} $isVisible={showMoneyAlert}>
+        💰 {moedasGanhas} moedas ganhas na aposta!
+      </GameAlert>
+      
       {/* Botão de controle de música */}
       <Box
         sx={{

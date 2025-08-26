@@ -184,9 +184,13 @@ const Screen140: React.FC<Screen140Props> = ({ onGoToScreen, ficha, onUpdateFich
         
         // Verificar se veio da tela 43 para suprimir alert de moedas
         const veioDaTela43 = localStorage.getItem('cavaleiro:veioDaTela43') === 'true';
+        const veioDaTela115 = localStorage.getItem('cavaleiro:veioDaTela115') === 'true';
+        
+        console.log(`🔍 [Screen140] Verificando origem: veioDaTela43 = ${veioDaTela43}, veioDaTela115 = ${veioDaTela115}`);
         
         if (!veioDaTela43) {
-          // Só mostra alert de moedas se NÃO veio da tela 43
+          // Mostra alert de moedas se NÃO veio da tela 43
+          console.log('💰 [Screen140] Mostrando alert de moedas perdidas');
           setTimeout(() => {
             setShowMoneyAlert(true);
             // Ocultar após 5 segundos
@@ -196,6 +200,12 @@ const Screen140: React.FC<Screen140Props> = ({ onGoToScreen, ficha, onUpdateFich
           console.log('🔗 [Screen140] Jogador veio da tela 43 - alert de moedas suprimido');
           // Limpar a marca de origem
           localStorage.removeItem('cavaleiro:veioDaTela43');
+        }
+        
+        // Se veio da tela 115, limpar a marcação
+        if (veioDaTela115) {
+          console.log('🔗 [Screen140] Jogador veio da tela 115 - alert de moedas será mostrado');
+          localStorage.removeItem('cavaleiro:veioDaTela115');
         }
         
       } catch (error) {

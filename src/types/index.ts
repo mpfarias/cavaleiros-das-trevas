@@ -1,5 +1,21 @@
 import { z } from 'zod'
 
+export interface ItemEffects {
+  combat?: {
+    damage?: number;
+    damageType?: 'forca' | 'sorte';
+    damageCondition?: string;
+  };
+  attributes?: {
+    pericia?: number;
+    forca?: number;
+    sorte?: number;
+    ataque?: number;
+  };
+  durability?: number;
+  special?: string;
+}
+
 export interface Item {
   id: string;
   nome: string;
@@ -7,6 +23,15 @@ export interface Item {
   quantidade?: number;
   descricao?: string;
   adquiridoEm?: string;
+  efeitos?: ItemEffects;
+  durabilidadeAtual?: number;
+}
+
+export interface ActiveModifiers {
+  pericia: number;
+  forca: number;
+  sorte: number;
+  ataque: number;
 }
 
 export interface Ficha {
@@ -24,6 +49,7 @@ export interface Ficha {
     atual: number;
   };
   bolsa: Item[];
+  modificadoresAtivos: ActiveModifiers;
 }
 
 // Validação e saneamento de Ficha
@@ -48,7 +74,34 @@ export const FichaSchema = z.object({
     quantidade: z.number().int().nonnegative().optional(),
     descricao: z.string().optional(),
     adquiridoEm: z.string().optional(),
+    efeitos: z.object({
+      combat: z.object({
+        damage: z.number().optional(),
+        damageType: z.enum(['forca', 'sorte']).optional(),
+        damageCondition: z.string().optional(),
+      }).optional(),
+      attributes: z.object({
+        pericia: z.number().optional(),
+        forca: z.number().optional(),
+        sorte: z.number().optional(),
+        ataque: z.number().optional(),
+      }).optional(),
+      durability: z.number().optional(),
+      special: z.string().optional(),
+    }).optional(),
+    durabilidadeAtual: z.number().optional(),
   })).default([]),
+  modificadoresAtivos: z.object({
+    pericia: z.number().default(0),
+    forca: z.number().default(0),
+    sorte: z.number().default(0),
+    ataque: z.number().default(0),
+  }).default({
+    pericia: 0,
+    forca: 0,
+    sorte: 0,
+    ataque: 0,
+  }),
 }).strict()
 
 export const createEmptyFicha = (): Ficha => ({
@@ -73,6 +126,12 @@ export const createEmptyFicha = (): Ficha => ({
       adquiridoEm: 'Criação do Personagem'
     }
   ],
+  modificadoresAtivos: {
+    pericia: 0,
+    forca: 0,
+    sorte: 0,
+    ataque: 0
+  }
 })
 
 // Função para criar ficha realmente vazia (sem moedas)
@@ -90,5 +149,11 @@ export const createTrulyEmptyFicha = (): Ficha => ({
       adquiridoEm: 'Criação do Personagem'
     }
   ],
+  modificadoresAtivos: {
+    pericia: 0,
+    forca: 0,
+    sorte: 0,
+    ataque: 0
+  }
 })
 

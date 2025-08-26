@@ -164,7 +164,17 @@ const Screen115: React.FC<Screen115Props> = ({ onGoToScreen, ficha, onAdjustSort
               </Typography>
             </DialogContent>
             <DialogActions sx={{ justifyContent: 'center' }}>
-              <Button variant="contained" onClick={() => { setOpen(false); onGoToScreen(teveSorte ? 222 : 140); }}>
+              <Button variant="contained" onClick={() => { 
+                setOpen(false); 
+                if (teveSorte) {
+                  onGoToScreen(222);
+                } else {
+                  // Marcar que veio da tela 115 para mostrar alert de moedas na tela 140
+                  localStorage.setItem('cavaleiro:veioDaTela115', 'true');
+                  console.log('🔗 [Screen115] Jogador falhou no teste de sorte - indo para tela 140');
+                  onGoToScreen(140);
+                }
+              }}>
                 Ir
               </Button>
             </DialogActions>

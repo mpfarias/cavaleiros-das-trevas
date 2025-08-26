@@ -98,6 +98,61 @@ export const totalProvisoes = (ficha: Ficha): number => {
 };
 
 /**
+ * Limpa armas duplicadas da bolsa, mantendo apenas a mais recente
+ * Garante que o personagem tenha apenas uma arma por vez
+ */
+export const limparArmasDuplicadas = (ficha: Ficha): Ficha => {
+  const armas = ficha.bolsa.filter(item => item.tipo === 'arma');
+  
+  if (armas.length <= 1) {
+    return ficha; // Não há duplicatas
+  }
+  
+  // Mantém apenas a arma mais recente (baseado no ID que contém timestamp)
+  const armaMaisRecente = armas.reduce((maisRecente, arma) => {
+    const timestampAtual = parseInt(arma.id.split('_')[1]) || 0;
+    const timestampMaisRecente = parseInt(maisRecente.id.split('_')[1]) || 0;
+    return timestampAtual > timestampMaisRecente ? arma : maisRecente;
+  });
+  
+  // Remove todas as armas e adiciona apenas a mais recente
+  const novaBolsa = ficha.bolsa.filter(item => item.tipo !== 'arma');
+  novaBolsa.push(armaMaisRecente);
+  
+  return {
+    ...ficha,
+    bolsa: novaBolsa
+  };
+};
+
+/**
+ * Valida e corrige a bolsa do personagem
+ * Remove armas duplicadas e garante consistência
+ */
+export const validarBolsa = (ficha: Ficha): Ficha => {
+  let fichaCorrigida = { ...ficha };
+  
+  // Limpa armas duplicadas
+  fichaCorrigida = limparArmasDuplicadas(fichaCorrigida);
+  
+  // Limpa armaduras duplicadas (mesma lógica)
+  const armaduras = fichaCorrigida.bolsa.filter(item => item.tipo === 'armadura');
+  if (armaduras.length > 1) {
+    const armaduraMaisRecente = armaduras.reduce((maisRecente, armadura) => {
+      const timestampAtual = parseInt(armadura.id.split('_')[1]) || 0;
+      const timestampMaisRecente = parseInt(maisRecente.id.split('_')[1]) || 0;
+      return timestampAtual > timestampMaisRecente ? armadura : maisRecente;
+    });
+    
+    const novaBolsa = fichaCorrigida.bolsa.filter(item => item.tipo !== 'armadura');
+    novaBolsa.push(armaduraMaisRecente);
+    fichaCorrigida = { ...fichaCorrigida, bolsa: novaBolsa };
+  }
+  
+  return fichaCorrigida;
+};
+
+/**
  * Exemplos de itens que podem ser adicionados automaticamente durante o jogo
  */
 export const exemplosItens = {

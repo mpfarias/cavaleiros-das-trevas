@@ -82,44 +82,7 @@ const BetInput = styled(TextField)({
   marginBottom: '24px',
 });
 
-const BetButton = styled(Button)({
-  padding: '16px 32px',
-  background: 'linear-gradient(135deg, rgba(34,139,34,0.9) 0%, rgba(0,100,0,0.8) 100%)',
-  color: '#FFFFFF',
-  border: '2px solid #228B22',
-  borderRadius: '12px',
-  fontSize: '18px',
-  fontFamily: '"Cinzel", serif',
-  fontWeight: 700,
-  textTransform: 'none',
-  cursor: 'pointer',
-  transition: 'all 0.3s ease',
-  outline: 'none',
-  textShadow: '0 1px 2px rgba(0,0,0,0.8)',
-  boxShadow: '0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
-  width: '100%',
-  '&:focus-visible': {
-    outline: '2px solid #FFD700',
-    outlineOffset: '2px'
-  },
-  '&:hover': {
-    background: 'linear-gradient(135deg, rgba(0,128,0,0.9) 0%, rgba(0,100,0,0.8) 100%)',
-    borderColor: '#FFD700',
-    transform: 'translateY(-2px) scale(1.02)',
-    boxShadow: '0 8px 25px rgba(0,128,0,0.4), inset 0 1px 0 rgba(255,255,255,0.2)'
-  },
-  '&:active': {
-    transform: 'translateY(0) scale(0.98)'
-  },
-  '&:disabled': {
-    background: 'rgba(128,128,128,0.5)',
-    borderColor: '#666',
-    color: '#999',
-    cursor: 'not-allowed',
-    transform: 'none',
-    boxShadow: 'none'
-  }
-});
+
 
 interface Screen94Props {
   onGoToScreen: (id: number) => void;

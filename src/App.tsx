@@ -15,7 +15,8 @@ import { AudioProvider } from './contexts/AudioContext';
 import './index.css';
 import InventoryModal from './components/InventoryModal';
 import { styled } from '@mui/material/styles';
-import { totalOuro } from './utils/inventory';
+import { totalOuro, validarBolsa } from './utils/inventory';
+import { useItemEffects } from './hooks/useItemEffects';
 
 const darkTheme = createTheme({
   palette: {
@@ -140,6 +141,10 @@ function AppContent() {
   
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Hook para gerenciar efeitos dos itens - deve estar no nível superior
+  const { applyModifiersToAttributes } = useItemEffects();
+  
   // Função helper para criar ficha vazia sem moedas
   const createEmptyFichaWithoutGold = (): Ficha => ({
     nome: '',
@@ -154,7 +159,13 @@ function AppContent() {
         descricao: 'Espada básica de aço, arma padrão de todo cavaleiro',
         adquiridoEm: 'Criação do Personagem'
       }
-    ]
+    ],
+    modificadoresAtivos: {
+      pericia: 0,
+      forca: 0,
+      sorte: 0,
+      ataque: 0
+    }
   });
 
   const [ficha, setFicha] = useState<Ficha>(() => {
@@ -295,20 +306,26 @@ function AppContent() {
   };
 
   const handleFichaChange = (newFicha: Ficha) => {
-
-    
     // Verificação de segurança
     if (!newFicha || !newFicha.bolsa || !Array.isArray(newFicha.bolsa)) {
       console.error('🎲 [App] ERRO: Tentativa de salvar ficha inválida em handleFichaChange');
       return;
     }
     
-
+    // 🔧 Validar e corrigir a bolsa automaticamente
+    const fichaValidada = validarBolsa(newFicha);
     
-    setFichaWithLog(newFicha);
+    // Se houve correções, logar para debug
+    if (fichaValidada.bolsa.length !== newFicha.bolsa.length) {
+      console.log('🔧 [App] Bolsa corrigida automaticamente - removidas duplicatas');
+    }
+    
+    // Aplicar modificadores dos itens aos atributos
+    const fichaComModificadores = applyModifiersToAttributes(fichaValidada);
+    
+    setFichaWithLog(fichaComModificadores);
     try {
-      localStorage.setItem('cavaleiro:ficha', JSON.stringify(newFicha));
-  
+      localStorage.setItem('cavaleiro:ficha', JSON.stringify(fichaComModificadores));
     } catch (e) {
       console.error('🎲 [App] Falha ao salvar no localStorage:', e);
     }

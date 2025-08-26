@@ -1,5 +1,5 @@
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { Box, Card, CardContent, Typography, IconButton, Tooltip } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
@@ -98,16 +98,13 @@ interface Screen43Props {
   ficha: Ficha;
 }
 
-const Screen43: React.FC<Screen43Props> = ({ onGoToScreen, ficha }) => {
+const Screen43: React.FC<Screen43Props> = ({ onGoToScreen }) => {
   // Usa o sistema de grupos de áudio - automaticamente gerencia música do grupo 'bartolph-game'
   const { isPlaying, togglePlay, currentTrack } = useAudioGroup(43);
   
   // Estado para controlar o alerta de perda
   const [showMoneyAlert, setShowMoneyAlert] = useState(false);
   const [moedasPerdidas, setMoedasPerdidas] = useState(0);
-  
-  // Ref para garantir que o alerta seja mostrado apenas uma vez
-  const alertShownRef = useRef(false);
 
   // Calcular moedas perdidas e mostrar alerta automaticamente quando a tela carrega
   useEffect(() => {

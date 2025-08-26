@@ -75,24 +75,79 @@ const AttributeCard: React.FC<AttributeCardProps> = memo(({
   return (
     <Card>
       <CardContent>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, mb: 1 }}>
-          <Typography variant="h6" component="strong">
-            {title}
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-            <Chip
-              label={ficha[attr].atual || '–'}
-              sx={{ minWidth: 64, fontWeight: 700 }}
-              aria-label={`Valor atual de ${title}: ${ficha[attr].atual || 'não definido'}`}
-            />
-            <Typography variant="caption" color="text.secondary">
-              Inicial:
+        {/* Título do atributo */}
+        <Typography variant="h6" component="strong" sx={{ mb: 2, textAlign: 'center' }}>
+          {title}
+        </Typography>
+        
+        {/* Grid de valores - Inicial e Atual lado a lado */}
+        <Box sx={{ 
+          display: 'grid', 
+          gridTemplateColumns: '1fr 1fr', 
+          gap: 2, 
+          mb: 2,
+          alignItems: 'start'
+        }}>
+          {/* Coluna Inicial */}
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center',
+            gap: 1
+          }}>
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+              Inicial
             </Typography>
             <Chip
               label={ficha[attr].inicial || '–'}
-              sx={{ minWidth: 64, fontWeight: 700 }}
+              sx={{ 
+                minWidth: 64, 
+                fontWeight: 700,
+                backgroundColor: '#8B4513',
+                color: '#F5DEB3',
+                border: '1px solid #D2B48C'
+              }}
               aria-label={`Valor inicial de ${title}: ${ficha[attr].inicial || 'não definido'}`}
             />
+          </Box>
+          
+          {/* Coluna Atual */}
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center',
+            gap: 1
+          }}>
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+              Atual
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Chip
+                label={ficha[attr].atual || '–'}
+                sx={{ 
+                  minWidth: 64, 
+                  fontWeight: 700,
+                  backgroundColor: '#8B4513',
+                  color: '#F5DEB3',
+                  border: '1px solid #D2B48C'
+                }}
+                aria-label={`Valor atual de ${title}: ${ficha[attr].atual || 'não definido'}`}
+              />
+              {/* Mostrar modificador ativo */}
+              {ficha.modificadoresAtivos[attr] !== 0 && (
+                <Chip
+                  label={`${ficha.modificadoresAtivos[attr] > 0 ? '+' : ''}${ficha.modificadoresAtivos[attr]}`}
+                  size="small"
+                  color={ficha.modificadoresAtivos[attr] > 0 ? 'success' : 'error'}
+                  sx={{
+                    minWidth: 48,
+                    fontWeight: 600,
+                    fontSize: '0.75rem'
+                  }}
+                  aria-label={`Modificador de ${title}: ${ficha.modificadoresAtivos[attr] > 0 ? '+' : ''}${ficha.modificadoresAtivos[attr]}`}
+                />
+              )}
+            </Box>
           </Box>
         </Box>
         

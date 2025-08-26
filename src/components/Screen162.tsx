@@ -97,7 +97,7 @@ interface Screen162Props {
   onUpdateFicha: (ficha: Ficha) => void;
 }
 
-const Screen162: React.FC<Screen162Props> = ({ onGoToScreen, ficha, onUpdateFicha }) => {
+const Screen162: React.FC<Screen162Props> = ({ onGoToScreen }) => {
   const { isPlaying, togglePlay, currentTrack } = useAudioGroup(162);
   
   const [showMoneyAlert, setShowMoneyAlert] = useState(false);

@@ -856,7 +856,7 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
     api.wind(false);
     api.boom();
     setFadeKey(prev => prev + 1); // Novo fade para o texto final
-    setLines([["big", "Você está em Gallantaria… as sombras aguardam."]]);
+    setLines([["big", "Você será redirecionado para o mapa de Gallantaria. Clique na cidade de Royal Lendle para começar."]]);
     setEnded(true);
   }, [stopTimeline, api]);
 

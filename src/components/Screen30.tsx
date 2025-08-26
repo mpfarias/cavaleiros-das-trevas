@@ -142,17 +142,17 @@ const Screen30: React.FC<Screen30Props> = ({ onGoToScreen }) => {
             <br/><br/>
             O tipo de coisas que você procura custaria uma fortuna, se não fossem os bons 
             amigos que tem entre os comerciantes, que lhe vendem tudo por um preço camarada. 
-            O material mais pesado, como armas, fica no lado oriental do mercado. No lado 
-            ocidental, você encontra outro tipo de objetos mais incomuns.
+            O material mais pesado, como armas, fica no lado leste do mercado. No lado 
+            oeste, você encontra outros tipos de objetos mais incomuns.
           </NarrativeText>
 
                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
              <ChoiceButton onClick={() => onGoToScreen(82)}>
-               Visitar lado oriental do mercado
+               Visitar lado leste do mercado
              </ChoiceButton>
 
              <ChoiceButton onClick={() => onGoToScreen(66)}>
-               Visitar lado ocidental do mercado
+               Visitar lado oeste do mercado
              </ChoiceButton>
            </Box>
         </CardContent>

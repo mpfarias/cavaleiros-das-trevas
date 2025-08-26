@@ -8,11 +8,13 @@ import bgmFicha from '../assets/sounds/bgm-ficha.mp3';
 import bgmModal from '../assets/sounds/bgm-modal.mp3';
 import mapMusic from '../assets/sounds/nature-sound-map.mp3';
 import bgmIntro from '../assets/sounds/bgm-intro.mp3';
+import bgmTavern from '../assets/sounds/bgm-tavern-sound.mp3';
 
 // Definição dos grupos de áudio
 export type AudioGroup = 
   | 'royal-lendle'    // people.mp3 - Cidade, mercado
   | 'bartolph-game'   // bgm-piano.mp3 - Jogo de dados
+  | 'tavern'          // bgm-tavern-sound.mp3 - Taverna, Royal Lendle
   | 'character-sheet' // bgm-ficha.mp3 - Preparação
   | 'home-intro'      // bgm-modal.mp3 - Menu, introdução
   | 'map'             // nature-sound-map.mp3 - Exploração
@@ -22,6 +24,7 @@ export type AudioGroup =
 const AUDIO_GROUP_MAP: Record<AudioGroup, string> = {
   'royal-lendle': peopleSound,
   'bartolph-game': bgmPiano,
+  'tavern': bgmTavern,
   'character-sheet': bgmFicha,
   'home-intro': bgmModal,
   'map': mapMusic,
@@ -31,17 +34,19 @@ const AUDIO_GROUP_MAP: Record<AudioGroup, string> = {
 // Mapeamento de telas para grupos
 export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   // Royal Lendle e área da cidade
-  'royal': 'royal-lendle',      // Royal Lendle (rota /royal)
-  30: 'royal-lendle',           // Mercado (rota /game/30)
+  'royal': 'tavern',             // Royal Lendle (rota /royal) - bgm-tavern-sound.mp3
+  30: 'royal-lendle',           // Mercado (rota /game/30) - people.mp3
   
-  // Bartolph e jogo de dados
-  86: 'bartolph-game',          // Bartolph (rota /game/86)
-  94: 'bartolph-game',
-  54: 'bartolph-game',          // Ganhou (rota /game/54)
-  43: 'bartolph-game',          // Perdeu (rota /game/43)
-  140: 'bartolph-game',
-  151: 'bartolph-game',
-  162: 'bartolph-game',
+  // Bartolph e jogo de dados - TODAS com som de taverna
+  86: 'tavern',                  // Bartolph (rota /game/86) - bgm-tavern-sound.mp3
+  94: 'tavern',                  // Apostas (rota /game/94) - bgm-tavern-sound.mp3
+  54: 'tavern',                  // Ganhou (rota /game/54) - bgm-tavern-sound.mp3
+  43: 'tavern',                  // Perdeu (rota /game/43) - bgm-tavern-sound.mp3
+  140: 'tavern',                 // Falha no teste (rota /game/140) - bgm-tavern-sound.mp3
+  151: 'tavern',                 // Nova chance (rota /game/151) - bgm-tavern-sound.mp3
+  162: 'tavern',                 // Última chance (rota /game/162) - bgm-tavern-sound.mp3
+  115: 'tavern',                 // Testar a Sorte (rota /game/115) - bgm-tavern-sound.mp3
+  222: 'tavern',                 // Sucesso no teste (rota /game/222) - bgm-tavern-sound.mp3
   
   // Character Sheet
   'sheet': 'character-sheet',   // Character Sheet (rota /sheet)
@@ -52,10 +57,6 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   
   // Map (independente)
   'map': 'map',                 // Map Screen (rota /map)
-  
-  // Screen 115 (Testar a Sorte)
-  115: 'bartolph-game',         // Continua música do jogo de dados
-  222: 'bartolph-game',         // Sucesso no teste de sorte - continua música
 };
 
 export const useAudioGroup = (screenId: number | string) => {
