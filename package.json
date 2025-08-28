@@ -7,11 +7,17 @@
     "dev": "vite",
     "dev:clean": "npm run clean && vite",
     "build": "tsc -b && vite build",
-    "lint": "eslint .",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "optimize:images": "node scripts/optimize-images.mjs",
     "clean": "rimraf node_modules/.vite dist .vite",
-    "clean:all": "rimraf node_modules/.vite dist .vite && npm install"
+    "clean:all": "rimraf node_modules/.vite dist .vite && npm install",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:coverage:clean": "jest --coverage --collectCoverageFrom=\"src/**/*.{ts,tsx}\" --collectCoverageFrom=\"!src/**/*.d.ts\" --collectCoverageFrom=\"!src/main.tsx\" --collectCoverageFrom=\"!src/vite-env.d.ts\" --collectCoverageFrom=\"!src/**/*.test.{ts,tsx}\" --collectCoverageFrom=\"!src/**/*.spec.{ts,tsx}\" --collectCoverageFrom=\"!src/setupTests.ts\" --collectCoverageFrom=\"!src/**/__tests__/**/*\" --collectCoverageFrom=\"!src/**/__mocks__/**/*\" --collectCoverageFrom=\"!src/**/assets/**/*\" --collectCoverageFrom=\"!src/**/*.css\" --collectCoverageFrom=\"!src/**/*.scss\" --collectCoverageFrom=\"!src/**/*.less\" --collectCoverageFrom=\"!src/**/*.sass\"",
+    "test:report": "jest --coverage --coverageReporters=text --coverageReporters=html --coverageReporters=json-summary",
+    "test:ci": "jest --ci --coverage --watchAll=false"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -40,6 +46,7 @@
     "globals": "^16.3.0",
     "rimraf": "^6.0.1",
     "sharp": "^0.33.5",
+    "ts-jest": "^29.4.1",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.39.1",
     "vite": "^7.1.2"

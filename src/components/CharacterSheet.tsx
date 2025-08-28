@@ -25,7 +25,7 @@ import { styled } from '@mui/material/styles';
 import {
   Casino as CasinoIcon,
 
-  Upload as UploadIcon,
+
   Delete as DeleteIcon,
 
   Inventory as InventoryIcon,
@@ -154,7 +154,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
   const { notification, showNotification, hideNotification } = useNotification();
   const { validateForStart } = useCharacterValidation();
   const { rollWithDetails } = useDiceRoller();
-  const { isLoading, loadFromFile, clearLocalStorage } = useFileOperations();
+  const { clearLocalStorage } = useFileOperations();
   const playBag = useBagSound(1);
   const playCoin = useCoinSound(1);
   const playDice = useDiceSound(1);
@@ -500,20 +500,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
     setConfirmOpen(false);
   }, []);
 
-  const handleFileUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
 
-    const result = await loadFromFile(file);
-    showNotification(result.message, result.severity);
-
-    if (result.success && result.data) {
-      updateFicha(result.data);
-    }
-
-    // Reset input
-    e.currentTarget.value = '';
-  }, [loadFromFile, showNotification, updateFicha]);
 
   return (
     <Box
@@ -614,7 +601,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
                   setGoldDiceModalOpen(true);
                 }}
                 startIcon={<CasinoIcon />}
-                disabled={!!ficha.bolsa.find(item => item.nome === 'Moedas de Ouro') || isLoading}
+                disabled={!!ficha.bolsa.find(item => item.nome === 'Moedas de Ouro')}
                 sx={{
                   '&:disabled': {
                     opacity: 0.6,
@@ -622,7 +609,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
                   }
                 }}
               >
-                {isLoading ? <CircularProgress size={16} /> : DICE_FORMULAS.ouro.text}
+                {DICE_FORMULAS.ouro.text}
               </Button>
             </Stack>
 
@@ -646,20 +633,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
       >
         <Stack direction="row" spacing={1} flexWrap="wrap">
 
-          <Button
-            component="label"
-            variant="outlined"
-            startIcon={isLoading ? <CircularProgress size={16} /> : <UploadIcon />}
-            disabled={isLoading}
-          >
-            {isLoading ? 'Carregando...' : 'Continuar Aventura'}
-            <input
-              type="file"
-              accept="application/json,.json,.cavaleiro.json"
-              hidden
-              onChange={handleFileUpload}
-            />
-          </Button>
+
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Button

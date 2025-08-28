@@ -9,6 +9,8 @@ import bgmModal from '../assets/sounds/bgm-modal.mp3';
 import mapMusic from '../assets/sounds/nature-sound-map.mp3';
 import bgmIntro from '../assets/sounds/bgm-intro.mp3';
 import bgmTavern from '../assets/sounds/bgm-tavern-sound.mp3';
+import bgmPrison from '../assets/sounds/bgm-taken-to-prison.mp3';
+import bgmRunning from '../assets/sounds/bgm-running.mp3';
 
 // Definição dos grupos de áudio
 export type AudioGroup = 
@@ -18,6 +20,8 @@ export type AudioGroup =
   | 'character-sheet' // bgm-ficha.mp3 - Preparação
   | 'home-intro'      // bgm-modal.mp3 - Menu, introdução
   | 'map'             // nature-sound-map.mp3 - Exploração
+  | 'prison'          // bgm-taken-to-prison.mp3 - Prisão, masmorras
+  | 'chase'           // bgm-running.mp3 - Perseguição, fuga
   | 'cinematic';      // bgm-intro.mp3, rainning.mp3 - Cinemática
 
 // Mapeamento de grupos para arquivos de áudio
@@ -28,6 +32,8 @@ const AUDIO_GROUP_MAP: Record<AudioGroup, string> = {
   'character-sheet': bgmFicha,
   'home-intro': bgmModal,
   'map': mapMusic,
+  'prison': bgmPrison,
+  'chase': bgmRunning,
   'cinematic': bgmIntro
 };
 
@@ -36,6 +42,10 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   // Royal Lendle e área da cidade
   'royal': 'tavern',             // Royal Lendle (rota /royal) - bgm-tavern-sound.mp3
   30: 'royal-lendle',           // Mercado (rota /game/30) - people.mp3
+  82: 'royal-lendle',           // Mercado Leste (rota /game/82) - people.mp3
+  66: 'royal-lendle',           // Mercado Oeste (rota /game/66) - people.mp3
+  321: 'royal-lendle',          // Confronto com guardas (rota /game/321) - people.mp3
+  299: 'royal-lendle',          // Tentativa de suborno (rota /game/299) - people.mp3
   
   // Bartolph e jogo de dados - TODAS com som de taverna
   86: 'tavern',                  // Bartolph (rota /game/86) - bgm-tavern-sound.mp3
@@ -48,6 +58,9 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   115: 'tavern',                 // Testar a Sorte (rota /game/115) - bgm-tavern-sound.mp3
   222: 'tavern',                 // Sucesso no teste (rota /game/222) - bgm-tavern-sound.mp3
   
+  // Prisão e masmorras
+  199: 'prison',                 // Prisão (rota /game/199) - bgm-taken-to-prison.mp3
+  
   // Character Sheet
   'sheet': 'character-sheet',   // Character Sheet (rota /sheet)
   
@@ -57,6 +70,7 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   
   // Map (independente)
   'map': 'map',                 // Map Screen (rota /map)
+  338: 'chase',                 // Chase (rota /game/338) - bgm-running.mp3
 };
 
 export const useAudioGroup = (screenId: number | string) => {

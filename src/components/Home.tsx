@@ -10,6 +10,7 @@ import {
   DialogActions,
 } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import UploadIcon from '@mui/icons-material/Upload';
 import { useAudio } from '../hooks/useAudio';
 import AudioControls from './AudioControls';
 import bgmModal from '../assets/sounds/bgm-modal.mp3';
@@ -17,76 +18,36 @@ import { useClickSound } from '../hooks/useClickSound';
 
 interface HomeProps {
   onStart: () => void;
-  onRecoverGame?: (ficha: any, lastScreen: string) => void;
 }
 
-const Home: React.FC<HomeProps> = ({ onStart, onRecoverGame }) => {
+const Home: React.FC<HomeProps> = ({ onStart }) => {
   const [modalExplicativoOpen, setModalExplicativoOpen] = useState(false);
-  const [modalRecuperacaoOpen, setModalRecuperacaoOpen] = useState(false);
-  const [fichaRecuperada, setFichaRecuperada] = useState<any>(null);
   const { changeTrack, tryStartMusic } = useAudio();
 
   // Inicializa a música de fundo quando o componente monta
   useEffect(() => {
-    // 🔍 FASE 2: Verificar se há dados para recuperar ANTES de limpar
-    const checkForRecovery = () => {
-      try {
-        const unexpectedExit = localStorage.getItem('cavaleiro:unexpectedExit');
-        const savedFicha = localStorage.getItem('cavaleiro:ficha');
-        
-        if (unexpectedExit === 'true' && savedFicha) {
-          console.log('🔄 [Home] Saída inesperada detectada - oferecendo recuperação');
-          const parsed = JSON.parse(savedFicha);
-          
-          // Verificar se a ficha tem dados significativos (não está vazia)
-          const hasData = parsed.nome || 
-                          parsed.pericia?.inicial > 0 || 
-                          parsed.forca?.inicial > 0 || 
-                          parsed.sorte?.inicial > 0 ||
-                          (parsed.bolsa && parsed.bolsa.length > 0);
-                          
-                  if (hasData) {
-          console.log('🔄 [Home] Dados válidos encontrados para recuperação:', parsed);
-          setFichaRecuperada(parsed);
-          setModalRecuperacaoOpen(true);
-          return true; // Indica que deve PAUSAR a limpeza
-        } else {
-          console.log('🔄 [Home] Dados insuficientes para recuperação - limpando');
-        }
-        }
-      } catch (error) {
-        console.warn('🔄 [Home] Erro ao verificar recuperação:', error);
-      }
-      return false; // Indica que pode limpar normalmente
-    };
-
-    const shouldPauseCleaning = checkForRecovery();
-
-    if (!shouldPauseCleaning) {
-      // 🧹 FASE 1: Limpar localStorage apenas se NÃO houver recuperação
-      console.log('🏠 [Home] Limpando localStorage para nova sessão');
-      try {
-        localStorage.removeItem('cavaleiro:ficha');
-        localStorage.removeItem('cavaleiro:screenId');
-        localStorage.removeItem('cavaleiro:unexpectedExit');
-        console.log('🏠 [Home] localStorage limpo com sucesso');
-      } catch (error) {
-        console.warn('🏠 [Home] Erro ao limpar localStorage:', error);
-      }
+    // 🧹 Limpar localStorage para nova sessão
+    console.log('🏠 [Home] Limpando localStorage para nova sessão');
+    try {
+      localStorage.removeItem('cavaleiro:ficha');
+      localStorage.removeItem('cavaleiro:screenId');
+      localStorage.removeItem('cavaleiro:lastScreen');
+      console.log('🏠 [Home] localStorage limpo com sucesso');
+    } catch (error) {
+      console.warn('🏠 [Home] Erro ao limpar localStorage:', error);
     }
 
     // Usa uma função assíncrona para carregar a música
     const loadMusic = async () => {
       try {
         await changeTrack(bgmModal);
-  
       } catch (error) {
-  
+        // Silenciar erro de música
       }
     };
 
     loadMusic();
-  }, []);
+  }, [changeTrack]);
 
   const handleIniciarAventura = () => {
     tryStartMusic();
@@ -98,40 +59,51 @@ const Home: React.FC<HomeProps> = ({ onStart, onRecoverGame }) => {
     onStart();
   };
 
-  // 🔄 FASE 2: Handlers para recuperação
-  const handleContinuarJogo = () => {
-    console.log('🔄 [Home] Jogador escolheu continuar de onde parou');
-    setModalRecuperacaoOpen(false);
+  const handleCarregarJogo = () => {
+    // Criar input file invisível
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.style.display = 'none';
     
-    // 🎯 Recuperar última tela jogada
-    const lastScreen = localStorage.getItem('cavaleiro:lastScreen') || '/sheet';
-    console.log('🔄 [Home] Redirecionando para última tela:', lastScreen);
+    input.onchange = (event) => {
+      const target = event.target as HTMLInputElement;
+      const file = target.files?.[0];
+      
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const content = e.target?.result as string;
+            const saveData = JSON.parse(content);
+            
+            // Validar se é um arquivo de save válido
+            if (saveData.ficha && saveData.version) {
+              console.log('🎮 [Home] Jogo carregado com sucesso:', saveData);
+              
+              // Salvar no localStorage para que o App.tsx possa carregar
+              localStorage.setItem('cavaleiro:ficha', JSON.stringify(saveData.ficha));
+              if (saveData.lastScreen) {
+                localStorage.setItem('cavaleiro:lastScreen', saveData.lastScreen);
+              }
+              
+              // Navegar para o jogo
+              onStart();
+            } else {
+              alert('Arquivo inválido. Este não parece ser um arquivo de save do jogo.');
+            }
+          } catch (error) {
+            console.error('Erro ao carregar arquivo:', error);
+            alert('Erro ao carregar o arquivo. Verifique se é um arquivo válido.');
+          }
+        };
+        reader.readAsText(file);
+      }
+    };
     
-    // 🎮 Se tiver função de recuperação, usar ela
-    if (onRecoverGame && fichaRecuperada) {
-      onRecoverGame(fichaRecuperada, lastScreen);
-    } else {
-      // Fallback: ir para a ficha
-      onStart();
-    }
-  };
-
-  const handleNovaPartida = () => {
-    console.log('🔄 [Home] Jogador escolheu começar nova partida');
-    setModalRecuperacaoOpen(false);
-    setFichaRecuperada(null);
-    
-    // Limpar localStorage agora
-    try {
-      localStorage.removeItem('cavaleiro:ficha');
-      localStorage.removeItem('cavaleiro:screenId');
-      localStorage.removeItem('cavaleiro:unexpectedExit');
-      console.log('🏠 [Home] localStorage limpo após escolha de nova partida');
-    } catch (error) {
-      console.warn('🏠 [Home] Erro ao limpar localStorage:', error);
-    }
-    
-    onStart();
+    document.body.appendChild(input);
+    input.click();
+    document.body.removeChild(input);
   };
 
   const playClick = useClickSound(0.2);
@@ -222,6 +194,29 @@ const Home: React.FC<HomeProps> = ({ onStart, onRecoverGame }) => {
           }}
         >
           Iniciar aventura
+        </Button>
+
+        <Box sx={{ height: '24px' }} />
+
+        <Button
+          variant="outlined"
+          size="large"
+          onClick={handleCarregarJogo}
+          startIcon={<UploadIcon />}
+          sx={{
+            borderColor: 'rgba(255,255,255,0.3)',
+            color: 'text.secondary',
+            padding: '12px 24px',
+            fontWeight: 600,
+            letterSpacing: '0.04em',
+            textTransform: 'uppercase',
+            '&:hover': {
+              borderColor: 'rgba(255,255,255,0.5)',
+              color: 'text.primary',
+            },
+          }}
+        >
+          Carregar Jogo
         </Button>
 
         {/* Modal Explicativo - Como Jogar */}
@@ -402,158 +397,6 @@ const Home: React.FC<HomeProps> = ({ onStart, onRecoverGame }) => {
               }}
             >
               Ciente
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Modal de Recuperação - FASE 2 */}
-        <Dialog
-          open={modalRecuperacaoOpen}
-          onClose={() => {}} // Impedir fechamento acidental
-          maxWidth="sm"
-          fullWidth
-          PaperProps={{
-            sx: {
-              background: 'linear-gradient(135deg, rgba(15,17,20,0.98), rgba(25,27,30,0.98))',
-              border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: '20px',
-              boxShadow: '0 25px 80px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.05)',
-              backdropFilter: 'blur(20px)',
-            }
-          }}
-        >
-          <DialogTitle>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Box
-                sx={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #B67B03, #8B4513)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: '0 8px 24px rgba(182,123,3,0.4)',
-                }}
-              >
-                <Typography sx={{ color: 'white', fontSize: '28px' }}>🔄</Typography>
-              </Box>
-              <Typography variant="h5" sx={{
-                color: 'text.primary',
-                fontWeight: 700,
-                fontFamily: '"Spectral", serif',
-                background: 'linear-gradient(135deg, #E0DFDB, #B8B5B0)',
-                backgroundClip: 'text',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}>
-                Sessão Anterior Detectada
-              </Typography>
-            </Box>
-          </DialogTitle>
-
-          <DialogContent>
-            <Box sx={{ py: 2 }}>
-              <Typography variant="body1" sx={{
-                mb: 3,
-                lineHeight: 1.8,
-                color: 'text.primary',
-                fontSize: '16px',
-                fontFamily: '"Spectral", serif',
-              }}>
-                Identificamos que você saiu inesperadamente da sessão anterior.
-              </Typography>
-
-              {fichaRecuperada && (
-                <Box sx={{
-                  p: 3,
-                  background: 'rgba(182,123,3,0.1)',
-                  border: '1px solid rgba(182,123,3,0.2)',
-                  borderRadius: '12px',
-                  borderLeft: '4px solid #B67B03',
-                  mb: 3
-                }}>
-                  <Typography variant="body2" sx={{
-                    color: 'text.primary',
-                    fontWeight: 500,
-                    fontSize: '14px',
-                    mb: 1
-                  }}>
-                    📊 <strong>Dados da sessão anterior:</strong>
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '13px' }}>
-                    {fichaRecuperada.nome && `• Nome: ${fichaRecuperada.nome}`}
-                    {fichaRecuperada.nome && <br />}
-                    {fichaRecuperada.pericia?.inicial > 0 && `• Perícia: ${fichaRecuperada.pericia.inicial}`}
-                    {fichaRecuperada.pericia?.inicial > 0 && <br />}
-                    {fichaRecuperada.forca?.inicial > 0 && `• Força: ${fichaRecuperada.forca.inicial}`}
-                    {fichaRecuperada.forca?.inicial > 0 && <br />}
-                    {fichaRecuperada.sorte?.inicial > 0 && `• Sorte: ${fichaRecuperada.sorte.inicial}`}
-                    {fichaRecuperada.sorte?.inicial > 0 && <br />}
-                    {fichaRecuperada.bolsa?.length > 0 && `• Itens na bolsa: ${fichaRecuperada.bolsa.length}`}
-                  </Typography>
-                </Box>
-              )}
-
-              <Typography variant="body1" sx={{
-                mb: 3,
-                lineHeight: 1.8,
-                color: 'text.secondary',
-                fontSize: '15px',
-                fontFamily: '"Spectral", serif',
-              }}>
-                <strong>Deseja continuar de onde parou ou começar uma nova partida?</strong>
-              </Typography>
-            </Box>
-          </DialogContent>
-
-          <DialogActions sx={{ p: 3, pt: 1, gap: 2 }}>
-            <Button
-              onClick={() => {
-                playClick();
-                handleNovaPartida();
-              }}
-              variant="outlined"
-              size="large"
-              sx={{
-                borderColor: 'rgba(255,255,255,0.3)',
-                color: 'text.secondary',
-                padding: '12px 24px',
-                fontWeight: 600,
-                letterSpacing: '0.04em',
-                textTransform: 'uppercase',
-                '&:hover': {
-                  borderColor: 'rgba(255,255,255,0.5)',
-                  color: 'text.primary',
-                },
-              }}
-            >
-              Nova Partida
-            </Button>
-            <Button
-              onClick={() => {
-                playClick();
-                handleContinuarJogo();
-              }}
-              variant="contained"
-              size="large"
-              sx={{
-                background: 'linear-gradient(135deg, #B67B03, #8B4513)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                padding: '12px 32px',
-                fontWeight: 700,
-                letterSpacing: '0.04em',
-                textTransform: 'uppercase',
-                boxShadow: '0 8px 24px rgba(182,123,3,0.4)',
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  background: 'linear-gradient(135deg, #8B4513, #B67B03)',
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 12px 32px rgba(182,123,3,0.6)',
-                },
-              }}
-            >
-              Continuar de onde parou
             </Button>
           </DialogActions>
         </Dialog>

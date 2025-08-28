@@ -17,6 +17,7 @@ import InventoryModal from './components/InventoryModal';
 import { styled } from '@mui/material/styles';
 import { totalOuro, validarBolsa } from './utils/inventory';
 import { useItemEffects } from './hooks/useItemEffects';
+import SaveGameButton from './components/SaveGameButton';
 
 const darkTheme = createTheme({
   palette: {
@@ -169,7 +170,19 @@ function AppContent() {
   });
 
   const [ficha, setFicha] = useState<Ficha>(() => {
-    // Estado inicial vazio - será preenchido pelo useEffect
+    // Tentar carregar ficha salva do localStorage
+    try {
+      const savedFicha = localStorage.getItem('cavaleiro:ficha');
+      if (savedFicha) {
+        const parsed = JSON.parse(savedFicha);
+        console.log('🔄 [App] Ficha carregada do localStorage:', parsed);
+        return parsed;
+      }
+    } catch (error) {
+      console.warn('⚠️ [App] Erro ao carregar ficha do localStorage:', error);
+    }
+    
+    // Estado inicial vazio se não houver ficha salva
     return createEmptyFichaWithoutGold();
   });
 
@@ -190,56 +203,9 @@ function AppContent() {
   const [globalInventoryOpen, setGlobalInventoryOpen] = useState(false);
   const showGlobalStatus = !['/', '/sheet', '/intro'].includes(location.pathname);
 
-  // 🔄 FASE 2: Sistema de detecção de saída inesperada
+  // 📍 Sistema de rastreamento de tela atual e redirecionamento para jogos salvos
   useEffect(() => {
-    const handleBeforeUnload = () => {
-      // Marcar como saída inesperada quando o jogo está ativo
-      if (location.pathname !== '/') {
-        try {
-          localStorage.setItem('cavaleiro:unexpectedExit', 'true');
-          console.log('🚨 [App] Saída inesperada detectada - marcando para recuperação');
-        } catch (e) {
-          console.warn('🚨 [App] Erro ao marcar saída inesperada:', e);
-        }
-      }
-    };
-
-    const handleVisibilityChange = () => {
-      // Detectar quando a aba fica escondida por muito tempo
-      if (document.hidden && location.pathname !== '/') {
-        try {
-          localStorage.setItem('cavaleiro:unexpectedExit', 'true');
-          console.log('🚨 [App] Aba escondida - marcando para recuperação');
-        } catch (e) {
-          console.warn('🚨 [App] Erro ao marcar aba escondida:', e);
-        }
-      }
-    };
-
-    // Adicionar listeners
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    // Limpeza
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [location.pathname]);
-
-  // 🧹 Sistema de limpeza de saída inesperada quando navegação é normal
-  // 📍 Sistema de rastreamento de tela atual
-  useEffect(() => {
-    // Se navegar para Home de forma normal, limpar flag de saída inesperada
-    if (location.pathname === '/') {
-      try {
-        localStorage.removeItem('cavaleiro:unexpectedExit');
-        console.log('🏠 [App] Navegação normal para Home - removendo flag de saída inesperada');
-      } catch (e) {
-        console.warn('🏠 [App] Erro ao remover flag de saída inesperada:', e);
-      }
-    } else {
-      // 🎯 Salvar a tela atual para recuperação
+    if (location.pathname !== '/') {
       try {
         localStorage.setItem('cavaleiro:lastScreen', location.pathname);
         console.log('📍 [App] Salvando tela atual:', location.pathname);
@@ -248,6 +214,24 @@ function AppContent() {
       }
     }
   }, [location.pathname]);
+
+  // 🔄 Redirecionar para última tela quando carregar jogo salvo
+  useEffect(() => {
+    // Se estamos na home e há uma ficha carregada, verificar se deve redirecionar
+    if (location.pathname === '/' && ficha.nome) {
+      try {
+        const lastScreen = localStorage.getItem('cavaleiro:lastScreen');
+        if (lastScreen && lastScreen !== '/') {
+          console.log('🔄 [App] Redirecionando para última tela:', lastScreen);
+          setTimeout(() => {
+            navigate(lastScreen);
+          }, 100);
+        }
+      } catch (e) {
+        console.warn('⚠️ [App] Erro ao verificar última tela:', e);
+      }
+    }
+  }, [location.pathname, ficha.nome, navigate]);
 
   useEffect(() => {
     // 🎯 FASE 1 IMPLEMENTADA: Home sempre limpa localStorage
@@ -283,27 +267,7 @@ function AppContent() {
     navigate('/sheet');
   };
 
-  // 🔄 FASE 2: Recuperação completa do jogo
-  const handleRecoverGame = (recoveredFicha: Ficha, lastScreen: string) => {
-    console.log('🔄 [App] Recuperando jogo para tela:', lastScreen);
-    
-    // 🎯 Carregar ficha recuperada
-    setFichaWithLog(recoveredFicha);
-    
-    // 💾 Salvar no localStorage
-    try {
-      localStorage.setItem('cavaleiro:ficha', JSON.stringify(recoveredFicha));
-      console.log('🔄 [App] Ficha recuperada salva no localStorage');
-    } catch (e) {
-      console.error('🔄 [App] Erro ao salvar ficha recuperada:', e);
-    }
-    
-    // 🚀 Redirecionar para a última tela jogada
-    setTimeout(() => {
-      navigate(lastScreen);
-      console.log('🔄 [App] Redirecionado para:', lastScreen);
-    }, 100); // Pequeno delay para garantir que a ficha foi carregada
-  };
+
 
   const handleFichaChange = (newFicha: Ficha) => {
     // Verificação de segurança
@@ -356,12 +320,18 @@ function AppContent() {
     switch (choice) {
       case 'aceitar_jogo':
         console.log('✅ [App] Jogador aceitou o jogo, navegando para tela 86');
-        try { localStorage.setItem('cavaleiro:screenId', '86'); } catch {}
+        try { 
+          localStorage.setItem('cavaleiro:screenId', '86');
+          localStorage.setItem('cavaleiro:aceitouBartolph', 'true');
+        } catch {}
         navigate('/game/86');
         break;
       case 'recusar_jogo':
         console.log('❌ [App] Jogador recusou o jogo, navegando para tela 30');
-        try { localStorage.setItem('cavaleiro:screenId', '30'); } catch {}
+        try { 
+          localStorage.setItem('cavaleiro:screenId', '30');
+          localStorage.setItem('cavaleiro:aceitouBartolph', 'false');
+        } catch {}
         navigate('/game/30');
         break;
       default:
@@ -441,6 +411,8 @@ function AppContent() {
               onClose={() => setGlobalInventoryOpen(false)}
               ficha={ficha}
             />
+            {/* Botão de salvamento sempre visível durante o jogo */}
+            <SaveGameButton ficha={ficha} />
           </>
         )}
         {/* Backdrop */}
@@ -491,7 +463,7 @@ function AppContent() {
         />
 
         <Routes>
-          <Route path="/" element={<Home onStart={handleStartAdventure} onRecoverGame={handleRecoverGame} />} />
+          <Route path="/" element={<Home onStart={handleStartAdventure} />} />
           <Route path="/sheet" element={<CharacterSheet ficha={ficha} onFichaChange={handleFichaChange} onVoltar={() => navigate('/')} onStartCinematic={() => {
             console.log('🎬 [App] Navegando para tela de introdução...');
             try {

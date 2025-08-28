@@ -549,7 +549,14 @@ const Screen66: React.FC<Screen66Props> = ({ onGoToScreen, ficha, onUpdateFicha 
 
           {/* Botões de navegação */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <ChoiceButton onClick={() => onGoToScreen(188)}>
+            <ChoiceButton onClick={() => {
+              const aceitouBartolph = localStorage.getItem('cavaleiro:aceitouBartolph') === 'true';
+              if (aceitouBartolph) {
+                onGoToScreen(321); // Quem aceitou o desafio vai para 321
+              } else {
+                onGoToScreen(82); // Quem não aceitou vai para o mercado leste
+              }
+            }}>
               Visitar o lado Leste do mercado
             </ChoiceButton>
             
