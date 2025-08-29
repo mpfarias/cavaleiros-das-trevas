@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { 
   Dialog, 
   DialogTitle, 
@@ -14,8 +14,28 @@ import {
   Chip
 } from '@mui/material';
 import { Close as CloseIcon, Delete as DeleteIcon } from '@mui/icons-material';
-import { styled } from '@mui/material/styles';
+import { styled, keyframes } from '@mui/material/styles';
 import type { Ficha, Item } from '../types';
+
+// Imports das imagens dos itens
+import machadoGuerraImg from '../assets/images/machado-de-guerra.png';
+import cotaMalhaImg from '../assets/images/cota-de-malha.png';
+import pocaoCorrosivaImg from '../assets/images/almotolia-com-pocao-corrosiva.png';
+import amuletoSorteImg from '../assets/images/amuleto-sorte.png';
+import capaCamaleaoImg from '../assets/images/capa-camaleao.png';
+import foguetesImg from '../assets/images/foguetes.png';
+import espelhoImg from '../assets/images/espelho.png';
+import provisoesImg from '../assets/images/provisoes.png';
+import anelAgilidadeImg from '../assets/images/anel-agilidade.png';
+import pocaoAnestesicaImg from '../assets/images/pocao-anestesica.png';
+import algemasImg from '../assets/images/algemas.png';
+import cordaGanchoImg from '../assets/images/corda-e-gancho.png';
+
+// Keyframes para animação da imagem
+const fadeInImage = keyframes`
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+`;
 
 // Styled Components
 const StyledDialog = styled(Dialog)(() => ({
@@ -139,6 +159,21 @@ const RemoveButton = styled(IconButton)({
   }
 });
 
+const HoverImage = styled(Box)({
+  position: 'fixed',
+  zIndex: 1500,
+  pointerEvents: 'none',
+  animation: `${fadeInImage} 0.3s ease-out`,
+  '& img': {
+    maxWidth: '400px',
+    maxHeight: '400px',
+    borderRadius: '12px',
+    border: '3px solid #8B4513',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+    backgroundColor: 'transparent'
+  }
+});
+
 
 
 interface TabPanelProps {
@@ -173,6 +208,9 @@ interface InventoryModalProps {
 
 const InventoryModal: React.FC<InventoryModalProps> = ({ open, onClose, ficha, onUpdateFicha }) => {
   const [tabValue, setTabValue] = useState(0);
+  
+  // Estados para hover da imagem
+  const [hoverImage, setHoverImage] = useState<{ src: string; x: number; y: number } | null>(null);
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -189,6 +227,51 @@ const InventoryModal: React.FC<InventoryModalProps> = ({ open, onClose, ficha, o
     const newFicha = { ...ficha, bolsa: newBolsa };
     onUpdateFicha(newFicha);
   };
+
+  // Função para obter a imagem do item
+  const getItemImage = useCallback((item: Item): string | undefined => {
+    const imageMap: Record<string, string> = {
+      'machado-de-guerra': machadoGuerraImg,
+      'cota-de-malha': cotaMalhaImg,
+      'almotolia-pocao-corrosiva': pocaoCorrosivaImg,
+      'amuleto-sorte': amuletoSorteImg,
+      'capa-camaleao': capaCamaleaoImg,
+      'foguetes': foguetesImg,
+      'espelho': espelhoImg,
+      'provisoes': provisoesImg,
+      'anel-agilidade': anelAgilidadeImg,
+      'pocao-anestesica': pocaoAnestesicaImg,
+      'algemas': algemasImg,
+      'corda-e-gancho': cordaGanchoImg
+    };
+    return imageMap[item.id];
+  }, []);
+
+  // Função para mostrar imagem no hover
+  const handleItemHover = useCallback((event: React.MouseEvent, item: Item) => {
+    const image = getItemImage(item);
+    if (image) {
+      setHoverImage({
+        src: image,
+        x: event.clientX - 1,
+        y: event.clientY - 20
+      });
+    }
+  }, [getItemImage]);
+
+  // Função para esconder imagem no hover
+  const handleItemLeave = useCallback(() => {
+    setHoverImage(null);
+  }, []);
+
+  // Função para atualizar posição da imagem durante o hover (mais responsiva)
+  const handleItemMove = useCallback((event: React.MouseEvent) => {
+    setHoverImage(prev => prev ? {
+      ...prev,
+      x: event.clientX - 400,
+      y: event.clientY - 500
+    } : null);
+  }, []);
 
   // Organizar itens por categoria
   const organizeItems = (items: Item[]) => {
@@ -223,7 +306,12 @@ const InventoryModal: React.FC<InventoryModalProps> = ({ open, onClose, ficha, o
     }
 
     return items.map((item) => (
-      <ItemCard key={item.id}>
+      <ItemCard 
+        key={item.id}
+        onMouseEnter={(e) => handleItemHover(e, item)}
+        onMouseLeave={handleItemLeave}
+        onMouseMove={handleItemMove}
+      >
         <ItemContent>
           <ItemInfo>
             <Typography 
@@ -494,6 +582,18 @@ const InventoryModal: React.FC<InventoryModalProps> = ({ open, onClose, ficha, o
           {/* Removido painel de Ouro para não duplicar informação com o topo */}
         </Box>
       </DialogContent>
+      
+      {/* Imagem de hover */}
+      {hoverImage && (
+        <HoverImage
+          sx={{
+            left: hoverImage.x,
+            top: hoverImage.y
+          }}
+        >
+          <img src={hoverImage.src} alt="Item" />
+        </HoverImage>
+      )}
     </StyledDialog>
   );
 };

@@ -11,6 +11,7 @@ import bgmIntro from '../assets/sounds/bgm-intro.mp3';
 import bgmTavern from '../assets/sounds/bgm-tavern-sound.mp3';
 import bgmPrison from '../assets/sounds/bgm-taken-to-prison.mp3';
 import bgmRunning from '../assets/sounds/bgm-running.mp3';
+import bgmBattle from '../assets/sounds/bgm-battle.mp3';
 
 // Definição dos grupos de áudio
 export type AudioGroup = 
@@ -22,6 +23,7 @@ export type AudioGroup =
   | 'map'             // nature-sound-map.mp3 - Exploração
   | 'prison'          // bgm-taken-to-prison.mp3 - Prisão, masmorras
   | 'chase'           // bgm-running.mp3 - Perseguição, fuga
+  | 'battle'          // bgm-battle.mp3 - Combate
   | 'cinematic';      // bgm-intro.mp3, rainning.mp3 - Cinemática
 
 // Mapeamento de grupos para arquivos de áudio
@@ -34,6 +36,7 @@ const AUDIO_GROUP_MAP: Record<AudioGroup, string> = {
   'map': mapMusic,
   'prison': bgmPrison,
   'chase': bgmRunning,
+  'battle': bgmBattle,
   'cinematic': bgmIntro
 };
 
@@ -60,6 +63,8 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   
   // Prisão e masmorras
   199: 'prison',                 // Prisão (rota /game/199) - bgm-taken-to-prison.mp3
+  7: 'prison',                   // Escape da prisão (rota /game/7) - bgm-taken-to-prison.mp3
+  26: 'battle',                  // Combate com carcereiro (rota /game/26) - bgm-taken-to-prison.mp3
   
   // Character Sheet
   'sheet': 'character-sheet',   // Character Sheet (rota /sheet)
@@ -86,19 +91,15 @@ export const useAudioGroup = (screenId: number | string) => {
   // Inicializa o áudio do grupo quando a tela carrega
   const initializeGroupAudio = useCallback(async (groupId: AudioGroup) => {
     try {
-      console.log(`🎵 [AudioGroup] Inicializando áudio para grupo: ${groupId}`);
-      
       const audioFile = AUDIO_GROUP_MAP[groupId];
       
       // Garantir que o áudio anterior seja parado antes de mudar
       // O changeTrack já faz isso automaticamente, mas vamos ser explícitos
-      console.log(`🎵 [AudioGroup] Mudando para: ${audioFile}`);
       
       await changeTrack(audioFile);
       tryStartMusic();
       setCurrentGroup(groupId);
       
-      console.log(`🎵 [AudioGroup] Áudio inicializado com sucesso para grupo: ${groupId}`);
     } catch (error) {
       console.error(`🎵 [AudioGroup] Erro ao inicializar grupo ${groupId}:`, error);
     }
@@ -122,25 +123,19 @@ export const useAudioGroup = (screenId: number | string) => {
     const groupId = getAudioGroup(screenId);
     
     if (!groupId) {
-      console.log('🎵 [AudioGroup] Nenhum grupo de áudio definido para:', screenId);
       return;
     }
 
-    console.log(`🎵 [AudioGroup] Inicializando áudio para tela ${screenId} com grupo ${groupId}`);
-
     // Se deve continuar a música atual
     if (shouldContinueMusic(groupId)) {
-      console.log(`🎵 [AudioGroup] Continuando música atual para grupo ${groupId}`);
       setCurrentGroup(groupId);
       return;
     }
 
     // Se deve mudar para novo grupo
-    console.log(`🎵 [AudioGroup] Mudando para novo grupo: ${groupId}`);
     
     // Parar música atual antes de mudar (evita sobreposição)
     if (currentTrack && isPlaying) {
-      console.log(`🎵 [AudioGroup] Parando música atual antes de mudar para ${groupId}`);
       // Usar a função pause do useAudio para parar corretamente
       // O changeTrack já faz isso automaticamente, mas vamos garantir
     }
@@ -149,7 +144,6 @@ export const useAudioGroup = (screenId: number | string) => {
     
     // Cleanup quando a tela for desmontada
     return () => {
-      console.log(`🎵 [AudioGroup] Cleanup para tela ${screenId} com grupo ${groupId}`);
       // Não pausar aqui, deixar a próxima tela gerenciar o áudio
       // Isso evita que o áudio pare quando não deveria
     };

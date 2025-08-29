@@ -94,7 +94,7 @@ interface Screen321Props {
   onUpdateFicha: (ficha: any) => void;
 }
 
-const Screen321: React.FC<Screen321Props> = ({ onGoToScreen, ficha, onUpdateFicha }) => {
+const Screen321: React.FC<Screen321Props> = ({ onGoToScreen, ficha: _ficha, onUpdateFicha: _onUpdateFicha }) => {
   // Usa o sistema de grupos de áudio - automaticamente gerencia música do grupo 'royal-lendle' (people.mp3)
   const { currentGroup, isPlaying, togglePlay } = useAudioGroup(321);
   const playClick = useClickSound(0.2);

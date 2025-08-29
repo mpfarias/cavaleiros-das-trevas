@@ -117,51 +117,49 @@ const Screen199: React.FC<Screen199Props> = ({ onGoToScreen, ficha, onUpdateFich
       item.nome?.toLowerCase().includes('pocao corrosiva')
     );
     
-    console.log('🔍 [Screen199] Verificando poção corrosiva:', pocaoCorrosiva);
+          // Verificando poção corrosiva
     return !!pocaoCorrosiva;
   };
 
   // Função para remover a arma da bolsa
   const removeWeapon = () => {
-    console.log('🔍 [Screen199] removeWeapon chamada');
-    console.log('🔍 [Screen199] ficha:', ficha);
-    console.log('🔍 [Screen199] ficha.bolsa:', ficha?.bolsa);
+          // removeWeapon chamada
     
     if (weaponRemovedRef.current) {
-      console.log('🔍 [Screen199] Arma já foi removida anteriormente');
+      // Arma já foi removida anteriormente
       return;
     }
     
     if (!ficha) {
-      console.log('🔍 [Screen199] Ficha não existe');
+      // Ficha não existe
       return;
     }
     
     if (!ficha.bolsa) {
-      console.log('🔍 [Screen199] Bolsa não existe na ficha');
+      // Bolsa não existe na ficha
       return;
     }
 
     const updatedFicha = { ...ficha };
-    console.log('🔍 [Screen199] Bolsa atual:', updatedFicha.bolsa);
+          // Bolsa atual
     
     // Procura por armas na bolsa (tipo "arma")
     const weaponIndex = updatedFicha.bolsa.findIndex((item: any) => {
-      console.log('🔍 [Screen199] Verificando item:', item);
+      // Verificando item
       return item.tipo === "arma";
     });
     
-    console.log('🔍 [Screen199] Índice da arma encontrada:', weaponIndex);
+          // Índice da arma encontrada
     
     if (weaponIndex !== -1) {
       const removedWeapon = updatedFicha.bolsa[weaponIndex];
-      console.log('🔍 [Screen199] Arma encontrada:', removedWeapon);
+      // Arma encontrada
       
       updatedFicha.bolsa.splice(weaponIndex, 1);
-      console.log('🔍 [Screen199] Bolsa após remoção:', updatedFicha.bolsa);
+      // Bolsa após remoção
       
       // Atualiza a ficha
-      console.log('🔍 [Screen199] Chamando onUpdateFicha');
+      // Chamando onUpdateFicha
       onUpdateFicha(updatedFicha);
       
       // Configura o alerta
@@ -174,16 +172,15 @@ const Screen199: React.FC<Screen199Props> = ({ onGoToScreen, ficha, onUpdateFich
       // Ocultar alerta após 5 segundos
       setTimeout(() => setShowWeaponAlert(false), 5000);
       
-      console.log(`⚔️ [Screen199] Arma removida com sucesso: ${removedWeapon.nome}`);
+      // Arma removida com sucesso
     } else {
-      console.log('⚔️ [Screen199] Nenhuma arma encontrada na bolsa');
+      // Nenhuma arma encontrada na bolsa
     }
   };
 
   // Remove a arma quando a tela carrega
   useEffect(() => {
-    console.log('🔍 [Screen199] useEffect executado');
-    console.log('🔍 [Screen199] ficha no useEffect:', ficha);
+          // useEffect executado
     
     // Pequeno delay para garantir que a ficha esteja carregada
     const timer = setTimeout(() => {

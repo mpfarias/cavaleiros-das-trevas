@@ -4,13 +4,27 @@ import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useItemEffects } from '../hooks/useItemEffects';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { GameAlert } from './ui/GameAlert';
 import type { Ficha } from '../types';
+
+// Imports das imagens dos itens
+import machadoGuerraImg from '../assets/images/machado-de-guerra.png';
+import cotaMalhaImg from '../assets/images/cota-de-malha.png';
+import estrepesMetalImg from '../assets/images/estrepes-de-metal.png';
+import candeiaAzeiteImg from '../assets/images/candeia-e-azeite.png';
+import algemasImg from '../assets/images/algemas.png';
+import almotoliaPocaoCorrosivaImg from '../assets/images/almotolia-com-pocao-corrosiva.png';
+import cordaGanchoImg from '../assets/images/corda-e-gancho.png';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
+`;
+
+const fadeInImage = keyframes`
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
 `;
 
 const Container = styled(Box)({
@@ -64,10 +78,26 @@ const ItemCard = styled(Card)({
   borderRadius: '12px',
   transition: 'all 0.3s ease',
   cursor: 'pointer',
+  position: 'relative',
   '&:hover': {
     transform: 'translateY(-4px)',
     boxShadow: '0 8px 25px rgba(139,69,19,0.3)',
     borderColor: '#8B4513'
+  }
+});
+
+const HoverImage = styled(Box)({
+  position: 'fixed',
+  zIndex: 1500,
+  pointerEvents: 'none',
+  animation: `${fadeInImage} 0.3s ease-out`,
+  '& img': {
+    maxWidth: '400px',
+    maxHeight: '400px',
+    borderRadius: '12px',
+    border: '3px solid #8B4513',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+    backgroundColor: 'transparent'
   }
 });
 
@@ -138,6 +168,8 @@ interface MarketItem {
     };
     durability?: number;
   };
+  // Imagem do item para hover
+  image?: string;
 }
 
 const Screen82: React.FC<Screen82Props> = ({ onGoToScreen, ficha, onUpdateFicha }) => {
@@ -163,11 +195,54 @@ const Screen82: React.FC<Screen82Props> = ({ onGoToScreen, ficha, onUpdateFicha 
     currentItem: null as any, 
     quantity: 1 
   });
+
+  // Estados para hover da imagem
+  const [hoverImage, setHoverImage] = useState<{ src: string; x: number; y: number } | null>(null);
   
   // Função para aplicar os efeitos dos itens aos atributos
   const applyItemEffects = (ficha: Ficha) => {
     return applyModifiersToAttributes(ficha);
   };
+
+  // Função para obter a imagem do item
+  const getItemImage = (itemId: string): string | undefined => {
+    const imageMap: Record<string, string> = {
+      'machado-guerra': machadoGuerraImg,
+      'armadura-cota-malha': cotaMalhaImg,
+      'estrepes-metal': estrepesMetalImg,
+      'candeia-azeite': candeiaAzeiteImg,
+      'algemas': algemasImg,
+      'almotolia-pocao-corrosiva': almotoliaPocaoCorrosivaImg,
+      'corda-gancho': cordaGanchoImg
+    };
+    return imageMap[itemId];
+  };
+
+  // Função para mostrar imagem no hover
+  const handleItemHover = useCallback((event: React.MouseEvent, itemId: string) => {
+    const image = getItemImage(itemId);
+    if (image) {
+      setHoverImage({
+        src: image,
+        x: event.clientX + 20,
+        y: event.clientY - 20
+      });
+    }
+  }, []);
+
+  // Função para esconder imagem no hover
+  const handleItemLeave = useCallback(() => {
+    setHoverImage(null);
+  }, []);
+
+  // Função para atualizar posição da imagem durante o hover (mais responsiva)
+  const handleItemMove = useCallback((event: React.MouseEvent) => {
+    setHoverImage(prev => prev ? {
+      ...prev,
+      x: event.clientX + 20,
+      y: event.clientY - 20
+    } : null);
+  }, []);
 
 
      const marketItems: MarketItem[] = [
@@ -180,6 +255,7 @@ const Screen82: React.FC<Screen82Props> = ({ onGoToScreen, ficha, onUpdateFicha 
         type: 'weapon',
         equipmentType: 'weapon',
         maxQuantity: 1,
+        image: machadoGuerraImg,
         effects: {
           combat: '4 pontos de dano à FORÇA (6 se sucesso em Sorte, 2 se falhar)',
           attributes: '-1 ponto em testes de Ataque',
@@ -202,6 +278,7 @@ const Screen82: React.FC<Screen82Props> = ({ onGoToScreen, ficha, onUpdateFicha 
       description: 'Pequenas esferas com picos usadas para atrasar perseguidores, lançadas no chão. Você pode comprar quantos conjuntos quiser.',
       price: 1,
       type: 'tool',
+      image: estrepesMetalImg,
       effects: {
         special: 'Atrasa perseguidores'
       }
@@ -214,6 +291,7 @@ const Screen82: React.FC<Screen82Props> = ({ onGoToScreen, ficha, onUpdateFicha 
        type: 'armor',
        equipmentType: 'armor',
        maxQuantity: 1,
+       image: cotaMalhaImg,
        effects: {
          combat: 'Perde apenas 1 ponto de FORÇA (0 se sucesso em Sorte, 2 se falhar)',
          attributes: '+1 ponto em testes de Perícia',
@@ -237,6 +315,7 @@ const Screen82: React.FC<Screen82Props> = ({ onGoToScreen, ficha, onUpdateFicha 
       description: 'Útil em lugares escuros. 1 Moeda de Ouro compra uma candeia com 1 dose de azeite. Cada vez que usar a candeia, gasta 1 dose. Compre quantas doses quiser (mas não mais candeias).',
       price: 1,
       type: 'consumable',
+      image: candeiaAzeiteImg,
       effects: {
         special: 'Ilumina lugares escuros'
       }
@@ -248,6 +327,7 @@ const Screen82: React.FC<Screen82Props> = ({ onGoToScreen, ficha, onUpdateFicha 
       price: 2,
       type: 'tool',
       maxQuantity: 1,
+      image: algemasImg,
       effects: {
         special: 'Prende humanoides'
       }
@@ -258,6 +338,7 @@ const Screen82: React.FC<Screen82Props> = ({ onGoToScreen, ficha, onUpdateFicha 
       description: 'Uma solução química que dissolve a maioria dos metais, mas é inofensiva para a pele. Compre quantas doses quiser.',
       price: 4,
       type: 'consumable',
+      image: almotoliaPocaoCorrosivaImg,
       effects: {
         special: 'Dissolve metais'
       }
@@ -269,6 +350,7 @@ const Screen82: React.FC<Screen82Props> = ({ onGoToScreen, ficha, onUpdateFicha 
       price: 4,
       type: 'tool',
       maxQuantity: 1,
+      image: cordaGanchoImg,
       effects: {
         special: '20 metros de corda com gancho'
       }
@@ -515,37 +597,39 @@ const Screen82: React.FC<Screen82Props> = ({ onGoToScreen, ficha, onUpdateFicha 
         Moedas gastas: {purchaseInfo.cost} | Restantes: {purchaseInfo.remaining}
       </GameAlert>
       
-      {/* Botão de controle de música */}
-      <Box
-        sx={{
-          position: 'fixed',
-          bottom: '20px',
-          right: '20px',
-          zIndex: 1000,
-        }}
-      >
-        <Tooltip title={currentGroup ? (isPlaying ? 'Pausar música' : 'Tocar música') : 'Nenhuma música carregada'}>
-          <IconButton
-            onClick={togglePlay}
-            disabled={!currentGroup}
-            sx={{
-              color: currentGroup ? (isPlaying ? '#B31212' : '#E0DFDB') : '#666',
-              background: 'rgba(15,17,20,0.8)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              opacity: currentGroup ? 1 : 0.5,
-              '&:hover': currentGroup ? {
-                background: 'rgba(179,18,18,0.2)',
-                borderColor: 'rgba(255,255,255,0.3)',
-              } : {},
-              '&:disabled': {
-                cursor: 'not-allowed'
-              }
-            }}
-          >
-            {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-          </IconButton>
-        </Tooltip>
-      </Box>
+             {/* Botão de controle de música */}
+       <Box
+         sx={{
+           position: 'fixed',
+           bottom: '20px',
+           right: '20px',
+           zIndex: 1000,
+         }}
+       >
+         <Tooltip title={currentGroup ? (isPlaying ? 'Pausar música' : 'Tocar música') : 'Nenhuma música carregada'}>
+           <span>
+             <IconButton
+               onClick={togglePlay}
+               disabled={!currentGroup}
+               sx={{
+                 color: currentGroup ? (isPlaying ? '#B31212' : '#E0DFDB') : '#666',
+                 background: 'rgba(15,17,20,0.8)',
+                 border: '1px solid rgba(255,255,255,0.1)',
+                 opacity: currentGroup ? 1 : 0.5,
+                 '&:hover': currentGroup ? {
+                   background: 'rgba(179,18,18,0.2)',
+                   borderColor: 'rgba(255,255,255,0.3)',
+                 } : {},
+                 '&:disabled': {
+                   cursor: 'not-allowed'
+                 }
+               }}
+             >
+               {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
+             </IconButton>
+           </span>
+         </Tooltip>
+       </Box>
 
       <CardWrap>
         <CardContent sx={{ padding: '40px' }}>
@@ -578,6 +662,9 @@ const Screen82: React.FC<Screen82Props> = ({ onGoToScreen, ficha, onUpdateFicha 
                   setQuantity(1);
                   setShowPurchaseDialog(true);
                 }}
+                onMouseEnter={(event) => handleItemHover(event, item.id)}
+                onMouseLeave={handleItemLeave}
+                onMouseMove={handleItemMove}
               >
                 <CardContent>
                   <Typography variant="h6" sx={{ 
@@ -884,7 +971,17 @@ const Screen82: React.FC<Screen82Props> = ({ onGoToScreen, ficha, onUpdateFicha 
             </Box>
           )}
 
-         
+                     {/* Hover Image */}
+           {hoverImage && (
+             <HoverImage
+               sx={{
+                 left: hoverImage.x,
+                 top: hoverImage.y
+               }}
+             >
+               <img src={hoverImage.src} alt="Item" />
+             </HoverImage>
+           )}
        </Container>
      );
    };

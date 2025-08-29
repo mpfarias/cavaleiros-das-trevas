@@ -94,7 +94,7 @@ interface Screen299Props {
   onUpdateFicha: (ficha: any) => void;
 }
 
-const Screen299: React.FC<Screen299Props> = ({ onGoToScreen, ficha, onUpdateFicha }) => {
+const Screen299: React.FC<Screen299Props> = ({ onGoToScreen, ficha: _ficha, onUpdateFicha: _onUpdateFicha }) => {
   const { currentGroup, isPlaying, togglePlay } = useAudioGroup(299);
   const playClick = useClickSound(0.2);
 

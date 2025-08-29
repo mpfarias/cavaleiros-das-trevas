@@ -17,6 +17,8 @@ import Screen321 from '../components/Screen321';
 import Screen199 from '../components/Screen199';
 import Screen299 from '../components/Screen299';
 import Screen338 from '../components/Screen338';
+import Screen7 from '../components/Screen7';
+import Screen26 from '../components/Screen26';
 import type { Ficha } from '../types';
 
 type ScreenRouterProps = {
@@ -128,6 +130,18 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({ ficha, onGameResult, onAdju
   if (screenId === 321) {
     return (
       <Screen321 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 7) {
+    return (
+      <Screen7 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 26) {
+    return (
+      <Screen26 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
     );
   }
 

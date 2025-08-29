@@ -2,7 +2,9 @@ import { Box } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
 // Estilo padronizado para os alertas do jogo (baseado na tela 222)
-export const GameAlert = styled(Box)<{ $isVisible: boolean }>(({ $isVisible }) => ({
+export const GameAlert = styled(Box, {
+  shouldForwardProp: (prop) => prop !== '$isVisible'
+})<{ $isVisible: boolean }>(({ $isVisible }) => ({
   position: 'fixed',
   right: '16px',
   padding: '12px 16px',

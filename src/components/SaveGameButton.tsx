@@ -13,7 +13,7 @@ import {
   CircularProgress
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
-import { Ficha } from '../types';
+import type { Ficha } from '../types';
 import { useClickSound } from '../hooks/useClickSound';
 
 interface SaveGameButtonProps {

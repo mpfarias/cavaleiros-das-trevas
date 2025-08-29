@@ -94,7 +94,7 @@ interface Screen338Props {
   onUpdateFicha: (ficha: any) => void;
 }
 
-const Screen338: React.FC<Screen338Props> = ({ onGoToScreen, ficha, onUpdateFicha }) => {
+const Screen338: React.FC<Screen338Props> = ({ onGoToScreen, ficha: _ficha, onUpdateFicha: _onUpdateFicha }) => {
   const { currentGroup, isPlaying, togglePlay } = useAudioGroup(338);
   const playClick = useClickSound(0.2);
 

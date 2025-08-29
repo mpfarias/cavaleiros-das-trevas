@@ -3,13 +3,27 @@ import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { GameAlert } from './ui/GameAlert';
 import type { Ficha } from '../types';
+
+// Imports das imagens dos itens
+import amuletoSorteImg from '../assets/images/amuleto-sorte.png';
+import capaCamaleaoImg from '../assets/images/capa-camaleao.png';
+import foguetesImg from '../assets/images/foguetes.png';
+import espelhoImg from '../assets/images/espelho.png';
+import provisoesImg from '../assets/images/provisoes.png';
+import anelAgilidadeImg from '../assets/images/anel-agilidade.png';
+import pocaoAnestesicaImg from '../assets/images/pocao-anestesica.png';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
+`;
+
+const fadeInImage = keyframes`
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
 `;
 
 const Container = styled(Box)({
@@ -63,10 +77,26 @@ const ItemCard = styled(Card)({
   borderRadius: '12px',
   transition: 'all 0.3s ease',
   cursor: 'pointer',
+  position: 'relative',
   '&:hover': {
     transform: 'translateY(-4px)',
     boxShadow: '0 8px 25px rgba(139,69,19,0.3)',
     borderColor: '#8B4513'
+  }
+});
+
+const HoverImage = styled(Box)({
+  position: 'fixed',
+  zIndex: 1500,
+  pointerEvents: 'none',
+  animation: `${fadeInImage} 0.3s ease-out`,
+  '& img': {
+    maxWidth: '400px',
+    maxHeight: '400px',
+    borderRadius: '12px',
+    border: '3px solid #8B4513',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+    backgroundColor: 'transparent'
   }
 });
 
@@ -129,6 +159,8 @@ interface MarketItem {
     durability?: number;
     special?: string;
   };
+  // Imagem do item para hover
+  image?: string;
 }
 
 const Screen66: React.FC<Screen66Props> = ({ onGoToScreen, ficha, onUpdateFicha }) => {
@@ -144,6 +176,49 @@ const Screen66: React.FC<Screen66Props> = ({ onGoToScreen, ficha, onUpdateFicha 
   const [showMoneyAlert, setShowMoneyAlert] = useState(false);
   const [purchaseInfo, setPurchaseInfo] = useState({ itemName: '', quantity: 0, cost: 0, remaining: 0 });
   
+  // Estados para hover da imagem
+  const [hoverImage, setHoverImage] = useState<{ src: string; x: number; y: number } | null>(null);
+  
+  // Função para obter a imagem do item
+  const getItemImage = (itemId: string): string | undefined => {
+    const imageMap: Record<string, string> = {
+      'amuleto-sorte': amuletoSorteImg,
+      'capa-camaleao': capaCamaleaoImg,
+      'foguetes': foguetesImg,
+      'espelho': espelhoImg,
+      'provisoes': provisoesImg,
+      'anel-agilidade': anelAgilidadeImg,
+      'pocao-anestesica': pocaoAnestesicaImg
+    };
+    return imageMap[itemId];
+  };
+
+  // Função para mostrar imagem no hover
+  const handleItemHover = useCallback((event: React.MouseEvent, itemId: string) => {
+    const image = getItemImage(itemId);
+    if (image) {
+      setHoverImage({
+        src: image,
+        x: event.clientX + 20,
+        y: event.clientY - 20
+      });
+    }
+  }, []);
+
+  // Função para esconder imagem no hover
+  const handleItemLeave = useCallback(() => {
+    setHoverImage(null);
+  }, []);
+
+  // Função para atualizar posição da imagem durante o hover (mais responsiva)
+  const handleItemMove = useCallback((event: React.MouseEvent) => {
+    setHoverImage(prev => prev ? {
+      ...prev,
+      x: event.clientX + 20,
+      y: event.clientY - 20
+    } : null);
+  }, []);
+  
   const marketItems: MarketItem[] = [
     {
       id: 'amuleto-sorte',
@@ -152,6 +227,7 @@ const Screen66: React.FC<Screen66Props> = ({ onGoToScreen, ficha, onUpdateFicha 
       price: 4,
       type: 'magic',
       maxQuantity: 1,
+      image: amuletoSorteImg,
       effects: {
         special: 'Recupera pontuação inicial de SORTE (uso único)'
       }
@@ -164,6 +240,7 @@ const Screen66: React.FC<Screen66Props> = ({ onGoToScreen, ficha, onUpdateFicha 
       price: 3,
       type: 'magic',
       maxQuantity: 1,
+      image: capaCamaleaoImg,
       effects: {
         special: 'Camuflagem em ambientes naturais e escuridão'
       }
@@ -174,6 +251,7 @@ const Screen66: React.FC<Screen66Props> = ({ onGoToScreen, ficha, onUpdateFicha 
       description: 'Lançados contra uma superfície dura, explodem com luz e som estrondoso. Não causam dano, mas podem assustar inimigos.',
       price: 2,
       type: 'tool',
+      image: foguetesImg,
       effects: {
         special: 'Luz e som para assustar inimigos'
       }
@@ -185,6 +263,7 @@ const Screen66: React.FC<Screen66Props> = ({ onGoToScreen, ficha, onUpdateFicha 
       price: 1,
       type: 'tool',
       maxQuantity: 1,
+      image: espelhoImg,
       effects: {
         special: 'Utilidade em aventuras específicas'
       }
@@ -195,6 +274,7 @@ const Screen66: React.FC<Screen66Props> = ({ onGoToScreen, ficha, onUpdateFicha 
       description: 'Refeições para manter sua energia durante a aventura.',
       price: 1,
       type: 'consumable',
+      image: provisoesImg,
       effects: {
         special: 'Mantém energia durante aventuras'
       }
@@ -206,6 +286,7 @@ const Screen66: React.FC<Screen66Props> = ({ onGoToScreen, ficha, onUpdateFicha 
       price: 4,
       type: 'magic',
       maxQuantity: 1,
+      image: anelAgilidadeImg,
       effects: {
         special: '-2 em testes de Perícia (3 usos)',
         durability: 3
@@ -218,6 +299,7 @@ const Screen66: React.FC<Screen66Props> = ({ onGoToScreen, ficha, onUpdateFicha 
       description: 'Um frasco desse líquido potente faz um Monstro dormir por vários dias.',
       price: 3,
       type: 'consumable',
+      image: pocaoAnestesicaImg,
       effects: {
         special: 'Faz monstros dormirem por vários dias'
       }
@@ -230,9 +312,7 @@ const Screen66: React.FC<Screen66Props> = ({ onGoToScreen, ficha, onUpdateFicha 
   };
 
   const handlePurchase = () => {
-    console.log('🎲 [Screen66] handlePurchase chamado');
-    console.log('🎲 [Screen66] selectedItem:', selectedItem);
-    console.log('🎲 [Screen66] ficha.bolsa:', ficha.bolsa);
+          // handlePurchase chamado
     
     if (selectedItem && ficha.bolsa) {
       // Encontra as moedas de ouro na bolsa
@@ -240,18 +320,15 @@ const Screen66: React.FC<Screen66Props> = ({ onGoToScreen, ficha, onUpdateFicha 
       const currentGold = moedasOuro?.quantidade || 0;
       const totalCost = selectedItem.price * quantity;
       
-      console.log('🎲 [Screen66] Moedas de ouro:', currentGold);
-      console.log('🎲 [Screen66] Custo total:', totalCost);
-      console.log('🎲 [Screen66] Pode comprar?', currentGold >= totalCost);
+      // Verificando custo da compra
       
       if (currentGold >= totalCost) {
         // REGRA 1: Bloqueia se já possui o MESMO item (mesmo ID)
         if (selectedItem.maxQuantity === 1) {
           const existingItem = checkExistingItem(selectedItem.id);
-          console.log('🎲 [Screen66] Item existente:', existingItem);
+          // Item já possuído, bloqueando compra
           
           if (existingItem) {
-            console.log('🎲 [Screen66] Item já possuído, bloqueando compra');
             // Configurar alert de item já possuído
             setPurchaseInfo({
               itemName: selectedItem.name,
@@ -451,27 +528,29 @@ const Screen66: React.FC<Screen66Props> = ({ onGoToScreen, ficha, onUpdateFicha 
           zIndex: 1000,
         }}
       >
-        <Tooltip title={currentGroup ? (isPlaying ? 'Pausar música' : 'Tocar música') : 'Nenhuma música carregada'}>
-          <IconButton
-            onClick={togglePlay}
-            disabled={!currentGroup}
-            sx={{
-              color: currentGroup ? (isPlaying ? '#B31212' : '#E0DFDB') : '#666',
-              background: 'rgba(15,17,20,0.8)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              opacity: currentGroup ? 1 : 0.5,
-              '&:hover': currentGroup ? {
-                background: 'rgba(179,18,18,0.2)',
-                borderColor: 'rgba(255,255,255,0.3)',
-              } : {},
-              '&:disabled': {
-                cursor: 'not-allowed'
-              }
-            }}
-          >
-            {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-          </IconButton>
-        </Tooltip>
+                 <Tooltip title={currentGroup ? (isPlaying ? 'Pausar música' : 'Tocar música') : 'Nenhuma música carregada'}>
+           <span>
+             <IconButton
+               onClick={togglePlay}
+               disabled={!currentGroup}
+               sx={{
+                 color: currentGroup ? (isPlaying ? '#B31212' : '#E0DFDB') : '#666',
+                 background: 'rgba(15,17,20,0.8)',
+                 border: '1px solid rgba(255,255,255,0.1)',
+                 opacity: currentGroup ? 1 : 0.5,
+                 '&:hover': currentGroup ? {
+                   background: 'rgba(179,18,18,0.2)',
+                   borderColor: 'rgba(255,255,255,0.3)',
+                 } : {},
+                 '&:disabled': {
+                   cursor: 'not-allowed'
+                 }
+               }}
+             >
+               {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
+             </IconButton>
+           </span>
+         </Tooltip>
       </Box>
 
       <CardWrap>
@@ -497,15 +576,18 @@ const Screen66: React.FC<Screen66Props> = ({ onGoToScreen, ficha, onUpdateFicha 
             gap: 3, 
             marginBottom: '32px' 
           }}>
-            {marketItems.map((item) => (
-              <ItemCard 
-                key={item.id}
-                onClick={() => {
-                  setSelectedItem(item);
-                  setQuantity(1);
-                  setShowPurchaseDialog(true);
-                }}
-              >
+                         {marketItems.map((item) => (
+               <ItemCard 
+                 key={item.id}
+                 onClick={() => {
+                   setSelectedItem(item);
+                   setQuantity(1);
+                   setShowPurchaseDialog(true);
+                 }}
+                 onMouseEnter={(event) => handleItemHover(event, item.id)}
+                 onMouseLeave={handleItemLeave}
+                 onMouseMove={handleItemMove}
+               >
                 <CardContent>
                   <Typography variant="h6" sx={{ 
                     fontFamily: '"Cinzel", serif', 
@@ -685,9 +767,21 @@ const Screen66: React.FC<Screen66Props> = ({ onGoToScreen, ficha, onUpdateFicha 
             </CardContent>
           </Card>
         </Box>
-      )}
-    </Container>
-  );
-};
-
-export default Screen66;
+                 )}
+           
+           {/* Hover Image */}
+           {hoverImage && (
+             <HoverImage
+               sx={{
+                 left: hoverImage.x,
+                 top: hoverImage.y
+               }}
+             >
+               <img src={hoverImage.src} alt="Item" />
+             </HoverImage>
+           )}
+         </Container>
+       );
+     };
+     
+     export default Screen66;

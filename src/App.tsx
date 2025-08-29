@@ -175,7 +175,7 @@ function AppContent() {
       const savedFicha = localStorage.getItem('cavaleiro:ficha');
       if (savedFicha) {
         const parsed = JSON.parse(savedFicha);
-        console.log('🔄 [App] Ficha carregada do localStorage:', parsed);
+        // Ficha carregada do localStorage
         return parsed;
       }
     } catch (error) {
@@ -208,7 +208,7 @@ function AppContent() {
     if (location.pathname !== '/') {
       try {
         localStorage.setItem('cavaleiro:lastScreen', location.pathname);
-        console.log('📍 [App] Salvando tela atual:', location.pathname);
+        // Salvando tela atual
       } catch (e) {
         console.warn('📍 [App] Erro ao salvar tela atual:', e);
       }
@@ -222,7 +222,7 @@ function AppContent() {
       try {
         const lastScreen = localStorage.getItem('cavaleiro:lastScreen');
         if (lastScreen && lastScreen !== '/') {
-          console.log('🔄 [App] Redirecionando para última tela:', lastScreen);
+          // Redirecionando para última tela
           setTimeout(() => {
             navigate(lastScreen);
           }, 100);
@@ -243,7 +243,7 @@ function AppContent() {
         const parsed = JSON.parse(savedData);
         const validated = FichaSchema.safeParse(parsed);
         if (validated.success) {
-          console.log('🎮 [App] Carregando ficha salva da sessão ativa');
+          // Carregando ficha salva da sessão ativa
           setFichaWithLog(validated.data);
         } else {
           console.warn('🎲 [App] Ficha salva inválida. Usando defaults.');
@@ -281,7 +281,7 @@ function AppContent() {
     
     // Se houve correções, logar para debug
     if (fichaValidada.bolsa.length !== newFicha.bolsa.length) {
-      console.log('🔧 [App] Bolsa corrigida automaticamente - removidas duplicatas');
+      // Bolsa corrigida automaticamente - removidas duplicatas
     }
     
     // Aplicar modificadores dos itens aos atributos
@@ -296,16 +296,16 @@ function AppContent() {
   };
 
   const handleLocationSelect = (location: string) => {
-    console.log(`🗺️ [App] Navegando para localização: ${location}`);
+          // Navegando para localização
 
     // Roteamento baseado na localização
     switch (location) {
       case 'Royal':
-        console.log('🏰 [App] Navegando para Royal Lendle');
+        // Navegando para Royal Lendle
         navigate('/royal');
         break;
       case 'Karnstein':
-        console.log('🏰 [App] Navegando para Karnstein (não implementado)');
+        // Navegando para Karnstein (não implementado)
         // TODO: Implementar tela de Karnstein
         break;
       default:
@@ -314,12 +314,12 @@ function AppContent() {
   };
 
   const handleGameChoice = (choice: string) => {
-    console.log(`🎲 [App] Escolha do jogo: ${choice}`);
+          // Escolha do jogo
 
     // Roteamento baseado na escolha
     switch (choice) {
       case 'aceitar_jogo':
-        console.log('✅ [App] Jogador aceitou o jogo, navegando para tela 86');
+        // Jogador aceitou o jogo, navegando para tela 86
         try { 
           localStorage.setItem('cavaleiro:screenId', '86');
           localStorage.setItem('cavaleiro:aceitouBartolph', 'true');
@@ -327,7 +327,7 @@ function AppContent() {
         navigate('/game/86');
         break;
       case 'recusar_jogo':
-        console.log('❌ [App] Jogador recusou o jogo, navegando para tela 30');
+        // Jogador recusou o jogo, navegando para tela 30
         try { 
           localStorage.setItem('cavaleiro:screenId', '30');
           localStorage.setItem('cavaleiro:aceitouBartolph', 'false');
@@ -465,10 +465,10 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<Home onStart={handleStartAdventure} />} />
           <Route path="/sheet" element={<CharacterSheet ficha={ficha} onFichaChange={handleFichaChange} onVoltar={() => navigate('/')} onStartCinematic={() => {
-            console.log('🎬 [App] Navegando para tela de introdução...');
+            // Navegando para tela de introdução
             try {
               navigate('/intro');
-              console.log('✅ [App] Navegação para introdução bem-sucedida');
+              // Navegação para introdução bem-sucedida
             } catch (error) {
               console.error('❌ [App] Erro ao navegar para introdução:', error);
               // Fallback: tentar novamente
@@ -476,12 +476,12 @@ function AppContent() {
             }
           }} />} />
           <Route path="/intro" element={<Box sx={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10, '&::after': { display: 'none !important' } }}><IntroCinematic onFinish={() => {
-            console.log('🎬 [App] Introdução finalizada, navegando para mapa...');
+            // Introdução finalizada, navegando para mapa
             navigate('/map');
           }} /></Box>} />
           <Route path="/map" element={<MapScreen onLocationSelect={handleLocationSelect} />} />
           <Route path="/royal" element={<RoyalLendleScreen onChoice={handleGameChoice} onBackToMap={() => {
-            console.log('🗺️ [App] Usuário voltando do Royal para o Mapa');
+            // Usuário voltando do Royal para o Mapa
             navigate('/map');
           }} ficha={ficha} />} />
 

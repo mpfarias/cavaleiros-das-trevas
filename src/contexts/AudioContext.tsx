@@ -23,7 +23,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
       
       // Adicionar listener para garantir que o áudio está pronto
       const handleCanPlay = () => {
-        console.log('🎵 [AudioContext] Áudio global inicializado e pronto');
+        // Áudio global inicializado e pronto
       };
       
       const handleError = (error: Event) => {
@@ -55,15 +55,12 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
       const audio = audioRef.current;
       
       const handleCanPlay = async () => {
-  
         setAutoplayBlocked(false);
         
         // Tenta iniciar automaticamente quando estiver pronto
         try {
           await audio.play();
-  
         } catch (error) {
-  
           setAutoplayBlocked(true);
         }
       };
