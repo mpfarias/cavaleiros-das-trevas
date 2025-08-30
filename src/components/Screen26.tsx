@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Box, Card, CardContent, Typography, IconButton, Tooltip } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
-
+import BattleSystem from './BattleSystem';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 
@@ -99,116 +99,155 @@ const Screen26: React.FC<Screen26Props> = ({ onGoToScreen, ficha, onUpdateFicha 
   const { currentGroup, isPlaying, togglePlay } = useAudioGroup(26);
   const playClick = useClickSound(0.2);
   
-  // Estado para controlar a batalha
-  const [battleEnded, setBattleEnded] = useState(false);
-  
-  // Parâmetros disponíveis para uso futuro (serão usados no sistema de batalha)
+  const [battleState, setBattleState] = useState<'intro' | 'battle' | 'victory'>('intro');
+  const battleSystemRef = useRef<any>(null);
 
-  // Batalha inicia automaticamente quando a tela carrega
-  React.useEffect(() => {
-    // Simula o combate - será implementado o sistema real depois
+  const handleVictory = () => {
+    setBattleState('victory');
+  };
+
+  const handleStartBattle = () => {
+    setBattleState('battle');
+    // Aguarda um pouco para o BattleSystem ser renderizado e depois chama startBattle
     setTimeout(() => {
-      setBattleEnded(true);
-    }, 3000);
-  }, [ficha, onUpdateFicha]);
+      if (battleSystemRef.current?.startBattle) {
+        battleSystemRef.current.startBattle();
+      }
+    }, 100);
+  };
+
+  const handleDefeat = () => {
+    // Em caso de derrota, pode redirecionar para uma tela de game over
+    // Por enquanto, vamos apenas mostrar a derrota
+    console.log('Jogador foi derrotado');
+  };
+
+  const enemy = {
+    nome: 'Carcereiro',
+    pericia: 8,
+    forca: 7,
+    imagem: '/src/assets/images/personagens/carcereiro.png'
+  };
 
   return (
-         <Container data-screen="screen-26">
-
-      <Box
-        sx={{
+    <>
+      {/* Controles de áudio - sempre visíveis */}
+      {currentGroup && (
+        <Box sx={{
           position: 'fixed',
           bottom: '20px',
           right: '20px',
           zIndex: 1000,
-        }}
-      >
-        <Tooltip title={currentGroup ? (isPlaying ? 'Pausar música' : 'Tocar música') : 'Nenhuma música carregada'}>
-          <span>
-            <IconButton
-              onClick={() => {
-                playClick();
-                togglePlay();
-              }}
-              disabled={!currentGroup}
-              sx={{
-                color: currentGroup ? (isPlaying ? '#B31212' : '#E0DFDB') : '#666',
-                background: 'rgba(15,17,20,0.8)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                opacity: currentGroup ? 1 : 0.5,
-                '&:hover': currentGroup ? {
-                  background: 'rgba(179,18,18,0.2)',
-                  borderColor: 'rgba(255,255,255,0.3)',
-                } : {},
-                '&:disabled': {
-                  cursor: 'not-allowed'
-                }
-              }}
-            >
-              {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-            </IconButton>
-          </span>
-        </Tooltip>
-      </Box>
-
-      <CardWrap>
-        <CardContent sx={{ padding: '40px' }}>
-                                           <NarrativeText>
-              Você continua a provocar o carcereiro em voz alta, sem obter reação, até que por fim grita:
-              <br/><br/>
-              — Seu pai é filho de um tocador de alaúde, e sua mãe parece um balde cheio de ovos de rã!
-              <br/><br/>
-              Diante disso, o carcereiro salta furioso e parte contra você. Espumando de raiva, ele abre a cela e entra de punhos erguidos. Ele não quer ouvir desculpas — ele quer lutar.
-              <br/><br/>
-                            <strong>CARCEREIRO — PERÍCIA 8 | FORÇA 7 | PODER DE ATAQUE 0</strong>
-            </NarrativeText>
-
-            {/* Imagem do carcereiro centralizada */}
-            <Box sx={{ 
-              display: 'flex', 
-              justifyContent: 'center', 
-              marginBottom: '24px' 
-            }}>
-              <img 
-                src="/src/assets/images/personagens/carcereiro.png" 
-                alt="Carcereiro" 
-                style={{
-                  maxWidth: '300px',
-                  height: 'auto',
-                  borderRadius: '8px',
-                  border: '2px solid #8B4513'
-                }}
-              />
-            </Box>
-
-            <NarrativeText>
-              Se você vencer, terá que abandonar a cidade antes que o alarme seja dado.
-            </NarrativeText>
-
-                                           {/* Batalha acontece automaticamente - sem botões de ação */}
-
-                       {/* Botões de escape - aparecem após a batalha */}
-            {battleEnded && (
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
-                <ChoiceButton onClick={() => {
+        }}>
+          <Tooltip title={isPlaying ? 'Pausar música' : 'Tocar música'}>
+            <span>
+              <IconButton
+                onClick={() => {
                   playClick();
-                  onGoToScreen(272); // Porta Sul - Estrada do Comércio Principal
-                }}>
+                  togglePlay?.();
+                }}
+                sx={{
+                  color: isPlaying ? '#B31212' : '#E0DFDB',
+                  background: 'rgba(15,17,20,0.8)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  '&:hover': {
+                    background: 'rgba(179,18,18,0.2)',
+                    borderColor: 'rgba(255,255,255,0.3)',
+                  }
+                }}
+              >
+                {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
+              </IconButton>
+            </span>
+          </Tooltip>
+        </Box>
+      )}
+
+      <Container data-screen="screen-26">
+        <CardWrap>
+        <CardContent sx={{ padding: '40px' }}>
+          {battleState === 'intro' && (
+            <>
+              <NarrativeText>
+                Você continua a provocar o carcereiro em voz alta, sem obter reação, até que por fim grita:
+                <br/><br/>
+                — Seu pai é filho de um tocador de alaúde, e sua mãe parece um balde cheio de ovos de rã!
+                <br/><br/>
+                Diante disso, o carcereiro salta furioso e parte contra você. Espumando de raiva, ele abre a cela e entra de punhos erguidos. Ele não quer ouvir desculpas — ele quer lutar.
+                <br/><br/>
+                <strong>CARCEREIRO — PERÍCIA 8 | FORÇA 7 | PODER DE ATAQUE 0</strong>
+                <br/><br/>
+                Se você vencer, terá que abandonar a cidade antes que o alarme seja dado.
+              </NarrativeText>
+
+              <Box sx={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
+                <img 
+                  src={enemy.imagem}
+                  alt={enemy.nome}
+                  style={{
+                    maxWidth: '300px',
+                    height: 'auto',
+                    borderRadius: '8px',
+                    border: '2px solid #8B4513'
+                  }}
+                />
+              </Box>
+
+              <Box sx={{ textAlign: 'center' }}>
+                <ChoiceButton onClick={handleStartBattle}>
+                  Iniciar Batalha
+                </ChoiceButton>
+              </Box>
+            </>
+          )}
+
+          {battleState === 'battle' && (
+            <BattleSystem
+              enemy={enemy}
+              ficha={ficha}
+              onUpdateFicha={onUpdateFicha}
+              onVictory={handleVictory}
+              onDefeat={handleDefeat}
+              ref={battleSystemRef}
+            />
+          )}
+
+          {battleState === 'victory' && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', animation: `${fadeIn} 0.5s ease-out` }}>
+              <Typography variant="h5" sx={{ 
+                color: '#4CAF50', 
+                textAlign: 'center', 
+                fontWeight: 'bold',
+                textShadow: '0 2px 4px rgba(0,0,0,0.5)',
+                marginBottom: '24px'
+              }}>
+                🏆 VITÓRIA! 🏆
+              </Typography>
+              
+              <Typography variant="body1" sx={{ 
+                textAlign: 'center', 
+                color: 'text.primary',
+                marginBottom: '32px'
+              }}>
+                Você derrotou o carcereiro! Agora escolha seu caminho para escapar da cidade:
+              </Typography>
+
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <ChoiceButton onClick={() => onGoToScreen(272)}>
                   Saia pela Porta Sul, que leva à Estrada do Comércio Principal
                 </ChoiceButton>
 
-                <ChoiceButton onClick={() => {
-                  playClick();
-                  onGoToScreen(60); // Porta Leste
-                }}>
+                <ChoiceButton onClick={() => onGoToScreen(60)}>
                   Saia pela Porta Leste
                 </ChoiceButton>
               </Box>
-            )}
+            </Box>
+          )}
         </CardContent>
       </CardWrap>
-    </Container>
-  );
-};
+        </Container>
+      </>
+    );
+  };
 
 export default Screen26;
