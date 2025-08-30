@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Box, Card, CardContent, Typography, IconButton, Tooltip } from '@mui/material';
+import { Box, Card, CardContent, Typography, IconButton, Tooltip, Button } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
@@ -101,6 +101,7 @@ const Screen26: React.FC<Screen26Props> = ({ onGoToScreen, ficha, onUpdateFicha 
   
   const [battleState, setBattleState] = useState<'intro' | 'battle' | 'victory'>('intro');
   const battleSystemRef = useRef<any>(null);
+  const [showBattleInfoModal, setShowBattleInfoModal] = useState(false);
 
   const handleVictory = () => {
     setBattleState('victory');
@@ -108,18 +109,36 @@ const Screen26: React.FC<Screen26Props> = ({ onGoToScreen, ficha, onUpdateFicha 
 
   const handleStartBattle = () => {
     setBattleState('battle');
-    // Aguarda um pouco para o BattleSystem ser renderizado e depois chama startBattle
-    setTimeout(() => {
+    
+    // Função recursiva para verificar se o BattleSystem está pronto
+    const waitForBattleSystem = (attempts = 0) => {
       if (battleSystemRef.current?.startBattle) {
         battleSystemRef.current.startBattle();
+      } else if (attempts < 10) { // Máximo de 10 tentativas
+        setTimeout(() => waitForBattleSystem(attempts + 1), 100);
+      } else {
+        console.error('BattleSystem não foi inicializado corretamente');
+        // Fallback: tenta iniciar novamente
+        setBattleState('intro');
       }
-    }, 100);
+    };
+    
+    // Primeira tentativa após um delay
+    setTimeout(() => waitForBattleSystem(), 150);
   };
 
   const handleDefeat = () => {
     // Em caso de derrota, pode redirecionar para uma tela de game over
     // Por enquanto, vamos apenas mostrar a derrota
     console.log('Jogador foi derrotado');
+  };
+
+  const handleShowBattleInfo = () => {
+    setShowBattleInfoModal(true);
+  };
+
+  const handleCloseBattleInfo = () => {
+    setShowBattleInfoModal(false);
   };
 
   const enemy = {
@@ -175,7 +194,7 @@ const Screen26: React.FC<Screen26Props> = ({ onGoToScreen, ficha, onUpdateFicha 
                 <br/><br/>
                 Diante disso, o carcereiro salta furioso e parte contra você. Espumando de raiva, ele abre a cela e entra de punhos erguidos. Ele não quer ouvir desculpas — ele quer lutar.
                 <br/><br/>
-                <strong>CARCEREIRO — PERÍCIA 8 | FORÇA 7 | PODER DE ATAQUE 0</strong>
+                <strong>CARCEREIRO — PERÍCIA 8 | FORÇA 7 </strong>
                 <br/><br/>
                 Se você vencer, terá que abandonar a cidade antes que o alarme seja dado.
               </NarrativeText>
@@ -194,6 +213,32 @@ const Screen26: React.FC<Screen26Props> = ({ onGoToScreen, ficha, onUpdateFicha 
               </Box>
 
               <Box sx={{ textAlign: 'center' }}>
+                <Button
+                  onClick={handleShowBattleInfo}
+                  variant="outlined"
+                  sx={{
+                    padding: '12px 24px',
+                    border: '2px solid #8B4513',
+                    color: '#8B4513',
+                    borderRadius: '8px',
+                    fontSize: '16px',
+                    fontFamily: '"Cinzel", serif',
+                    fontWeight: 600,
+                    textAlign: 'center',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    outline: 'none',
+                    marginBottom: '16px',
+                    '&:hover': {
+                      background: 'rgba(139,69,19,0.1)',
+                      borderColor: '#654321',
+                      transform: 'translateY(-2px)'
+                    }
+                  }}
+                >
+                  Conhecer Sistema de Batalhas
+                </Button>
+                
                 <ChoiceButton onClick={handleStartBattle}>
                   Iniciar Batalha
                 </ChoiceButton>
@@ -221,7 +266,7 @@ const Screen26: React.FC<Screen26Props> = ({ onGoToScreen, ficha, onUpdateFicha 
                 textShadow: '0 2px 4px rgba(0,0,0,0.5)',
                 marginBottom: '24px'
               }}>
-                🏆 VITÓRIA! 🏆
+                VITÓRIA!
               </Typography>
               
               <Typography variant="body1" sx={{ 
@@ -244,10 +289,197 @@ const Screen26: React.FC<Screen26Props> = ({ onGoToScreen, ficha, onUpdateFicha 
             </Box>
           )}
         </CardContent>
-      </CardWrap>
-        </Container>
-      </>
-    );
-  };
+              </CardWrap>
+          </Container>
+
+        {/* Modal de informações sobre o sistema de batalha */}
+        {showBattleInfoModal && (
+          <>
+            <Box
+              sx={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'rgba(0,0,0,0.8)',
+                zIndex: 999,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '20px'
+              }}
+              onClick={handleCloseBattleInfo}
+            />
+            <Box
+              sx={{
+                position: 'fixed',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                background: `
+                  linear-gradient(135deg, rgba(245,222,179,0.98) 0%, rgba(222,184,135,0.95) 50%, rgba(205,133,63,0.98) 100%)
+                `,
+                border: '3px solid #8B4513',
+                borderRadius: '16px',
+                padding: '32px',
+                maxWidth: '800px',
+                width: '90%',
+                maxHeight: '80vh',
+                overflowY: 'auto',
+                zIndex: 1000,
+                boxShadow: `
+                  0 20px 60px rgba(0,0,0,0.8),
+                  inset 0 1px 0 rgba(255,255,255,0.3),
+                  0 0 0 1px rgba(139,69,19,0.6)
+                `
+              }}
+            >
+              <Typography variant="h4" sx={{ 
+                textAlign: 'center', 
+                marginBottom: '24px',
+                color: '#8B4513',
+                fontFamily: '"Cinzel", serif',
+                fontWeight: 'bold'
+              }}>
+                ⚔️ Sistema de Batalha ⚔️
+              </Typography>
+
+              <Box sx={{ marginBottom: '24px' }}>
+                <Typography variant="h6" sx={{ 
+                  color: '#8B4513', 
+                  fontWeight: 'bold',
+                  marginBottom: '12px'
+                }}>
+                  🎯 Como Funciona:
+                </Typography>
+                <Typography variant="body1" sx={{ marginBottom: '16px', lineHeight: 1.6 }}>
+                  Cada turno de batalha é dividido em duas fases: o inimigo lança dados primeiro, depois você. 
+                  O poder de ataque é calculado somando o resultado dos dados + sua PERÍCIA.
+                </Typography>
+              </Box>
+
+              <Box sx={{ marginBottom: '24px' }}>
+                <Typography variant="h6" sx={{ 
+                  color: '#8B4513', 
+                  fontWeight: 'bold',
+                  marginBottom: '12px'
+                }}>
+                  ⚡ Resultados dos Turnos:
+                </Typography>
+                <Box sx={{ 
+                  background: 'rgba(139,69,19,0.1)', 
+                  padding: '16px', 
+                  borderRadius: '8px',
+                  marginBottom: '16px'
+                }}>
+                  <Typography variant="body1" sx={{ marginBottom: '8px' }}>
+                    <strong style={{ color: '#4CAF50' }}>• Você acerta:</strong> Inimigo perde 2 pontos de FORÇA
+                  </Typography>
+                  <Typography variant="body1" sx={{ marginBottom: '8px' }}>
+                    <strong style={{ color: '#F44336' }}>• Inimigo acerta:</strong> Você perde 2 pontos de FORÇA
+                  </Typography>
+                  <Typography variant="body1" sx={{ marginBottom: '8px' }}>
+                    <strong style={{ color: '#FF9800' }}>• Empate:</strong> Ambos desviam, sem dano
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Box sx={{ marginBottom: '24px' }}>
+                <Typography variant="h6" sx={{ 
+                  color: '#8B4513', 
+                  fontWeight: 'bold',
+                  marginBottom: '12px'
+                }}>
+                  🎲 Teste de Sorte (Opcional):
+                </Typography>
+                <Typography variant="body1" sx={{ marginBottom: '12px', lineHeight: 1.6 }}>
+                  Após cada turno, você pode testar sua sorte gastando 1 ponto de SORTE atual:
+                </Typography>
+                <Box sx={{ 
+                  background: 'rgba(139,69,19,0.1)', 
+                  padding: '16px', 
+                  borderRadius: '8px',
+                  marginBottom: '16px'
+                }}>
+                  <Typography variant="body1" sx={{ marginBottom: '8px' }}>
+                    <strong>🎯 Se você acertou o inimigo:</strong>
+                  </Typography>
+                  <Typography variant="body2" sx={{ marginLeft: '16px', marginBottom: '4px' }}>
+                    • <strong style={{ color: '#4CAF50' }}>Sucesso (≥7):</strong> Inimigo perde 4 pontos de FORÇA (2 base + 2 sorte)
+                  </Typography>
+                  <Typography variant="body2" sx={{ marginLeft: '16px', marginBottom: '8px' }}>
+                    • <strong style={{ color: '#F44336' }}>Falha (&lt;7):</strong> Inimigo perde apenas 1 ponto de FORÇA (2 base - 1 azar)
+                  </Typography>
+                  
+                  <Typography variant="body1" sx={{ marginBottom: '8px' }}>
+                    <strong>🛡️ Se o inimigo acertou você:</strong>
+                  </Typography>
+                  <Typography variant="body2" sx={{ marginLeft: '16px', marginBottom: '4px' }}>
+                    • <strong style={{ color: '#4CAF50' }}>Sucesso (≥7):</strong> Você perde apenas 1 ponto de FORÇA (2 base - 1 sorte)
+                  </Typography>
+                  <Typography variant="body2" sx={{ marginLeft: '16px', marginBottom: '4px' }}>
+                    • <strong style={{ color: '#F44336' }}>Falha (&lt;7):</strong> Você perde 3 pontos de FORÇA (2 base + 1 azar)
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Box sx={{ marginBottom: '24px' }}>
+                <Typography variant="h6" sx={{ 
+                  color: '#8B4513', 
+                  fontWeight: 'bold',
+                  marginBottom: '12px'
+                }}>
+                  🏆 Condições de Vitória:
+                </Typography>
+                <Typography variant="body1" sx={{ lineHeight: 1.6 }}>
+                  • <strong style={{ color: '#4CAF50' }}>Vitória:</strong> Reduzir a FORÇA do inimigo para 0
+                  • <strong style={{ color: '#F44336' }}>Derrota:</strong> Sua FORÇA chegar a 0
+                </Typography>
+              </Box>
+
+              <Box sx={{ marginBottom: '24px' }}>
+                <Typography variant="h6" sx={{ 
+                  color: '#8B4513', 
+                  fontWeight: 'bold',
+                  marginBottom: '12px'
+                }}>
+                  Dicas Estratégicas:
+                </Typography>
+                <Typography variant="body1" sx={{ lineHeight: 1.6 }}>
+                  • Use o teste de sorte com sabedoria - pontos de sorte são limitados!
+                  • Considere o risco vs. benefício antes de testar a sorte
+                  • Monitore sua FORÇA e SORTE durante a batalha
+                </Typography>
+              </Box>
+
+              <Box sx={{ textAlign: 'center' }}>
+                <Button
+                  onClick={handleCloseBattleInfo}
+                  variant="contained"
+                  sx={{
+                    padding: '12px 24px',
+                    background: 'linear-gradient(135deg, rgba(139,69,19,0.9) 0%, rgba(160,82,45,0.8) 100%)',
+                    color: '#F5DEB3',
+                    border: '2px solid #8B4513',
+                    borderRadius: '8px',
+                    fontSize: '16px',
+                    fontFamily: '"Cinzel", serif',
+                    fontWeight: 600,
+                    '&:hover': {
+                      background: 'linear-gradient(135deg, rgba(179,18,18,0.9) 0%, rgba(139,0,0,0.8) 100%)',
+                      color: '#FFFFFF'
+                    }
+                  }}
+                >
+                  Entendi!
+                </Button>
+              </Box>
+            </Box>
+          </>
+        )}
+        </>
+      );
+    };
 
 export default Screen26;

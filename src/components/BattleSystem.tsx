@@ -15,6 +15,12 @@ const fadeOut = keyframes`
   to { opacity: 0; transform: scale(0.8); }
 `;
 
+// Animação específica para modais - apenas fade in/out sem transform
+const modalFadeIn = keyframes`
+  from { opacity: 0; }
+  to { opacity: 1; }
+`;
+
 // Container principal do sistema de combate - sem fundo, apenas conteúdo
 const BattleContainer = styled(Box)({
   display: 'flex',
@@ -67,9 +73,11 @@ const BattleModal = styled(Box)({
     inset 0 1px 0 rgba(255,255,255,0.3),
     0 0 0 1px rgba(139,69,19,0.6)
   `,
-  animation: `${fadeIn} 0.5s ease-out`,
+  animation: `${modalFadeIn} 0.3s ease-out`,
   willChange: 'transform',
-  backfaceVisibility: 'hidden'
+  backfaceVisibility: 'hidden',
+  // Garantir que o modal sempre fique centralizado
+  transformOrigin: 'center center'
 });
 
 // Overlay do modal
@@ -81,7 +89,7 @@ const ModalOverlay = styled(Box)({
   bottom: 0,
   background: 'rgba(0,0,0,0.7)',
   zIndex: 999,
-  animation: `${fadeIn} 0.3s ease-out`
+  animation: `${modalFadeIn} 0.3s ease-out`
 });
 
 // Botão do modal
@@ -89,7 +97,7 @@ const ModalButton = styled(Button)({
   padding: '12px 24px',
   background: 'linear-gradient(135deg, rgba(139,69,19,0.9) 0%, rgba(160,82,45,0.8) 100%)',
   color: '#F5DEB3',
-  border: '2px solid #D2B48C',
+  border: '2px solid #8B4513',
   borderRadius: '8px',
   fontSize: '16px',
   fontFamily: '"Cinzel", serif',
@@ -101,12 +109,12 @@ const ModalButton = styled(Button)({
   textShadow: '0 1px 2px rgba(0,0,0,0.8)',
   boxShadow: '0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
   '&:focus-visible': {
-    outline: '2px solid #FFD700',
+    outline: '2px solid #8B4513',
     outlineOffset: '2px'
   },
   '&:hover': {
     background: 'linear-gradient(135deg, rgba(179,18,18,0.9) 0%, rgba(139,0,0,0.8) 100%)',
-    borderColor: '#FFD700',
+    borderColor: '#8B4513',
     color: '#FFFFFF',
     transform: 'translateY(-2px) scale(1.02)',
     boxShadow: '0 8px 25px rgba(179,18,18,0.4), inset 0 1px 0 rgba(255,255,255,0.2)'
@@ -168,8 +176,13 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
   
   // Estados para os modais temáticos
   const [showEnemyResultModal, setShowEnemyResultModal] = useState(false);
+  const [showPlayerResultModal, setShowPlayerResultModal] = useState(false);
   const [showBattleResultModal, setShowBattleResultModal] = useState(false);
   const [currentTurnResult, setCurrentTurnResult] = useState<TurnResult | null>(null);
+  
+  // Estados para teste de sorte
+  const [showLuckDiceModal, setShowLuckDiceModal] = useState(false);
+  const [luckTestType, setLuckTestType] = useState<'damage' | 'reduction' | null>(null);
 
   const playerPericia = ficha?.pericia?.atual || 0;
   const playerForca = ficha?.forca?.atual || 0;
@@ -196,6 +209,7 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
   const startBattle = useCallback(() => {
     console.log('🚀 START BATTLE - Iniciando batalha');
     playClick();
+    setBattleState('battle');
     setCurrentTurn(1);
     setDicePhase('enemy');
     setEnemyRoll(null);
@@ -263,12 +277,10 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
       setShowEnemyResultModal(true);
     } else {
       setPlayerRoll(total);
-      setTimeout(() => {
-        resolveTurn();
-      }, 100);
+      setShowPlayerResultModal(true);
     }
     setDiceModalOpen(false);
-  }, [dicePhase, resolveTurn]);
+  }, [dicePhase]);
 
   const testLuck = useCallback((forDamage: boolean) => {
     playClick();
@@ -279,30 +291,52 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
       return;
     }
 
+    // Configura o tipo de teste de sorte e abre a modal de dados
+    setLuckTestType(forDamage ? 'damage' : 'reduction');
+    setShowLuckDiceModal(true);
+  }, [ficha, playClick]);
+
+  const handleLuckDiceComplete = useCallback((_dice: number[], total: number) => {
+    if (!luckTestType) return;
+    
+    // Consome 1 ponto de sorte
     const updatedFicha = { ...ficha };
     updatedFicha.sorte.atual = Math.max(0, ficha.sorte.atual - 1);
     onUpdateFicha(updatedFicha);
 
-    if (forDamage) {
-      setEnemyForca(prev => Math.max(0, prev - 1));
-      setLuckResult('Sorte! Dano extra causado! -1 FORÇA do inimigo');
+    // Teste de sorte: se o total for 7 ou mais, é sucesso
+    const isSuccess = total >= 7;
+    
+    if (luckTestType === 'damage') {
+      if (isSuccess) {
+        setEnemyForca(prev => Math.max(0, prev - 1));
+        setLuckResult(`Sorte! Dados: ${total} - Dano extra causado! -1 FORÇA do inimigo`);
+      } else {
+        setLuckResult(`Falha! Dados: ${total} - Nenhum dano extra causado`);
+      }
     } else {
-      const recoveredForca = Math.min(1, playerForca + 1);
-      updatedFicha.forca.atual = recoveredForca;
-      onUpdateFicha(updatedFicha);
-      setLuckResult('Sorte! Dano reduzido! +1 FORÇA recuperada');
+      if (isSuccess) {
+        const recoveredForca = Math.min(1, playerForca + 1);
+        updatedFicha.forca.atual = recoveredForca;
+        onUpdateFicha(updatedFicha);
+        setLuckResult(`Sorte! Dados: ${total} - Dano reduzido! +1 FORÇA recuperada`);
+      } else {
+        setLuckResult(`Falha! Dados: ${total} - Nenhum dano reduzido`);
+      }
     }
 
+    setShowLuckDiceModal(false);
+    setLuckTestType(null);
     setShowLuckAlert(true);
     setTimeout(() => setShowLuckAlert(false), 3000);
-  }, [ficha, playerForca, onUpdateFicha, playClick]);
+  }, [luckTestType, ficha, playerForca, onUpdateFicha]);
 
   const getTurnResultText = (turn: TurnResult) => {
     switch (turn.result) {
       case 'player_hit':
-        return `Você acertou! Inimigo perde ${turn.damage} FORÇA`;
+        return `Você acertou! Inimigo perde ${turn.damage} pontos de FORÇA`;
       case 'enemy_hit':
-        return `Inimigo acertou! Você perde ${turn.damage} FORÇA`;
+        return `Inimigo acertou! Você perde ${turn.damage} pontos de FORÇA`;
       case 'dodge':
         return 'Ambos desviaram!';
       default:
@@ -323,6 +357,13 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
     }, 300);
   }, []);
 
+  const handlePlayerModalClose = useCallback(() => {
+    setShowPlayerResultModal(false);
+    setTimeout(() => {
+      resolveTurn();
+    }, 300);
+  }, [resolveTurn]);
+
   const handleBattleResultModalClose = useCallback(() => {
     setShowBattleResultModal(false);
     setCurrentTurnResult(null);
@@ -342,17 +383,17 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
           <Typography variant="h6" sx={{ color: 'text.primary', fontWeight: 'bold' }}>
             {enemy.nome}
           </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            PERÍCIA: {enemy.pericia} | FORÇA: {enemyForca}
-          </Typography>
+                     <Typography variant="body2" sx={{ color: '#d35656ff' }}>
+             PERÍCIA: {enemy.pericia} | FORÇA: {enemyForca}
+           </Typography>
         </Box>
         <Box sx={{ textAlign: 'right' }}>
           <Typography variant="h6" sx={{ color: 'text.primary', fontWeight: 'bold' }}>
             Você
           </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            PERÍCIA: {playerPericia} | FORÇA: {playerForca}
-          </Typography>
+                     <Typography variant="body2" sx={{ color: '#d35656ff' }}>
+             PERÍCIA: {playerPericia} | FORÇA: {playerForca}
+           </Typography>
         </Box>
       </StatusBox>
 
@@ -372,47 +413,18 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
               <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
                 Turno {turn.turn}
               </Typography>
-              <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '12px' }}>
-                Você: {turn.playerRoll} + {playerPericia} = {turn.playerPower} | 
-                {enemy.nome}: {turn.enemyRoll} + {enemy.pericia} = {turn.enemyPower}
-              </Typography>
+                             <Typography variant="body2" sx={{ color: '#d35656ff', fontSize: '12px' }}>
+                 Você: {turn.playerRoll} + {playerPericia} = {turn.playerPower} | 
+                 {enemy.nome}: {turn.enemyRoll} + {enemy.pericia} = {turn.enemyPower}
+               </Typography>
               <Typography variant="body2" sx={{ 
-                color: turn.result === 'player_hit' ? '#4CAF50' : 
+                color: turn.result === 'player_hit' ? '#2b7e2eff' : 
                        turn.result === 'enemy_hit' ? '#F44336' : '#FF9800',
                 fontWeight: 'bold'
               }}>
                 {getTurnResultText(turn)}
               </Typography>
-              {canShowLuckButton(turn) && (
-                <Box sx={{ marginTop: '8px' }}>
-                  {turn.result === 'player_hit' ? (
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      onClick={() => testLuck(true)}
-                      sx={{ 
-                        borderColor: '#4CAF50', 
-                        color: '#4CAF50',
-                        marginRight: '8px'
-                      }}
-                    >
-                      Testar Sorte (Dano Extra)
-                    </Button>
-                  ) : (
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      onClick={() => testLuck(false)}
-                      sx={{ 
-                        borderColor: '#FF9800', 
-                        color: '#FF9800'
-                      }}
-                    >
-                      Testar Sorte (Reduzir Dano)
-                    </Button>
-                  )}
-                </Box>
-              )}
+              
             </Box>
           ))}
         </TurnHistory>
@@ -421,55 +433,63 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
       {/* Botão de próximo turno */}
       {battleState === 'battle' && (
         <Box sx={{ textAlign: 'center' }}>
-          <Button
-            onClick={nextTurn}
-            variant="contained"
-            sx={{
-              padding: '16px 32px',
-              background: 'linear-gradient(135deg, rgba(179,18,18,0.9) 0%, rgba(139,0,0,0.8) 100%)',
-              color: '#FFFFFF',
-              border: '2px solid #FFD700',
-              borderRadius: '12px',
-              fontSize: '18px',
-              fontFamily: '"Cinzel", serif',
-              fontWeight: 700,
-              textAlign: 'center',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              outline: 'none',
-              textShadow: '0 1px 2px rgba(0,0,0,0.8)',
-              boxShadow: '0 8px 25px rgba(179,18,18,0.4), inset 0 1px 0 rgba(255,255,255,0.2)',
-              '&:focus-visible': {
-                outline: '2px solid #FFD700',
-                outlineOffset: '2px'
-              },
-              '&:hover': {
-                background: 'linear-gradient(135deg, rgba(139,0,0,0.9) 0%, rgba(179,18,18,0.8) 100%)',
-                transform: 'translateY(-2px) scale(1.02)',
-                boxShadow: '0 12px 32px rgba(179,18,18,0.6), inset 0 1px 0 rgba(255,255,255,0.3)'
-              },
-              '&:active': {
-                transform: 'translateY(0) scale(0.98)'
-              }
-            }}
-          >
+                     <Button
+             onClick={nextTurn}
+             variant="contained"
+             sx={{
+               padding: '16px 32px',
+               background: 'linear-gradient(135deg, rgba(179,18,18,0.9) 0%, rgba(139,0,0,0.8) 100%)',
+               color: '#FFFFFF',
+               border: '2px solid #8B4513',
+               borderRadius: '12px',
+               fontSize: '18px',
+               fontFamily: '"Cinzel", serif',
+               fontWeight: 700,
+               textAlign: 'center',
+               cursor: 'pointer',
+               transition: 'all 0.3s ease',
+               outline: 'none',
+               textShadow: '0 1px 2px rgba(0,0,0,0.8)',
+               boxShadow: '0 8px 25px rgba(179,18,18,0.4), inset 0 1px 0 rgba(255,255,255,0.2)',
+               '&:focus-visible': {
+                 outline: '2px solid #8B4513',
+                 outlineOffset: '2px'
+               },
+               '&:hover': {
+                 background: 'linear-gradient(135deg, rgba(139,0,0,0.9) 0%, rgba(179,18,18,0.8) 100%)',
+                 transform: 'translateY(-2px) scale(1.02)',
+                 boxShadow: '0 12px 32px rgba(179,18,18,0.6), inset 0 1px 0 rgba(255,255,255,0.3)'
+               },
+               '&:active': {
+                 transform: 'translateY(0) scale(0.98)'
+               }
+             }}
+           >
             Próximo Turno
           </Button>
         </Box>
       )}
 
-      {/* Sistema de dados 3D */}
-      <DiceRollModal3D
-        open={diceModalOpen}
-        numDice={2}
-        onComplete={handleDiceComplete}
-        title={dicePhase === 'enemy' ? `Dados para ${enemy.nome}` : 'Seus dados'}
-      />
+             {/* Sistema de dados 3D para batalha */}
+       <DiceRollModal3D
+         open={diceModalOpen}
+         numDice={2}
+         onComplete={handleDiceComplete}
+         title={dicePhase === 'enemy' ? `Dados para ${enemy.nome}` : 'Seus dados'}
+       />
+
+       {/* Sistema de dados 3D para teste de sorte */}
+       <DiceRollModal3D
+         open={showLuckDiceModal}
+         numDice={2}
+         onComplete={handleLuckDiceComplete}
+         title={luckTestType === 'damage' ? 'Teste de Sorte - Dano Extra' : 'Teste de Sorte - Reduzir Dano'}
+       />
 
       {/* Alertas */}
       {showLuckAlert && (
         <GameAlert sx={{ top: '120px' }} $isVisible={showLuckAlert}>
-          🍀 {luckResult}
+         {luckResult}
         </GameAlert>
       )}
 
@@ -496,9 +516,6 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
               }}>
                 {enemyRoll} + {enemy.pericia} = {enemyRoll! + enemy.pericia}
               </Typography>
-              <Typography variant="body1" sx={{ color: '#8B4513' }}>
-                O {enemy.nome} está pronto para atacar!
-              </Typography>
             </Box>
 
             <Box sx={{ textAlign: 'center' }}>
@@ -510,7 +527,41 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
         </>
       )}
 
-      {/* Modal 2: Resultado da batalha */}
+      {/* Modal 2: Resultado do jogador */}
+      {showPlayerResultModal && (
+        <>
+          <ModalOverlay onClick={handlePlayerModalClose} />
+          <BattleModal>
+            <Typography variant="h5" sx={{ 
+              textAlign: 'center', 
+              marginBottom: '24px',
+              color: '#8B4513',
+              fontFamily: '"Cinzel", serif',
+              fontWeight: 'bold'
+            }}>
+              Seu Poder de Ataque
+            </Typography>
+            
+            <Box sx={{ textAlign: 'center', marginBottom: '24px' }}>
+              <Typography variant="h4" sx={{ 
+                color: '#4CAF50',
+                fontWeight: 'bold',
+                marginBottom: '8px'
+              }}>
+                {playerRoll} + {playerPericia} = {playerRoll! + playerPericia}
+              </Typography>
+            </Box>
+
+            <Box sx={{ textAlign: 'center' }}>
+              <ModalButton onClick={handlePlayerModalClose}>
+                Ver Resultado da Batalha
+              </ModalButton>
+            </Box>
+          </BattleModal>
+        </>
+      )}
+
+      {/* Modal 3: Resultado da batalha */}
       {showBattleResultModal && currentTurnResult && (
         <>
           <ModalOverlay onClick={handleBattleResultModalClose} />
@@ -567,13 +618,26 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
                 <Typography variant="body2" sx={{ 
                   color: '#8B4513',
                   fontStyle: 'italic',
-                  fontSize: '14px'
+                  fontSize: '14px',
+                  marginBottom: '16px'
                 }}>
                   {currentTurnResult.result === 'player_hit' 
                     ? 'Teste sua sorte para aumentar o dano causado ao inimigo!'
                     : 'Teste sua sorte para reduzir o dano sofrido!'
                   }
                 </Typography>
+                                 <ModalButton 
+                   onClick={handleBattleResultModalClose}
+                   sx={{
+                     background: 'linear-gradient(135deg, rgba(179,18,18,0.9) 0%, rgba(139,0,0,0.8) 100%)',
+                     borderColor: '#8B4513',
+                     '&:hover': {
+                       background: 'linear-gradient(135deg, rgba(139,0,0,0.9) 0%, rgba(179,18,18,0.8) 100%)'
+                     }
+                   }}
+                 >
+                   Ok
+                 </ModalButton>
               </Box>
             )}
 
