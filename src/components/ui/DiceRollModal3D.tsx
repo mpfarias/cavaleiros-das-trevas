@@ -3,6 +3,7 @@ import { Dialog, DialogContent, Box, Typography, Button } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
+import { useDiceSound } from '../../hooks/useDiceSound';
 
 // Animações sutis para o modal
 const modalEntrance = keyframes`
@@ -86,6 +87,7 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
   const [isRolling, setIsRolling] = useState(true); // Começa rolando automaticamente
   const [results, setResults] = useState<number[] | null>(null);
   const [total, setTotal] = useState<number | null>(null);
+  const playDice = useDiceSound(0.6); // Som dos dados com volume 0.6
 
   // Refs para Three.js e Cannon.js
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -399,6 +401,11 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
     }
     
     console.log('🎲 [DiceRollModal3D] Iniciando rolagem dos dados...');
+    
+    // Tocar som dos dados
+    console.log('🔊 [DiceRollModal3D] Tocando som dos dados...');
+    playDice();
+    
     setIsRolling(true);
     setResults(null);
     setTotal(null);

@@ -28,19 +28,24 @@ export const useItemEffects = () => {
   const applyModifiersToAttributes = useCallback((ficha: Ficha) => {
     const modifiers = calculateActiveModifiers(ficha);
     
+    // 🔧 PRESERVAR mudanças feitas durante o jogo (como dano, sorte perdida, etc.)
+    // Aplicar apenas os modificadores dos itens, sem resetar para valores iniciais
     return {
       ...ficha,
       pericia: {
         ...ficha.pericia,
-        atual: Math.max(0, ficha.pericia.inicial + modifiers.pericia)
+        // Preservar o valor atual e aplicar apenas os modificadores dos itens
+        atual: Math.max(0, ficha.pericia.atual + modifiers.pericia)
       },
       forca: {
         ...ficha.forca,
-        atual: Math.max(0, ficha.forca.inicial + modifiers.forca)
+        // Preservar o valor atual e aplicar apenas os modificadores dos itens
+        atual: Math.max(0, ficha.forca.atual + modifiers.forca)
       },
       sorte: {
         ...ficha.sorte,
-        atual: Math.max(0, ficha.sorte.inicial + modifiers.sorte)
+        // Preservar o valor atual e aplicar apenas os modificadores dos itens
+        atual: Math.max(0, ficha.sorte.atual + modifiers.sorte)
       },
       modificadoresAtivos: modifiers
     };

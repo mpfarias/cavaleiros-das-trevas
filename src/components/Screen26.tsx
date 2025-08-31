@@ -1,9 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Box, Card, CardContent, Typography, IconButton, Tooltip, Button } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
-import { useAudioGroup } from '../hooks/useAudioGroup';
+import { useAudio } from '../hooks/useAudio';
 import { useClickSound } from '../hooks/useClickSound';
 import BattleSystem from './BattleSystem';
+import GameOverScreen from './GameOverScreen';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 
@@ -96,12 +97,36 @@ interface Screen26Props {
 }
 
 const Screen26: React.FC<Screen26Props> = ({ onGoToScreen, ficha, onUpdateFicha }) => {
-  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(26);
+  // Hook de áudio direto para controle manual
+  const { isPlaying, togglePlay, changeTrack, tryStartMusic } = useAudio();
+  const currentGroup = 'battle'; // Grupo de áudio para tela de batalha
   const playClick = useClickSound(0.2);
   
-  const [battleState, setBattleState] = useState<'intro' | 'battle' | 'victory'>('intro');
+  const [battleState, setBattleState] = useState<'intro' | 'battle' | 'victory' | 'defeat'>('intro');
   const battleSystemRef = useRef<any>(null);
   const [showBattleInfoModal, setShowBattleInfoModal] = useState(false);
+
+  // Estabilizar o callback onUpdateFicha para evitar re-renderizações do BattleSystem
+  const stableOnUpdateFicha = useCallback((updatedFicha: any) => {
+    console.log('🔄 [Screen26] onUpdateFicha chamado com ficha atualizada');
+    onUpdateFicha(updatedFicha);
+  }, [onUpdateFicha]);
+
+  // Inicializar áudio de batalha quando a tela carregar
+  useEffect(() => {
+    const initializeBattleAudio = async () => {
+      try {
+        console.log('🎵 [Screen26] Inicializando áudio de batalha...');
+        await changeTrack('/src/assets/sounds/bgm-battle.mp3');
+        tryStartMusic();
+        console.log('🎵 [Screen26] Áudio de batalha inicializado com sucesso!');
+      } catch (error) {
+        console.warn('🎵 [Screen26] Erro ao inicializar áudio de batalha:', error);
+      }
+    };
+    
+    initializeBattleAudio();
+  }, [changeTrack, tryStartMusic]);
 
   const handleVictory = () => {
     setBattleState('victory');
@@ -128,9 +153,9 @@ const Screen26: React.FC<Screen26Props> = ({ onGoToScreen, ficha, onUpdateFicha 
   };
 
   const handleDefeat = () => {
-    // Em caso de derrota, pode redirecionar para uma tela de game over
-    // Por enquanto, vamos apenas mostrar a derrota
-    console.log('Jogador foi derrotado');
+    // Em caso de derrota, atualizar o estado para mostrar GameOverScreen
+    console.log('💀 [Screen26] Jogador foi derrotado, atualizando estado para defeat');
+    setBattleState('defeat');
   };
 
   const handleShowBattleInfo = () => {
@@ -150,7 +175,7 @@ const Screen26: React.FC<Screen26Props> = ({ onGoToScreen, ficha, onUpdateFicha 
 
   return (
     <>
-      {/* Controles de áudio - sempre visíveis */}
+      {/* Controles de áudio */}
       {currentGroup && (
         <Box sx={{
           position: 'fixed',
@@ -250,7 +275,7 @@ const Screen26: React.FC<Screen26Props> = ({ onGoToScreen, ficha, onUpdateFicha 
             <BattleSystem
               enemy={enemy}
               ficha={ficha}
-              onUpdateFicha={onUpdateFicha}
+              onUpdateFicha={stableOnUpdateFicha}
               onVictory={handleVictory}
               onDefeat={handleDefeat}
               ref={battleSystemRef}
@@ -287,6 +312,22 @@ const Screen26: React.FC<Screen26Props> = ({ onGoToScreen, ficha, onUpdateFicha 
                 </ChoiceButton>
               </Box>
             </Box>
+          )}
+
+          {battleState === 'defeat' && (
+            <GameOverScreen
+              onRestart={() => {
+                console.log('🔄 [Screen26] Reiniciando jogo...');
+                window.location.reload();
+              }}
+              onContinue={() => {
+                console.log('📁 [Screen26] Continuando aventura...');
+                onGoToScreen(60); // Ir para tela de saída da cidade
+              }}
+              deathReason="Você foi derrotado em combate"
+              deathLocation={`Batalha contra ${enemy.nome}`}
+              characterStats={ficha}
+            />
           )}
         </CardContent>
               </CardWrap>
