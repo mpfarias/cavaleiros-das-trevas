@@ -159,8 +159,6 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({
 
   // Tocar música de fundo assustadora
   useEffect(() => {
-    console.log('🎵 [GameOverScreen] useEffect INICIADO!');
-    
     // Evitar execução múltipla
     if (hasStartedMusic.current) {
       console.log('🎵 [GameOverScreen] Música já foi iniciada, pulando...');
@@ -169,15 +167,9 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({
     
     hasStartedMusic.current = true;
     let isMounted = true;
-    let audioElement: HTMLAudioElement | null = null;
-    
-    console.log('🎵 [GameOverScreen] Configurando música automática...');
     
     const playScaryMusic = async () => {
-      if (!isMounted) {
-        console.log('🎵 [GameOverScreen] Componente desmontado, parando...');
-        return;
-      }
+      if (!isMounted) return;
       
       try {
         console.log('🎵 [GameOverScreen] Iniciando sequência de áudio...');
@@ -186,57 +178,42 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({
         console.log('🎵 [GameOverScreen] Forçando parada da música atual...');
         pause();
         
-        // Aguardar menos tempo para evitar desmontagem
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Aguardar mais tempo para garantir que parou
+        await new Promise(resolve => setTimeout(resolve, 300));
         
-        if (!isMounted) {
-          console.log('🎵 [GameOverScreen] Componente desmontado após pause, parando...');
-          return;
-        }
+        if (!isMounted) return;
         
-        console.log('🎵 [GameOverScreen] Criando áudio direto para bgm-scary.mp3...');
+        console.log('🎵 [GameOverScreen] Alterando track para bgm-scary.mp3...');
+        console.log('🎵 [GameOverScreen] Caminho completo:', '/src/assets/sounds/bgm-scary.mp3');
         
         try {
-          // Criar áudio imediatamente
-          audioElement = new Audio('/src/assets/sounds/bgm-scary.mp3');
-          audioElement.volume = 0.7;
-          audioElement.loop = true;
-          
-          // Tentar tocar imediatamente (pode falhar, mas é mais rápido)
-          try {
-            await audioElement.play();
-            console.log('✅ [GameOverScreen] Música assustadora tocando imediatamente!');
-          } catch (playError) {
-            console.log('🎵 [GameOverScreen] Play imediato falhou, aguardando carregamento...');
-            
-            // Fallback: aguardar carregamento
-            audioElement.addEventListener('canplaythrough', () => {
-              if (!isMounted || !audioElement) {
-                console.log('🎵 [GameOverScreen] Componente desmontado durante carregamento, parando...');
-                return;
-              }
-              console.log('✅ [GameOverScreen] Áudio assustador carregado!');
-              audioElement.play()
-                .then(() => {
-                  console.log('✅ [GameOverScreen] Música assustadora tocando!');
-                })
-                .catch((error) => {
-                  console.error('❌ [GameOverScreen] Erro ao tocar áudio assustador:', error);
-                });
-            }, { once: true });
-          }
-          
-          audioElement.addEventListener('error', (error) => {
-            console.error('❌ [GameOverScreen] Erro no áudio assustador:', error);
-          });
-          
-          console.log('🎵 [GameOverScreen] Áudio assustador criado!');
+          await changeTrack('/src/assets/sounds/bgm-scary.mp3');
+          console.log('🎵 [GameOverScreen] changeTrack executado com sucesso!');
         } catch (trackError) {
-          console.error('❌ [GameOverScreen] Erro ao criar áudio assustador:', trackError);
+          console.error('❌ [GameOverScreen] Erro no changeTrack:', trackError);
           throw trackError;
         }
         
-        console.log('🎵 [GameOverScreen] Música assustadora configurada com sucesso!');
+        if (!isMounted) return;
+        
+        console.log('🎵 [GameOverScreen] Track alterado com sucesso!');
+        
+        // Aguardar mais tempo antes de tentar tocar
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        if (!isMounted) return;
+        
+        console.log('🎵 [GameOverScreen] Tentando iniciar música...');
+        
+        try {
+          await tryStartMusic();
+          console.log('🎵 [GameOverScreen] tryStartMusic executado com sucesso!');
+        } catch (startError) {
+          console.error('❌ [GameOverScreen] Erro no tryStartMusic:', startError);
+          throw startError;
+        }
+        
+        console.log('🎵 [GameOverScreen] Música assustadora iniciada com sucesso!');
       } catch (error) {
         if (isMounted) {
           console.error('❌ [GameOverScreen] Erro ao tocar música:', error);
@@ -245,24 +222,12 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({
       }
     };
     
-    console.log('🎵 [GameOverScreen] Executando playScaryMusic...');
+    console.log('🎵 [GameOverScreen] useEffect executado, iniciando música...');
     playScaryMusic();
     
     // Cleanup para evitar vazamentos de memória
     return () => {
-      console.log('🎵 [GameOverScreen] Cleanup do useEffect executado');
       isMounted = false;
-      
-      // Parar o áudio se existir
-      if (audioElement) {
-        try {
-          audioElement.pause();
-          audioElement.currentTime = 0;
-          console.log('🎵 [GameOverScreen] Áudio parado no cleanup');
-        } catch (error) {
-          console.error('❌ [GameOverScreen] Erro ao parar áudio no cleanup:', error);
-        }
-      }
     };
   }, []); // Array vazio para executar apenas uma vez
 
@@ -279,6 +244,48 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({
 
   return (
     <GameOverContainer>
+      {/* Botão de teste para debug */}
+      <Button 
+        onClick={() => {
+          console.log('🧪 [GameOverScreen] TESTE DIRETO - criando áudio...');
+          try {
+            const audio = new Audio('/src/assets/sounds/bgm-scary.mp3');
+            audio.volume = 0.5;
+            audio.loop = false;
+            
+            audio.addEventListener('canplaythrough', () => {
+              console.log('✅ [GameOverScreen] TESTE - Áudio carregado!');
+              audio.play()
+                .then(() => {
+                  console.log('✅ [GameOverScreen] TESTE - Áudio tocando!');
+                })
+                .catch((error) => {
+                  console.error('❌ [GameOverScreen] TESTE - Erro ao tocar:', error);
+                });
+            });
+            
+            audio.addEventListener('error', (error) => {
+              console.error('❌ [GameOverScreen] TESTE - Erro no áudio:', error);
+            });
+            
+            console.log('🧪 [GameOverScreen] TESTE - Áudio criado, aguardando...');
+          } catch (error) {
+            console.error('❌ [GameOverScreen] TESTE - Erro ao criar áudio:', error);
+          }
+        }}
+        sx={{
+          position: 'absolute',
+          top: '20px',
+          right: '20px',
+          background: 'rgba(255, 0, 0, 0.8)',
+          color: 'white',
+          border: '2px solid red',
+          zIndex: 10000
+        }}
+      >
+        🧪 TESTE ÁUDIO
+      </Button>
+
       {/* Container para caveira real */}
       <SkullContainer>
         {/* Caveira agora é imagem de fundo */}
