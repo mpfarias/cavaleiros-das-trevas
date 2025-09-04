@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, forwardRef, useImperativeHandle, useMemo } from 'react';
+import { useState, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { Box, Typography, Button } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useClickSound } from '../hooks/useClickSound';
@@ -31,10 +31,8 @@ const victoryTitle = keyframes`
 
 const enemyFadeOut = keyframes`
   0% { opacity: 1; transform: scale(1) rotate(0deg); }
-  25% { opacity: 0.8; transform: scale(0.9) rotate(2deg); }
   50% { opacity: 0.5; transform: scale(0.8) rotate(5deg); }
-  75% { opacity: 0.2; transform: scale(0.7) rotate(8deg); }
-  100% { opacity: 0; transform: scale(0.5) rotate(12deg); }
+  100% { opacity: 0; transform: scale(0.6) rotate(10deg); }
 `;
 
 const pathOptionsFadeIn = keyframes`
@@ -181,14 +179,6 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
   onVictory,
   onDefeat
 }, ref) => {
-  
-  console.log('🎮 [BattleSystem] Componente renderizado - Props recebidas:', { 
-    enemyNome: enemy.nome, 
-    fichaForca: ficha?.forca?.atual,
-    onUpdateFicha: typeof onUpdateFicha,
-    onVictory: typeof onVictory,
-    onDefeat: typeof onDefeat
-  });
 
   const playClick = useClickSound(0.2);
 
@@ -214,29 +204,20 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
   // Estados para teste de sorte
   const [showLuckDiceModal, setShowLuckDiceModal] = useState(false);
   const [luckTestType, setLuckTestType] = useState<'damage' | 'reduction' | null>(null);
+  const [showGameOver, setShowGameOver] = useState(false);
   const [showVictoryModal, setShowVictoryModal] = useState(false);
 
-  // Estabilizar as props para evitar re-renderizações desnecessárias
-  const playerPericia = useMemo(() => ficha?.pericia?.atual || 0, [ficha?.pericia?.atual]);
-  const playerForca = useMemo(() => ficha?.forca?.atual || 0, [ficha?.forca?.atual]);
+  const playerPericia = ficha?.pericia?.atual || 0;
+  const playerForca = ficha?.forca?.atual || 0;
 
   // Expõe a função startBattle para o componente pai
   useImperativeHandle(ref, () => ({
     startBattle: () => startBattle()
   }), []);
 
-    // Verificar condições de vitória/derrota
+  // Verificar condições de vitória/derrota
   useEffect(() => {
-    console.log('🔍 [BattleSystem] useEffect executado - enemyForca:', enemyForca, 'playerForca:', playerForca, 'battleState:', battleState);
-    
-    // Evitar execução múltipla se já estiver em estado final
-    if (battleState === 'victory' || battleState === 'defeat') {
-      console.log('🔍 [BattleSystem] Estado final já definido, pulando verificação...');
-      return;
-    }
-    
     if (enemyForca <= 0) {
-      console.log('🏆 [BattleSystem] INIMIGO DERROTADO!');
       setBattleState('enemyDefeated');
       
       // Tocar áudio de vitória
@@ -250,14 +231,11 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
         onVictory();
       }, 2500);
     } else if (playerForca <= 0) {
-      console.log('💀 [BattleSystem] JOGADOR DERROTADO! Ativando Game Over...');
-      console.log('💀 [BattleSystem] Estado atual antes de setBattleState:', battleState);
       setBattleState('defeat');
-      console.log('💀 [BattleSystem] setBattleState executado, chamando onDefeat...');
+      setShowGameOver(true);
       onDefeat();
-      console.log('💀 [BattleSystem] onDefeat executado');
     }
-  }, [enemyForca, playerForca, onVictory, onDefeat, battleState]);
+  }, [enemyForca, playerForca, onVictory, onDefeat]);
 
   const startBattle = useCallback(() => {
     console.log('🚀 START BATTLE - Iniciando batalha');
@@ -302,7 +280,6 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
       damage = 2;
       const updatedFicha = { ...ficha };
       updatedFicha.forca.atual = Math.max(0, playerForca - damage);
-      console.log('🔄 [BattleSystem] Chamando onUpdateFicha em resolveTurn');
       onUpdateFicha(updatedFicha);
     } else {
       result = 'dodge';
@@ -473,19 +450,9 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
   }, []);
 
   // Se a batalha terminou, não renderiza nada
-  if (battleState === 'victory') {
-    console.log('🎮 [BattleSystem] Estado victory, retornando null');
+  if (battleState === 'victory' || battleState === 'defeat') {
     return null;
   }
-
-  // Se o jogador foi derrotado, apenas chamar onDefeat e não renderizar nada
-  if (battleState === 'defeat') {
-    console.log('🎮 [BattleSystem] Estado defeat - chamando onDefeat e não renderizando GameOverScreen');
-    // O onDefeat já foi chamado no useEffect, não precisamos renderizar nada aqui
-    return null;
-  }
-
-  console.log('🎮 [BattleSystem] Renderizando interface de batalha (estado:', battleState, ')');
 
   return (
     <BattleContainer>
@@ -777,7 +744,7 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
         </>
       )}
 
-            {/* Modal de Vitória */}
+      {/* Modal de Vitória */}
       {showVictoryModal && (
         <>
           <ModalOverlay onClick={() => {}} />
@@ -798,10 +765,7 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
             <Box sx={{ 
               textAlign: 'center', 
               marginBottom: '32px',
-              animation: 'enemyFadeOut 4s ease-out forwards',
-              '& img': {
-                transition: 'all 0.3s ease'
-              }
+              animation: 'enemyFadeOut 3s ease-out forwards'
             }}>
               <img 
                 src={enemy.imagem} 
@@ -828,7 +792,7 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
               display: 'flex', 
               flexDirection: 'column', 
               gap: '16px',
-              animation: 'pathOptionsFadeIn 1s ease-in 4.5s both'
+              animation: 'pathOptionsFadeIn 1s ease-in 3s both'
             }}>
               <Typography variant="h6" sx={{ 
                 textAlign: 'center',
@@ -866,6 +830,23 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
             </Box>
           </BattleModal>
         </>
+      )}
+
+      {/* Tela de Game Over */}
+      {showGameOver && (
+        <GameOverScreen
+          onRestart={() => {
+            setShowGameOver(false);
+            window.location.reload();
+          }}
+          onMainMenu={() => {
+            setShowGameOver(false);
+            window.location.href = '/';
+          }}
+          deathReason="Você foi derrotado em combate"
+          deathLocation={`Batalha contra ${enemy.nome}`}
+          characterStats={ficha}
+        />
       )}
     </BattleContainer>
   );
