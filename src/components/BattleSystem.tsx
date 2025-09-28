@@ -156,6 +156,7 @@ interface BattleSystemProps {
   onUpdateFicha: (ficha: any) => void;
   onVictory: () => void;
   onDefeat: () => void;
+  onGoToScreen?: (screenId: number) => void; // Adicionar prop para navegação
 }
 
 interface TurnResult {
@@ -177,7 +178,8 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
   ficha,
   onUpdateFicha,
   onVictory,
-  onDefeat
+  onDefeat,
+  onGoToScreen
 }, ref) => {
 
   const playClick = useClickSound(0.2);
@@ -232,8 +234,12 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
       }, 2500);
     } else if (playerForca <= 0) {
       setBattleState('defeat');
-      setShowGameOver(true);
-      onDefeat();
+      if (onGoToScreen) {
+        onGoToScreen(999); // Ir para rota do Game Over
+      } else {
+        setShowGameOver(true);
+        onDefeat();
+      }
     }
   }, [enemyForca, playerForca, onVictory, onDefeat]);
 

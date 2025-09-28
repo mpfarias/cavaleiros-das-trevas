@@ -65,6 +65,9 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   199: 'prison',                 // Prisão (rota /game/199) - bgm-taken-to-prison.mp3
   7: 'prison',                   // Escape da prisão (rota /game/7) - bgm-taken-to-prison.mp3
   26: 'battle',                  // Combate com carcereiro (rota /game/26) - bgm-taken-to-prison.mp3
+  38: 'prison',                  // Teste de sorte na prisão (rota /game/38) - bgm-taken-to-prison.mp3
+  74: 'chase',                   // Sucesso no teste de sorte - fuga (rota /game/74) - bgm-running.mp3
+  123: 'prison',                 // Falha no teste de sorte (rota /game/123) - bgm-taken-to-prison.mp3
   
   // Character Sheet
   'sheet': 'character-sheet',   // Character Sheet (rota /sheet)
@@ -76,6 +79,17 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   // Map (independente)
   'map': 'map',                 // Map Screen (rota /map)
   338: 'chase',                 // Chase (rota /game/338) - bgm-running.mp3
+  384: 'chase',                 // Chase continuation (rota /game/384) - bgm-running.mp3
+  78: 'chase',                  // Continuar fugindo (rota /game/78) - bgm-running.mp3
+  110: 'chase',                 // Derrubar barracas (rota /game/110) - bgm-running.mp3
+  60: 'chase',                  // Carrinho de lixo (rota /game/60) - bgm-running.mp3
+  126: 'chase',                 // Entrar no carro de lixo (rota /game/126) - bgm-running.mp3
+  134: 'chase',                 // Rua estreita à esquerda (rota /game/134) - bgm-running.mp3
+  208: 'prison',                // Aguardar carroça das masmorras (rota /game/208) - bgm-taken-to-prison.mp3
+  233: 'prison',                // Aceitar negócio com Quinsberry (rota /game/233) - bgm-taken-to-prison.mp3
+  272: 'battle',                // Batalha com Homem-Orc (rota /game/272) - bgm-battle.mp3
+  301: 'royal-lendle',          // Porta Leste (rota /game/301) - people.mp3
+  351: 'chase',                 // Rua estreita à esquerda (rota /game/351) - bgm-running.mp3
 };
 
 export const useAudioGroup = (screenId: number | string) => {

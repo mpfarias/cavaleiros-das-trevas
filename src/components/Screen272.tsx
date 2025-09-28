@@ -90,13 +90,13 @@ const ChoiceButton = styled('button')({
   }
 });
 
-interface Screen26Props {
+interface Screen272Props {
   onGoToScreen: (screenId: number) => void;
   ficha: any;
   onUpdateFicha: (ficha: any) => void;
 }
 
-const Screen26: React.FC<Screen26Props> = ({ onGoToScreen, ficha, onUpdateFicha }) => {
+const Screen272: React.FC<Screen272Props> = ({ onGoToScreen, ficha, onUpdateFicha }) => {
   // Hook de áudio direto para controle manual
   const { isPlaying, togglePlay, changeTrack, tryStartMusic } = useAudio();
   const currentGroup = 'battle'; // Grupo de áudio para tela de batalha
@@ -108,7 +108,7 @@ const Screen26: React.FC<Screen26Props> = ({ onGoToScreen, ficha, onUpdateFicha 
 
   // Estabilizar o callback onUpdateFicha para evitar re-renderizações do BattleSystem
   const stableOnUpdateFicha = useCallback((updatedFicha: any) => {
-    console.log('🔄 [Screen26] onUpdateFicha chamado com ficha atualizada');
+    console.log('🔄 [Screen272] onUpdateFicha chamado com ficha atualizada');
     onUpdateFicha(updatedFicha);
   }, [onUpdateFicha]);
 
@@ -116,12 +116,12 @@ const Screen26: React.FC<Screen26Props> = ({ onGoToScreen, ficha, onUpdateFicha 
   useEffect(() => {
     const initializeBattleAudio = async () => {
       try {
-        console.log('🎵 [Screen26] Inicializando áudio de batalha...');
+        console.log('🎵 [Screen272] Inicializando áudio de batalha...');
         await changeTrack('/src/assets/sounds/bgm-battle.mp3');
         tryStartMusic();
-        console.log('🎵 [Screen26] Áudio de batalha inicializado com sucesso!');
+        console.log('🎵 [Screen272] Áudio de batalha inicializado com sucesso!');
       } catch (error) {
-        console.warn('🎵 [Screen26] Erro ao inicializar áudio de batalha:', error);
+        console.warn('🎵 [Screen272] Erro ao inicializar áudio de batalha:', error);
       }
     };
     
@@ -154,7 +154,7 @@ const Screen26: React.FC<Screen26Props> = ({ onGoToScreen, ficha, onUpdateFicha 
 
   const handleDefeat = () => {
     // Em caso de derrota, atualizar o estado para mostrar GameOverScreen
-    console.log('💀 [Screen26] Jogador foi derrotado, atualizando estado para defeat');
+    console.log('💀 [Screen272] Jogador foi derrotado, atualizando estado para defeat');
     setBattleState('defeat');
   };
 
@@ -167,10 +167,10 @@ const Screen26: React.FC<Screen26Props> = ({ onGoToScreen, ficha, onUpdateFicha 
   };
 
   const enemy = {
-    nome: 'Carcereiro',
+    nome: 'Homem-Orc',
     pericia: 8,
-    forca: 7,
-    imagem: '/src/assets/images/personagens/carcereiro.png'
+    forca: 8,
+    imagem: '/src/assets/images/personagens/homem-orc.png'
   };
 
   return (
@@ -210,21 +210,27 @@ const Screen26: React.FC<Screen26Props> = ({ onGoToScreen, ficha, onUpdateFicha 
         </Box>
       )}
 
-      <Container data-screen="screen-26">
+      <Container data-screen="screen-272">
         <CardWrap>
         <CardContent sx={{ padding: '40px' }}>
           {battleState === 'intro' && (
             <>
               <NarrativeText>
-                Você continua a provocar o carcereiro em voz alta, sem obter reação, até que por fim grita:
+                Você perdeu muito tempo em Royal Lendle, mas finalmente avista a Porta Sul.
                 <br/><br/>
-                — Seu pai é filho de um tocador de alaúde, e sua mãe parece um balde cheio de ovos de rã!
+                É uma estrutura maciça, com duas portas de aço reforçado, erguida no meio de uma muralha tão larga que possui túneis e vigias.
                 <br/><br/>
-                Diante disso, o carcereiro salta furioso e parte contra você. Espumando de raiva, ele abre a cela e entra de punhos erguidos. Ele não quer ouvir desculpas — ele quer lutar.
+                O movimento não é intenso, e os guardas estão ocupados revistando a carroça de um mercador. Por isso, ninguém percebe quando uma figura encapuzada de negro intercepta o seu caminho.
                 <br/><br/>
-                <strong>CARCEREIRO — PERÍCIA 8 | FORÇA 7 </strong>
+                Mesmo disfarçado, você o reconhece: é o Homem-Orc. Ele empunha uma espada assassina e, com uma voz sibilante carregada de ódio, rosna:
                 <br/><br/>
-                Se você vencer, terá que abandonar a cidade antes que o alarme seja dado.
+                — "Morra, estúpido! Nem você nem os idiotas dos seus amigos chegarão a Karnstein vivos. A vontade do meu Mestre será cumprida!"
+                <br/><br/>
+                Dito isso, ele avança contra você.
+                <br/><br/>
+                <strong>HOMEM-ORC — PERÍCIA 8 | FORÇA 8 </strong>
+                <br/><br/>
+                Se você vencer sem tomar dano, poderá continuar sua jornada. Se tomar dano, terá que se recuperar.
               </NarrativeText>
 
               <Box sx={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
@@ -303,18 +309,47 @@ const Screen26: React.FC<Screen26Props> = ({ onGoToScreen, ficha, onUpdateFicha 
                 color: 'text.primary',
                 marginBottom: '32px'
               }}>
-                Você derrotou o carcereiro! Agora escolha seu caminho para escapar da cidade:
+                Você derrotou o Homem-Orc! Verificando seu estado...
               </Typography>
 
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <ChoiceButton onClick={() => onGoToScreen(272)}>
-                  Saia pela Porta Sul, que leva à Estrada do Comércio Principal
-                </ChoiceButton>
-
-                <ChoiceButton onClick={() => onGoToScreen(60)}>
-                  Saia pela Porta Leste
-                </ChoiceButton>
-              </Box>
+              {(() => {
+                // Verificar se o jogador tomou dano
+                const danoOriginal = ficha.forca.inicial;
+                const forcaAtual = ficha.forca.atual;
+                const tomouDano = forcaAtual < danoOriginal;
+                
+                console.log(`🩸 [Screen272] Força original: ${danoOriginal}, Atual: ${forcaAtual}, Tomou dano: ${tomouDano}`);
+                
+                if (tomouDano) {
+                  // Vitória com dano - vai para tela 4
+                  setTimeout(() => {
+                    onGoToScreen(4);
+                  }, 2000);
+                  return (
+                    <Typography variant="body1" sx={{ 
+                      textAlign: 'center', 
+                      color: '#F44336',
+                      marginBottom: '32px'
+                    }}>
+                      Você tomou dano na batalha. Será redirecionado para se recuperar...
+                    </Typography>
+                  );
+                } else {
+                  // Vitória sem dano - vai para tela 40
+                  setTimeout(() => {
+                    onGoToScreen(40);
+                  }, 2000);
+                  return (
+                    <Typography variant="body1" sx={{ 
+                      textAlign: 'center', 
+                      color: '#4CAF50',
+                      marginBottom: '32px'
+                    }}>
+                      Vitória perfeita! Continuando sua jornada...
+                    </Typography>
+                  );
+                }
+              })()}
             </Box>
           )}
         </CardContent>
@@ -511,4 +546,4 @@ const Screen26: React.FC<Screen26Props> = ({ onGoToScreen, ficha, onUpdateFicha 
       );
     };
 
-export default Screen26;
+export default Screen272;

@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Card, CardContent, Typography, IconButton, Tooltip } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
+import { GameAlert } from './ui/GameAlert';
 import VolumeControl from './ui/VolumeControl';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
@@ -89,26 +90,53 @@ const ChoiceButton = styled('button')({
   }
 });
 
-interface Screen321Props {
+interface Screen175Props {
   onGoToScreen: (screenId: number) => void;
   ficha: any;
   onUpdateFicha: (ficha: any) => void;
 }
 
-const Screen321: React.FC<Screen321Props> = ({ onGoToScreen, ficha: _ficha, onUpdateFicha: _onUpdateFicha }) => {
-  // Usa o sistema de grupos de áudio - automaticamente gerencia música do grupo 'royal-lendle' (people.mp3)
-  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(321);
+const Screen175: React.FC<Screen175Props> = ({ onGoToScreen, ficha: _ficha, onUpdateFicha: _onUpdateFicha }) => {
+  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(162);
   const playClick = useClickSound(0.2);
+  
+  const [moedasPerdidas, setMoedasPerdidas] = useState(0);
+  const [showMoneyAlert, setShowMoneyAlert] = useState(false);
 
-  // Verifica se o jogador aceitou o desafio do Bartolph
-  const aceitouBartolph = localStorage.getItem('cavaleiro:aceitouBartolph') === 'true';
+  useEffect(() => {
+    // Calcular moedas perdidas baseado na aposta anterior
+    try {
+      const apostaAnterior = localStorage.getItem('cavaleiro:apostaBartolph');
+      if (apostaAnterior) {
+        const valorApostado = parseInt(apostaAnterior);
+        setMoedasPerdidas(valorApostado);
+        console.log(`💰 [Screen175] Jogador perdeu ${valorApostado} moedas na aposta`);
+        
+        // Mostrar alerta com delay e ocultar após 5 segundos
+        setTimeout(() => {
+          setShowMoneyAlert(true);
+          // Ocultar após 5 segundos
+          setTimeout(() => setShowMoneyAlert(false), 5000);
+        }, 500);
+        
+        // Limpar localStorage após mostrar o alert
+        localStorage.removeItem('cavaleiro:apostaBartolph');
+      }
+    } catch (error) {
+      console.error('❌ [Screen175] Erro ao ler aposta anterior:', error);
+    }
+  }, []);
 
   return (
-    <Container data-screen="screen-321">
+    <Container data-screen="screen-175">
       {/* Controle de Volume */}
       <VolumeControl />
       
-      {/* Controle de música do grupo */}
+      {/* Alerta de perda de dinheiro */}
+      <GameAlert sx={{ top: '120px' }} $isVisible={showMoneyAlert}>
+        💰 {moedasPerdidas > 0 ? `${moedasPerdidas} moedas perdidas na aposta!` : 'Moedas perdidas na aposta!'}
+      </GameAlert>
+      
       <Box
         sx={{
           position: 'fixed',
@@ -146,47 +174,19 @@ const Screen321: React.FC<Screen321Props> = ({ onGoToScreen, ficha: _ficha, onUp
       <CardWrap>
         <CardContent sx={{ padding: '40px' }}>
           <NarrativeText>
-            {aceitouBartolph ? (
-              <>
-                Ao tentar ir para o outro lado do mercado, v
-              </>
-            ) : (
-              <>
-                V
-              </>
-            )}ocê se afasta de um vendedor insistente que tenta empurrar-lhe um peso de papel em forma de mangusto, mas acaba esbarrando em um grupo de seis guardas armados. O coração aperta no peito quando reconhece quem está à frente deles: Quinsberry Woad, o temido cobrador de impostos de Gallantaria, sempre acompanhado de sua guarda pessoal.
+            Bartolph aproxima o rosto sorridente do seu e anuncia:
             <br/><br/>
-            Com um ar solene, Woad retira um pergaminho de dentro de suas vestes e o abre diante de você:
+            — Desculpe, mas acabou por agora. Não gosto de jogar com derrotados e, além disso... preciso dormir. O jogo terminou!
             <br/><br/>
-            — Comandante, por ordem da Coroa, estou autorizado a fazê-lo cumprir a Lei dos Impostos. Caso não haja pagamento imediato, tenho aqui uma ordem de prisão.
-            <br/><br/>
-            Ele coloca o documento em suas mãos e continua, com frieza calculada:
-            <br/><br/>
-            — O valor, já com juros reduzidos, fixado para cinco anos de cobrança, é de 568 Moedas de Ouro. Nem uma a mais, nem uma a menos. Diga-me... possui essa quantia?
-            <br/><br/>
-            A resposta é óbvia: você não tem como pagar uma soma tão exorbitante. O arrependimento de ter retornado à cidade pesa em sua mente. Agora, resta apenas escolher como agir.
+            A proximidade dele faz sua pele arder e um nó apertar sua garganta. Você perdeu o ouro que apostou. Por fim, você se levanta e deixa a taverna Primeiro Passo.
           </NarrativeText>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
             <ChoiceButton onClick={() => {
               playClick();
-              onGoToScreen(199);
+              onGoToScreen(30);
             }}>
-              Declara-se indigente e se entregar
-            </ChoiceButton>
-
-            <ChoiceButton onClick={() => {
-              playClick();
-              onGoToScreen(299);
-            }}>
-              Tentar subornar Quinsberry Woad
-            </ChoiceButton>
-
-            <ChoiceButton onClick={() => {
-              playClick();
-              onGoToScreen(338);
-            }}>
-              Tentar fugir
+              Deixar a taverna
             </ChoiceButton>
           </Box>
         </CardContent>
@@ -195,4 +195,4 @@ const Screen321: React.FC<Screen321Props> = ({ onGoToScreen, ficha: _ficha, onUp
   );
 };
 
-export default Screen321;
+export default Screen175;

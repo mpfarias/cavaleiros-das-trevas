@@ -17,8 +17,25 @@ import Screen321 from '../components/Screen321';
 import Screen199 from '../components/Screen199';
 import Screen299 from '../components/Screen299';
 import Screen338 from '../components/Screen338';
+import Screen384 from '../components/Screen384';
 import Screen7 from '../components/Screen7';
 import Screen26 from '../components/Screen26';
+import Screen13 from '../components/Screen13';
+import Screen74 from '../components/Screen74';
+import Screen123 from '../components/Screen123';
+import Screen110 from '../components/Screen110';
+import Screen78 from '../components/Screen78';
+import Screen175 from '../components/Screen175';
+import Screen38 from '../components/Screen38';
+import Screen60 from '../components/Screen60';
+import Screen126 from '../components/Screen126';
+import Screen134 from '../components/Screen134';
+import Screen208 from '../components/Screen208';
+import Screen233 from '../components/Screen233';
+import Screen272 from '../components/Screen272';
+import Screen301 from '../components/Screen301';
+import Screen351 from '../components/Screen351';
+import GameOverScreen from '../components/GameOverScreen';
 import type { Ficha } from '../types';
 
 type ScreenRouterProps = {
@@ -163,9 +180,119 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({ ficha, onGameResult, onAdju
     );
   }
 
+  if (screenId === 384) {
+    return (
+      <Screen384 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 13) {
+    return (
+      <Screen13 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 175) {
+    return (
+      <Screen175 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 38) {
+    return (
+      <Screen38 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} onAdjustSorte={onAdjustSorte} />
+    );
+  }
+
+  if (screenId === 123) {
+    return (
+      <Screen123 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 110) {
+    return (
+      <Screen110 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 78) {
+    return (
+      <Screen78 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 74) {
+    return (
+      <Screen74 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 60) {
+    return (
+      <Screen60 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+  if (screenId === 126) {
+    return (
+      <Screen126 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+  if (screenId === 134) {
+    return (
+      <Screen134 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} onAdjustSorte={onAdjustSorte} />
+    );
+  }
+  if (screenId === 208) {
+    return (
+      <Screen208 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 233) {
+    return (
+      <Screen233 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 272) {
+    return (
+      <Screen272 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 301) {
+    return (
+      <Screen301 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} onAdjustSorte={onAdjustSorte} />
+    );
+  }
+
+  if (screenId === 351) {
+    return (
+      <Screen351 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
   if (screenId === 222) {
     return (
       <Screen222 onGoToScreen={goToScreen} ficha={ficha} onFichaChange={onFichaChange} />
+    );
+  }
+
+  if (screenId === 999) {
+    return (
+      <GameOverScreen
+        onRestart={() => {
+          console.log('🔄 [ScreenRouter] Reiniciando jogo...');
+          window.location.reload();
+        }}
+        onContinue={() => {
+          console.log('📁 [ScreenRouter] Continuando aventura...');
+          navigate('/game/0');
+        }}
+        deathReason="Sua aventura chegou ao fim"
+        deathLocation="Um lugar desconhecido"
+      />
     );
   }
 

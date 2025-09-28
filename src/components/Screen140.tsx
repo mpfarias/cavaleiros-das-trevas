@@ -1,7 +1,10 @@
 import { useEffect, useState, useRef } from 'react';
+import React from 'react';
 import { Box, Card, CardContent, Typography, IconButton, Tooltip } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
+import { useClickSound } from '../hooks/useClickSound';
+import VolumeControl from './ui/VolumeControl';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import { GameAlert } from './ui/GameAlert';
@@ -218,6 +221,8 @@ const Screen140: React.FC<Screen140Props> = ({ onGoToScreen, ficha, onUpdateFich
 
   return (
     <Container data-screen="screen-140">
+      {/* Controle de Volume */}
+      <VolumeControl />
       {/* Alertas de perda */}
       <GameAlert sx={{ top: '120px' }} $isVisible={showForceAlert}>
         ⚔️ -1 Ponto de Força perdido!

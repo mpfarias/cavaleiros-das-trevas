@@ -1,7 +1,10 @@
+import React from 'react';
 import { Box, Card, CardContent, Typography, IconButton, Tooltip, Button, Chip } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useItemEffects } from '../hooks/useItemEffects';
+import { useClickSound } from '../hooks/useClickSound';
+import VolumeControl from './ui/VolumeControl';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import { useState, useCallback } from 'react';
@@ -585,6 +588,8 @@ const Screen82: React.FC<Screen82Props> = ({ onGoToScreen, ficha, onUpdateFicha 
 
   return (
     <Container data-screen="screen-82">
+      {/* Controle de Volume */}
+      <VolumeControl />
              {/* Alerts de compra */}
        <GameAlert sx={{ top: '120px' }} $isVisible={showPurchaseAlert}>
          {purchaseInfo.quantity > 0 

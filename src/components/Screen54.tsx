@@ -1,7 +1,10 @@
 
+import React from 'react';
 import { Box, Card, CardContent, Typography, IconButton, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
+import { useClickSound } from '../hooks/useClickSound';
+import VolumeControl from './ui/VolumeControl';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import { useEffect, useState, useRef } from 'react';
@@ -204,6 +207,8 @@ const Screen54: React.FC<Screen54Props> = ({ onGoToScreen, ficha, onUpdateFicha 
 
   return (
     <Container data-screen="screen-54">
+      {/* Controle de Volume */}
+      <VolumeControl />
       {/* Alerta de moedas ganhas na aposta */}
       <GameAlert sx={{ top: '120px' }} $isVisible={showMoneyAlert}>
         💰 {moedasGanhas} moedas ganhas na aposta!

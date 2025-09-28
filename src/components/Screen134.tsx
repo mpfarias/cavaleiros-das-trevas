@@ -1,11 +1,14 @@
-import React from 'react';
-import { Box, Card, CardContent, Typography, IconButton, Tooltip } from '@mui/material';
+import React, { useMemo, useState } from 'react';
+import { Box, Card, CardContent, Typography, IconButton, Tooltip, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
+import { useDiceSound } from '../hooks/useDiceSound';
 import VolumeControl from './ui/VolumeControl';
+import DiceRollModal3D from './ui/DiceRollModal3D';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
+import type { Ficha } from '../types';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -89,26 +92,45 @@ const ChoiceButton = styled('button')({
   }
 });
 
-interface Screen321Props {
+interface Screen134Props {
   onGoToScreen: (screenId: number) => void;
-  ficha: any;
-  onUpdateFicha: (ficha: any) => void;
+  ficha: Ficha;
+  onUpdateFicha: (ficha: Ficha) => void;
+  onAdjustSorte: (delta: number) => void;
 }
 
-const Screen321: React.FC<Screen321Props> = ({ onGoToScreen, ficha: _ficha, onUpdateFicha: _onUpdateFicha }) => {
-  // Usa o sistema de grupos de áudio - automaticamente gerencia música do grupo 'royal-lendle' (people.mp3)
-  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(321);
+const Screen134: React.FC<Screen134Props> = ({ onGoToScreen, ficha, onUpdateFicha: _onUpdateFicha, onAdjustSorte }) => {
+  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(134);
   const playClick = useClickSound(0.2);
+  const playDice = useDiceSound();
+  
+  const [rolled, setRolled] = useState<[number, number] | null>(null);
+  const [diceModalOpen, setDiceModalOpen] = useState(false);
+  const [open, setOpen] = useState(false);
+  
+  const total = useMemo(() => (rolled ? rolled[0] + rolled[1] : null), [rolled]);
+  const sorteAtual = ficha.sorte.atual;
+  const teveSorte = useMemo(() => (total != null ? total <= sorteAtual : null), [total, sorteAtual]);
 
-  // Verifica se o jogador aceitou o desafio do Bartolph
-  const aceitouBartolph = localStorage.getItem('cavaleiro:aceitouBartolph') === 'true';
+  const handleDiceComplete = (dice: number[]) => {
+    setRolled([dice[0], dice[1]]);
+    setOpen(true);
+    setDiceModalOpen(false);
+    
+    // Subtrair 1 ponto de sorte após o teste
+    onAdjustSorte(-1);
+  };
+
+  const testarSorte = () => {
+    playDice();
+    setDiceModalOpen(true);
+  };
 
   return (
-    <Container data-screen="screen-321">
+    <Container data-screen="screen-134">
       {/* Controle de Volume */}
       <VolumeControl />
       
-      {/* Controle de música do grupo */}
       <Box
         sx={{
           position: 'fixed',
@@ -146,53 +168,60 @@ const Screen321: React.FC<Screen321Props> = ({ onGoToScreen, ficha: _ficha, onUp
       <CardWrap>
         <CardContent sx={{ padding: '40px' }}>
           <NarrativeText>
-            {aceitouBartolph ? (
-              <>
-                Ao tentar ir para o outro lado do mercado, v
-              </>
-            ) : (
-              <>
-                V
-              </>
-            )}ocê se afasta de um vendedor insistente que tenta empurrar-lhe um peso de papel em forma de mangusto, mas acaba esbarrando em um grupo de seis guardas armados. O coração aperta no peito quando reconhece quem está à frente deles: Quinsberry Woad, o temido cobrador de impostos de Gallantaria, sempre acompanhado de sua guarda pessoal.
+            Os gritos de Woad ainda ecoam em seus ouvidos quando você dispara pela rua e acaba esbarrando em outro grupo de guardas, que tenta bloquear o caminho.
             <br/><br/>
-            Com um ar solene, Woad retira um pergaminho de dentro de suas vestes e o abre diante de você:
+            Sua única chance de fuga é por uma casa em ruínas à sua direita.
             <br/><br/>
-            — Comandante, por ordem da Coroa, estou autorizado a fazê-lo cumprir a Lei dos Impostos. Caso não haja pagamento imediato, tenho aqui uma ordem de prisão.
-            <br/><br/>
-            Ele coloca o documento em suas mãos e continua, com frieza calculada:
-            <br/><br/>
-            — O valor, já com juros reduzidos, fixado para cinco anos de cobrança, é de 568 Moedas de Ouro. Nem uma a mais, nem uma a menos. Diga-me... possui essa quantia?
-            <br/><br/>
-            A resposta é óbvia: você não tem como pagar uma soma tão exorbitante. O arrependimento de ter retornado à cidade pesa em sua mente. Agora, resta apenas escolher como agir.
+            Sem hesitar, você arromba a porta e entra. Teste a sua Sorte.
           </NarrativeText>
-
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
-            <ChoiceButton onClick={() => {
-              playClick();
-              onGoToScreen(199);
+          
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px', alignItems: 'center' }}>
+            <Button variant="contained" onClick={testarSorte} sx={{
+              background: 'linear-gradient(135deg, rgba(139,69,19,0.9) 0%, rgba(160,82,45,0.8) 100%)',
+              border: '1px solid #D2B48C',
+              fontFamily: '"Cinzel", serif',
+              fontWeight: 700
             }}>
-              Declara-se indigente e se entregar
-            </ChoiceButton>
-
-            <ChoiceButton onClick={() => {
-              playClick();
-              onGoToScreen(299);
-            }}>
-              Tentar subornar Quinsberry Woad
-            </ChoiceButton>
-
-            <ChoiceButton onClick={() => {
-              playClick();
-              onGoToScreen(338);
-            }}>
-              Tentar fugir
-            </ChoiceButton>
+              Testar a Sorte (2d6)
+            </Button>
+            <Typography variant="caption" sx={{ color: '#3d2817' }}>
+              A SORTE atual é {sorteAtual}. Você perderá 1 ponto ao testar.
+            </Typography>
           </Box>
+
+          <DiceRollModal3D
+            open={diceModalOpen}
+            numDice={2}
+            onComplete={handleDiceComplete}
+            bonus={0}
+          />
+
+          <Dialog open={open} onClose={undefined} maxWidth="xs" fullWidth>
+            <DialogTitle sx={{ textAlign: 'center' }}>
+              {teveSorte ? 'Você teve sorte!' : 'Você não teve sorte!'}
+            </DialogTitle>
+            <DialogContent>
+              <Typography align="center" sx={{ fontSize: '18px', fontWeight: 'bold' }}>
+                Dados: {rolled ? `${rolled[0]} + ${rolled[1]} = ${total}` : ''}
+              </Typography>
+            </DialogContent>
+            <DialogActions sx={{ justifyContent: 'center' }}>
+              <Button variant="contained" onClick={() => { 
+                setOpen(false); 
+                if (teveSorte) {
+                  onGoToScreen(277); // Sucesso - tela 277
+                } else {
+                  onGoToScreen(166); // Falha - tela 166
+                }
+              }}>
+                Ir
+              </Button>
+            </DialogActions>
+          </Dialog>
         </CardContent>
       </CardWrap>
     </Container>
   );
 };
 
-export default Screen321;
+export default Screen134;

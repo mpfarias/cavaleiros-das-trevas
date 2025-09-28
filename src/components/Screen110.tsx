@@ -1,15 +1,14 @@
-import React, { useMemo, useState } from 'react';
-import { Box, Card, CardContent, Typography, IconButton, Tooltip } from '@mui/material';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
+import { Box, Card, CardContent, Typography, IconButton, Tooltip, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
-import { Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
-import DiceRollModal3D from './ui/DiceRollModal3D';
 import { useAudioGroup } from '../hooks/useAudioGroup';
-import { useDiceSound } from '../hooks/useDiceSound';
 import { useClickSound } from '../hooks/useClickSound';
+import { useDiceSound } from '../hooks/useDiceSound';
 import VolumeControl from './ui/VolumeControl';
+import DiceRollModal3D from './ui/DiceRollModal3D';
+import { GameAlert } from './ui/GameAlert';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
-
 import type { Ficha } from '../types';
 
 const fadeIn = keyframes`
@@ -62,63 +61,112 @@ const NarrativeText = styled(Typography)({
   textShadow: '0 1px 2px rgba(245,222,179,0.8)'
 });
 
-
-
-interface Screen115Props {
-  onGoToScreen: (id: number) => void;
+interface Screen110Props {
+  onGoToScreen: (screenId: number) => void;
   ficha: Ficha;
-  onAdjustSorte: (delta: number) => void;
+  onUpdateFicha: (ficha: Ficha) => void;
 }
 
-const Screen115: React.FC<Screen115Props> = ({ onGoToScreen, ficha, onAdjustSorte }) => {
-  // Usa o sistema de grupos de áudio - automaticamente gerencia música do grupo 'bartolph-game'
-  const { isPlaying, togglePlay, currentTrack } = useAudioGroup(115);
+const Screen110: React.FC<Screen110Props> = ({ onGoToScreen, ficha, onUpdateFicha }) => {
+  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(110);
+  const playClick = useClickSound(0.2);
+  const playDice = useDiceSound();
+  
   const [rolled, setRolled] = useState<[number, number] | null>(null);
   const [diceModalOpen, setDiceModalOpen] = useState(false);
   const [open, setOpen] = useState(false);
+  const [showProvisionsAlert, setShowProvisionsAlert] = useState(false);
+  const provisionsAddedRef = useRef(false);
   
-  // Hook para som dos dados
-  const playDice = useDiceSound();
-
   const total = useMemo(() => (rolled ? rolled[0] + rolled[1] : null), [rolled]);
-  const sorteAtual = ficha.sorte.atual;
-  const teveSorte = useMemo(() => (total != null ? total <= sorteAtual : null), [total, sorteAtual]);
+  const periciaAtual = ficha.pericia.atual;
+  const tevePericia = useMemo(() => (total != null ? total <= periciaAtual : null), [total, periciaAtual]);
+
+  // Adicionar 2 Provisões quando a tela carrega (apenas uma vez)
+  useEffect(() => {
+    console.log('🍞 [Screen110] useEffect executado, provisionsAddedRef.current:', provisionsAddedRef.current);
+    
+    if (provisionsAddedRef.current) {
+      console.log('🍞 [Screen110] Provisões já foram adicionadas, pulando...');
+      return;
+    }
+    
+    provisionsAddedRef.current = true;
+    
+    const fichaAtualizada = { ...ficha };
+    const provisoesExistentes = fichaAtualizada.bolsa.find(item => item.tipo === 'provisao');
+    
+    console.log('🍞 [Screen110] Provisões existentes antes:', provisoesExistentes?.quantidade || 0);
+    
+    if (provisoesExistentes) {
+      provisoesExistentes.quantidade = (provisoesExistentes.quantidade || 0) + 2;
+      console.log('🍞 [Screen110] Provisões após adição:', provisoesExistentes.quantidade);
+    } else {
+      fichaAtualizada.bolsa.push({
+        id: `provisao_${Date.now()}`,
+        tipo: 'provisao',
+        quantidade: 2,
+        nome: 'Provisões'
+      });
+      console.log('🍞 [Screen110] Criadas novas Provisões: 2');
+    }
+    
+    console.log('🍞 [Screen110] Chamando onUpdateFicha');
+    onUpdateFicha(fichaAtualizada);
+    
+    // Mostrar alerta após um pequeno delay
+    setTimeout(() => {
+      setShowProvisionsAlert(true);
+      setTimeout(() => setShowProvisionsAlert(false), 5000);
+    }, 500);
+  }, [ficha, onUpdateFicha]); // Dependências necessárias
 
   const handleDiceComplete = (dice: number[]) => {
     setRolled([dice[0], dice[1]]);
-    onAdjustSorte(-1); // sempre reduz 1 ponto de SORTE atual
+    // Não subtrai pontos de perícia (diferente do teste de sorte)
     setOpen(true);
     setDiceModalOpen(false);
   };
 
-  const testarSorte = () => {
+  const testarPericia = () => {
     playDice(); // Tocar som dos dados
     setDiceModalOpen(true);
   };
+
   return (
-    <Container data-screen="screen-115">
+    <Container data-screen="screen-110">
+      {/* Alerta de Provisões */}
+      {showProvisionsAlert && (
+        <GameAlert sx={{ top: '120px' }} $isVisible={showProvisionsAlert}>
+          🍞 +2 Provisões adicionadas à bolsa!
+        </GameAlert>
+      )}
+      
       {/* Controle de Volume */}
       <VolumeControl />
       
-      {/* Botão de controle de música */}
+      {/* Controle de música */}
       <Box
         sx={{
-          position: 'fixed', // Mudado de 'absolute' para 'fixed' para ficar sempre visível
+          position: 'fixed',
           bottom: '20px',
           right: '20px',
           zIndex: 1000,
         }}
       >
-        <Tooltip title={currentTrack ? (isPlaying ? 'Pausar música' : 'Tocar música') : 'Nenhuma música carregada'}>
+        <Tooltip title={currentGroup ? (isPlaying ? 'Pausar música' : 'Tocar música') : 'Nenhuma música carregada'}>
           <IconButton
-            onClick={togglePlay}
-            disabled={!currentTrack}
+            onClick={() => {
+              playClick();
+              togglePlay();
+            }}
+            disabled={!currentGroup}
             sx={{
-              color: currentTrack ? (isPlaying ? '#B31212' : '#E0DFDB') : '#666',
+              color: currentGroup ? (isPlaying ? '#B31212' : '#E0DFDB') : '#666',
               background: 'rgba(15,17,20,0.8)',
               border: '1px solid rgba(255,255,255,0.1)',
-              opacity: currentTrack ? 1 : 0.5,
-              '&:hover': currentTrack ? {
+              opacity: currentGroup ? 1 : 0.5,
+              '&:hover': currentGroup ? {
                 background: 'rgba(179,18,18,0.2)',
                 borderColor: 'rgba(255,255,255,0.3)',
               } : {},
@@ -135,23 +183,31 @@ const Screen115: React.FC<Screen115Props> = ({ onGoToScreen, ficha, onAdjustSort
       <CardWrap>
         <CardContent sx={{ padding: '40px' }}>
           <NarrativeText>
-            Teste sua sorte e vamos ver como se sai.
+            Alguns dos carrinhos são leves e se movem com facilidade, mas as bancas maiores são pesadas e exigem mais esforço. Seja qual for o método, o resultado é o mesmo: o caos.
+            <br/><br/>
+            Os guardas acabam presos no meio da confusão de legumes espalhados, enquanto os comerciantes, furiosos, gritam em seu dialeto característico.
+            <br/><br/>
+            Você sorri e aproveita para se servir de duas Provisões antes de deixar o local.
+            <br/><br/>
+            Na saída, porém, tropeça em algumas mangas espalhadas pelo chão.
+            <br/><br/>
+            Teste sua Perícia.
           </NarrativeText>
+          
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px', alignItems: 'center' }}>
-            <Button variant="contained" onClick={testarSorte} sx={{
+            <Button variant="contained" onClick={testarPericia} sx={{
               background: 'linear-gradient(135deg, rgba(139,69,19,0.9) 0%, rgba(160,82,45,0.8) 100%)',
               border: '1px solid #D2B48C',
               fontFamily: '"Cinzel", serif',
               fontWeight: 700
             }}>
-              Testar a Sorte (2d6)
+              Testar a Perícia (2d6)
             </Button>
             <Typography variant="caption" sx={{ color: '#CBBBA0' }}>
-              A SORTE atual é {sorteAtual}. Você perderá 1 ponto ao testar.
+              A PERÍCIA atual é {periciaAtual}. Você não perderá pontos ao testar.
             </Typography>
           </Box>
 
-          {/* Modal 3D de dados */}
           <DiceRollModal3D
             open={diceModalOpen}
             numDice={2}
@@ -161,7 +217,7 @@ const Screen115: React.FC<Screen115Props> = ({ onGoToScreen, ficha, onAdjustSort
 
           <Dialog open={open} onClose={undefined} maxWidth="xs" fullWidth>
             <DialogTitle sx={{ textAlign: 'center' }}>
-              {teveSorte ? 'Você teve sorte' : 'Você não teve sorte'}
+              {tevePericia ? 'Você passou no teste!' : 'Você falhou no teste!'}
             </DialogTitle>
             <DialogContent>
               <Typography align="center" sx={{ fontSize: '18px', fontWeight: 'bold' }}>
@@ -171,13 +227,10 @@ const Screen115: React.FC<Screen115Props> = ({ onGoToScreen, ficha, onAdjustSort
             <DialogActions sx={{ justifyContent: 'center' }}>
               <Button variant="contained" onClick={() => { 
                 setOpen(false); 
-                if (teveSorte) {
-                  onGoToScreen(222);
+                if (tevePericia) {
+                  onGoToScreen(78); // Sucesso - tela 78
                 } else {
-                  // Marcar que veio da tela 115 para mostrar alert de moedas na tela 140
-                  localStorage.setItem('cavaleiro:veioDaTela115', 'true');
-                  console.log('🔗 [Screen115] Jogador falhou no teste de sorte - indo para tela 140');
-                  onGoToScreen(140);
+                  onGoToScreen(199); // Falha - tela 199
                 }
               }}>
                 Ir
@@ -190,6 +243,4 @@ const Screen115: React.FC<Screen115Props> = ({ onGoToScreen, ficha, onAdjustSort
   );
 };
 
-export default Screen115;
-
-
+export default Screen110;

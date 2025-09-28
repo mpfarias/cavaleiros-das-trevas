@@ -89,26 +89,27 @@ const ChoiceButton = styled('button')({
   }
 });
 
-interface Screen321Props {
+interface Screen351Props {
   onGoToScreen: (screenId: number) => void;
   ficha: any;
   onUpdateFicha: (ficha: any) => void;
 }
 
-const Screen321: React.FC<Screen321Props> = ({ onGoToScreen, ficha: _ficha, onUpdateFicha: _onUpdateFicha }) => {
-  // Usa o sistema de grupos de áudio - automaticamente gerencia música do grupo 'royal-lendle' (people.mp3)
-  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(321);
+const Screen351: React.FC<Screen351Props> = ({ onGoToScreen, ficha, onUpdateFicha: _onUpdateFicha }) => {
+  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(351);
   const playClick = useClickSound(0.2);
 
-  // Verifica se o jogador aceitou o desafio do Bartolph
-  const aceitouBartolph = localStorage.getItem('cavaleiro:aceitouBartolph') === 'true';
+  // Verificar se tem dado viciado na bolsa
+  const temDadoViciado = ficha.bolsa.some((item: any) => 
+    item.nome === 'Dado Viciado'
+  );
 
   return (
-    <Container data-screen="screen-321">
+    <Container data-screen="screen-351">
       {/* Controle de Volume */}
       <VolumeControl />
       
-      {/* Controle de música do grupo */}
+      {/* Controle de Música */}
       <Box
         sx={{
           position: 'fixed',
@@ -146,48 +147,53 @@ const Screen321: React.FC<Screen321Props> = ({ onGoToScreen, ficha: _ficha, onUp
       <CardWrap>
         <CardContent sx={{ padding: '40px' }}>
           <NarrativeText>
-            {aceitouBartolph ? (
-              <>
-                Ao tentar ir para o outro lado do mercado, v
-              </>
-            ) : (
-              <>
-                V
-              </>
-            )}ocê se afasta de um vendedor insistente que tenta empurrar-lhe um peso de papel em forma de mangusto, mas acaba esbarrando em um grupo de seis guardas armados. O coração aperta no peito quando reconhece quem está à frente deles: Quinsberry Woad, o temido cobrador de impostos de Gallantaria, sempre acompanhado de sua guarda pessoal.
+            A estrada que você tomou leva até o bairro dos pedintes, um labirinto de ruas imundas, cheias de lixo, vagabundos e batedores de carteira. À medida que você se aproxima do centro, as vozes dos seus perseguidores vão ficando mais distantes.
             <br/><br/>
-            Com um ar solene, Woad retira um pergaminho de dentro de suas vestes e o abre diante de você:
-            <br/><br/>
-            — Comandante, por ordem da Coroa, estou autorizado a fazê-lo cumprir a Lei dos Impostos. Caso não haja pagamento imediato, tenho aqui uma ordem de prisão.
-            <br/><br/>
-            Ele coloca o documento em suas mãos e continua, com frieza calculada:
-            <br/><br/>
-            — O valor, já com juros reduzidos, fixado para cinco anos de cobrança, é de 568 Moedas de Ouro. Nem uma a mais, nem uma a menos. Diga-me... possui essa quantia?
-            <br/><br/>
-            A resposta é óbvia: você não tem como pagar uma soma tão exorbitante. O arrependimento de ter retornado à cidade pesa em sua mente. Agora, resta apenas escolher como agir.
+            Mas Quinsberry certamente não desistirá de caçá-lo, então o melhor é continuar fugindo.
           </NarrativeText>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
-            <ChoiceButton onClick={() => {
-              playClick();
-              onGoToScreen(199);
-            }}>
-              Declara-se indigente e se entregar
-            </ChoiceButton>
+            {/* Opção para quem TEM dado viciado */}
+            {temDadoViciado && (
+              <ChoiceButton onClick={() => {
+                playClick();
+                onGoToScreen(286);
+              }}>
+                Seguir adiante - Você tem um dado viciado, então vire aqui
+              </ChoiceButton>
+            )}
 
-            <ChoiceButton onClick={() => {
-              playClick();
-              onGoToScreen(299);
-            }}>
-              Tentar subornar Quinsberry Woad
-            </ChoiceButton>
+            {/* Opção para quem NÃO TEM dado viciado */}
+            {!temDadoViciado && (
+              <ChoiceButton 
+                onClick={() => {
+                  playClick();
+                  onGoToScreen(360);
+                }}
+                style={{
+                  opacity: 1,
+                  cursor: 'pointer'
+                }}
+              >
+                Seguir adiante
+              </ChoiceButton>
+            )}
 
-            <ChoiceButton onClick={() => {
-              playClick();
-              onGoToScreen(338);
-            }}>
-              Tentar fugir
-            </ChoiceButton>
+            {/* Opção desabilitada para quem NÃO TEM dado viciado */}
+            {!temDadoViciado && (
+              <ChoiceButton 
+                disabled
+                style={{
+                  opacity: 0.5,
+                  cursor: 'not-allowed',
+                  backgroundColor: 'rgba(100,100,100,0.5)',
+                  color: '#999',
+                  borderColor: '#666'
+                }}
+              >
+                Você não possui o dado viciado
+              </ChoiceButton>
+            )}
           </Box>
         </CardContent>
       </CardWrap>
@@ -195,4 +201,4 @@ const Screen321: React.FC<Screen321Props> = ({ onGoToScreen, ficha: _ficha, onUp
   );
 };
 
-export default Screen321;
+export default Screen351;

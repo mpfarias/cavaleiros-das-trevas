@@ -1,8 +1,10 @@
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box, Card, CardContent, Typography, IconButton, Tooltip } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
+import { useClickSound } from '../hooks/useClickSound';
+import VolumeControl from './ui/VolumeControl';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import { GameAlert } from './ui/GameAlert';
@@ -133,6 +135,8 @@ const Screen43: React.FC<Screen43Props> = ({ onGoToScreen }) => {
 
   return (
     <Container data-screen="screen-43">
+      {/* Controle de Volume */}
+      <VolumeControl />
       {/* Alerta de perda de dinheiro */}
       <GameAlert sx={{ top: '120px' }} $isVisible={showMoneyAlert}>
         💰 {moedasPerdidas > 0 ? `${moedasPerdidas} moedas perdidas na aposta!` : 'Moedas perdidas na aposta!'}

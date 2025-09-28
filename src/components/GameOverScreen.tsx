@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, Typography, Button } from '@mui/material';
+import { Box, Typography, Button, IconButton, Tooltip } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useClickSound } from '../hooks/useClickSound';
 import { useAudio } from '../hooks/useAudio';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import PauseIcon from '@mui/icons-material/Pause';
 
 // Animações para a tela de game over
 const fadeIn = keyframes`
@@ -33,7 +35,7 @@ const GameOverContainer = styled(Box)({
   alignItems: 'center',
   justifyContent: 'center',
   padding: '40px',
-  zIndex: 9999,
+  zIndex: 99999,
   animation: `${fadeIn} 2s ease-out`
 });
 
@@ -154,82 +156,17 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({
 }) => {
   const playClick = useClickSound(0.3);
   const [showStats, setShowStats] = useState(false);
-  const { changeTrack, tryStartMusic, pause } = useAudio();
-  const hasStartedMusic = useRef(false);
+  const { isPlaying, togglePlay, changeTrack } = useAudio();
+  const musicStartedRef = useRef(false);
 
-  // Tocar música de fundo assustadora
+  // Iniciar música assustadora quando o Game Over aparece
   useEffect(() => {
-    // Evitar execução múltipla
-    if (hasStartedMusic.current) {
-      console.log('🎵 [GameOverScreen] Música já foi iniciada, pulando...');
-      return;
+    if (!musicStartedRef.current) {
+      console.log('🎵 [GameOverScreen] Iniciando música assustadora...');
+      changeTrack('/src/assets/sounds/bgm-scary.mp3');
+      musicStartedRef.current = true;
     }
-    
-    hasStartedMusic.current = true;
-    let isMounted = true;
-    
-    const playScaryMusic = async () => {
-      if (!isMounted) return;
-      
-      try {
-        console.log('🎵 [GameOverScreen] Iniciando sequência de áudio...');
-        
-        // Forçar parada da música atual
-        console.log('🎵 [GameOverScreen] Forçando parada da música atual...');
-        pause();
-        
-        // Aguardar mais tempo para garantir que parou
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
-        if (!isMounted) return;
-        
-        console.log('🎵 [GameOverScreen] Alterando track para bgm-scary.mp3...');
-        console.log('🎵 [GameOverScreen] Caminho completo:', '/src/assets/sounds/bgm-scary.mp3');
-        
-        try {
-          await changeTrack('/src/assets/sounds/bgm-scary.mp3');
-          console.log('🎵 [GameOverScreen] changeTrack executado com sucesso!');
-        } catch (trackError) {
-          console.error('❌ [GameOverScreen] Erro no changeTrack:', trackError);
-          throw trackError;
-        }
-        
-        if (!isMounted) return;
-        
-        console.log('🎵 [GameOverScreen] Track alterado com sucesso!');
-        
-        // Aguardar mais tempo antes de tentar tocar
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        if (!isMounted) return;
-        
-        console.log('🎵 [GameOverScreen] Tentando iniciar música...');
-        
-        try {
-          await tryStartMusic();
-          console.log('🎵 [GameOverScreen] tryStartMusic executado com sucesso!');
-        } catch (startError) {
-          console.error('❌ [GameOverScreen] Erro no tryStartMusic:', startError);
-          throw startError;
-        }
-        
-        console.log('🎵 [GameOverScreen] Música assustadora iniciada com sucesso!');
-      } catch (error) {
-        if (isMounted) {
-          console.error('❌ [GameOverScreen] Erro ao tocar música:', error);
-          console.error('❌ [GameOverScreen] Detalhes do erro:', String(error));
-        }
-      }
-    };
-    
-    console.log('🎵 [GameOverScreen] useEffect executado, iniciando música...');
-    playScaryMusic();
-    
-    // Cleanup para evitar vazamentos de memória
-    return () => {
-      isMounted = false;
-    };
-  }, []); // Array vazio para executar apenas uma vez
+  }, [changeTrack]);
 
   // Mostrar estatísticas após um delay
   useEffect(() => {
@@ -244,47 +181,35 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({
 
   return (
     <GameOverContainer>
-      {/* Botão de teste para debug */}
-      <Button 
-        onClick={() => {
-          console.log('🧪 [GameOverScreen] TESTE DIRETO - criando áudio...');
-          try {
-            const audio = new Audio('/src/assets/sounds/bgm-scary.mp3');
-            audio.volume = 0.5;
-            audio.loop = false;
-            
-            audio.addEventListener('canplaythrough', () => {
-              console.log('✅ [GameOverScreen] TESTE - Áudio carregado!');
-              audio.play()
-                .then(() => {
-                  console.log('✅ [GameOverScreen] TESTE - Áudio tocando!');
-                })
-                .catch((error) => {
-                  console.error('❌ [GameOverScreen] TESTE - Erro ao tocar:', error);
-                });
-            });
-            
-            audio.addEventListener('error', (error) => {
-              console.error('❌ [GameOverScreen] TESTE - Erro no áudio:', error);
-            });
-            
-            console.log('🧪 [GameOverScreen] TESTE - Áudio criado, aguardando...');
-          } catch (error) {
-            console.error('❌ [GameOverScreen] TESTE - Erro ao criar áudio:', error);
-          }
-        }}
+      {/* Controle de Música */}
+      <Box
         sx={{
-          position: 'absolute',
-          top: '20px',
+          position: 'fixed',
+          bottom: '20px',
           right: '20px',
-          background: 'rgba(255, 0, 0, 0.8)',
-          color: 'white',
-          border: '2px solid red',
-          zIndex: 10000
+          zIndex: 100000, // Maior que o GameOverContainer (99999)
         }}
       >
-        🧪 TESTE ÁUDIO
-      </Button>
+        <Tooltip title={isPlaying ? 'Pausar música' : 'Tocar música'}>
+          <IconButton
+            onClick={() => {
+              playClick();
+              togglePlay();
+            }}
+            sx={{
+              color: isPlaying ? '#B31212' : '#E0DFDB',
+              background: 'rgba(15,17,20,0.8)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              '&:hover': {
+                background: 'rgba(179,18,18,0.2)',
+                borderColor: 'rgba(255,255,255,0.3)',
+              }
+            }}
+          >
+            {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
+          </IconButton>
+        </Tooltip>
+      </Box>
 
       {/* Container para caveira real */}
       <SkullContainer>

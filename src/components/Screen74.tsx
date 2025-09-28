@@ -89,26 +89,22 @@ const ChoiceButton = styled('button')({
   }
 });
 
-interface Screen321Props {
+interface Screen74Props {
   onGoToScreen: (screenId: number) => void;
   ficha: any;
   onUpdateFicha: (ficha: any) => void;
 }
 
-const Screen321: React.FC<Screen321Props> = ({ onGoToScreen, ficha: _ficha, onUpdateFicha: _onUpdateFicha }) => {
-  // Usa o sistema de grupos de áudio - automaticamente gerencia música do grupo 'royal-lendle' (people.mp3)
-  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(321);
+const Screen74: React.FC<Screen74Props> = ({ onGoToScreen, ficha: _ficha, onUpdateFicha: _onUpdateFicha }) => {
+  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(74);
   const playClick = useClickSound(0.2);
 
-  // Verifica se o jogador aceitou o desafio do Bartolph
-  const aceitouBartolph = localStorage.getItem('cavaleiro:aceitouBartolph') === 'true';
-
   return (
-    <Container data-screen="screen-321">
+    <Container data-screen="screen-74">
       {/* Controle de Volume */}
       <VolumeControl />
       
-      {/* Controle de música do grupo */}
+      {/* Controle de música */}
       <Box
         sx={{
           position: 'fixed',
@@ -146,47 +142,24 @@ const Screen321: React.FC<Screen321Props> = ({ onGoToScreen, ficha: _ficha, onUp
       <CardWrap>
         <CardContent sx={{ padding: '40px' }}>
           <NarrativeText>
-            {aceitouBartolph ? (
-              <>
-                Ao tentar ir para o outro lado do mercado, v
-              </>
-            ) : (
-              <>
-                V
-              </>
-            )}ocê se afasta de um vendedor insistente que tenta empurrar-lhe um peso de papel em forma de mangusto, mas acaba esbarrando em um grupo de seis guardas armados. O coração aperta no peito quando reconhece quem está à frente deles: Quinsberry Woad, o temido cobrador de impostos de Gallantaria, sempre acompanhado de sua guarda pessoal.
+            Preocupado, o carcereiro corre até sua cela para ver o que aconteceu. Mas, no momento em que ele se aproxima, você salta sobre ele, arranca as chaves de sua mão gorda e foge, trancando a porta atrás de si antes que ele consiga reagir.
             <br/><br/>
-            Com um ar solene, Woad retira um pergaminho de dentro de suas vestes e o abre diante de você:
-            <br/><br/>
-            — Comandante, por ordem da Coroa, estou autorizado a fazê-lo cumprir a Lei dos Impostos. Caso não haja pagamento imediato, tenho aqui uma ordem de prisão.
-            <br/><br/>
-            Ele coloca o documento em suas mãos e continua, com frieza calculada:
-            <br/><br/>
-            — O valor, já com juros reduzidos, fixado para cinco anos de cobrança, é de 568 Moedas de Ouro. Nem uma a mais, nem uma a menos. Diga-me... possui essa quantia?
-            <br/><br/>
-            A resposta é óbvia: você não tem como pagar uma soma tão exorbitante. O arrependimento de ter retornado à cidade pesa em sua mente. Agora, resta apenas escolher como agir.
+            Você arremessa a chave para longe e escapa da prisão, alcançando o lado de fora da cidade.
           </NarrativeText>
-
+          
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
             <ChoiceButton onClick={() => {
               playClick();
-              onGoToScreen(199);
+              onGoToScreen(272);
             }}>
-              Declara-se indigente e se entregar
+              Sair pela Portal Sul, para a Estrada do Comércio Principal
             </ChoiceButton>
 
             <ChoiceButton onClick={() => {
               playClick();
-              onGoToScreen(299);
+              onGoToScreen(60);
             }}>
-              Tentar subornar Quinsberry Woad
-            </ChoiceButton>
-
-            <ChoiceButton onClick={() => {
-              playClick();
-              onGoToScreen(338);
-            }}>
-              Tentar fugir
+              Sair pela Porta Leste, a mais próxima
             </ChoiceButton>
           </Box>
         </CardContent>
@@ -195,4 +168,4 @@ const Screen321: React.FC<Screen321Props> = ({ onGoToScreen, ficha: _ficha, onUp
   );
 };
 
-export default Screen321;
+export default Screen74;

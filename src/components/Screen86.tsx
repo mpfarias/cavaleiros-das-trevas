@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Card, CardContent, Typography, IconButton, Tooltip, TextField, Button } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useDiceSound } from '../hooks/useDiceSound';
+import { useClickSound } from '../hooks/useClickSound';
+import VolumeControl from './ui/VolumeControl';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import DiceRollModal3D from './ui/DiceRollModal3D';
@@ -174,6 +176,8 @@ const Screen86: React.FC<Screen86Props> = ({
 
   return (
     <Container data-screen="screen-86">
+      {/* Controle de Volume */}
+      <VolumeControl />
 
       
       {/* Botão de controle de música */}

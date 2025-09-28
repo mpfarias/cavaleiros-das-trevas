@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Box, Card, CardContent, Typography, IconButton, Tooltip, TextField, Button } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
-import { useDiceSound } from '../hooks/useDiceSound';
 import { useClickSound } from '../hooks/useClickSound';
+import { useDiceSound } from '../hooks/useDiceSound';
 import VolumeControl from './ui/VolumeControl';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
@@ -57,7 +57,7 @@ const NarrativeText = styled(Typography)({
   color: '#3d2817',
   textAlign: 'justify',
   marginBottom: '32px',
-  textShadow: '1px 1px 2px rgba(245,222,179,0.8)'
+  textShadow: '0 1px 2px rgba(245,222,179,0.8)'
 });
 
 const BetInput = styled(TextField)({
@@ -84,17 +84,15 @@ const BetInput = styled(TextField)({
   marginBottom: '24px',
 });
 
-
-
-interface Screen94Props {
-  onGoToScreen: (id: number) => void;
+interface Screen13Props {
+  onGoToScreen: (screenId: number) => void;
   ficha: Ficha;
   onUpdateFicha: (ficha: Ficha) => void;
 }
 
-const Screen94: React.FC<Screen94Props> = ({ onGoToScreen, ficha, onUpdateFicha }) => {
-  const { isPlaying, togglePlay, currentTrack } = useAudioGroup(94);
-  const playDice = useDiceSound();
+const Screen13: React.FC<Screen13Props> = ({ onGoToScreen, ficha, onUpdateFicha }) => {
+  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(162);
+  const playClick = useClickSound(0.2);
   
   const [betAmount, setBetAmount] = useState('');
   const [error, setError] = useState('');
@@ -124,49 +122,50 @@ const Screen94: React.FC<Screen94Props> = ({ onGoToScreen, ficha, onUpdateFicha 
     setShowDiceModal(true);
     setGameResult(null);
     setDiceResult(null);
-    
-    // Tocar som dos dados
-    playDice();
   };
 
-  const handleDiceComplete = (dice: number[]) => {
+  const handleDiceComplete = (dice: number[], total: number) => {
     const result = dice[0]; // Pega o resultado do primeiro (e único) dado
+    console.log(`🎲 [Screen13] Dado rolado: ${result}, Aposta: ${betAmount}`);
+    
     setDiceResult(result);
     setShowDiceModal(false);
     
-    // Verificar resultado (regras da tela 94: 3+ para vencer)
-    if (result >= 3) {
+    // Verificar resultado (regras da tela 13: 2+ para vencer, 1 perde)
+    if (result >= 2) {
+      console.log(`🎉 [Screen13] VITÓRIA! Resultado: ${result} >= 2`);
       setGameResult('win');
       localStorage.setItem('cavaleiro:apostaBartolph', betAmount);
-      
-      // GANHOU: Adicionar o valor da aposta à bolsa
+      // Atualizar ficha com moedas ganhas
       const fichaAtualizada = { ...ficha };
       const moedasOuro = fichaAtualizada.bolsa.find(item => item.tipo === 'ouro');
       if (moedasOuro && moedasOuro.quantidade !== undefined) {
         moedasOuro.quantidade += parseInt(betAmount);
-        console.log(`💰 [Screen94] Jogador GANHOU ${betAmount} moedas! Total: ${moedasOuro.quantidade}`);
-        onUpdateFicha(fichaAtualizada);
+        console.log(`💰 [Screen13] Jogador GANHOU ${betAmount} moedas! Total: ${moedasOuro.quantidade}`);
       }
+      onUpdateFicha(fichaAtualizada);
     } else {
+      console.log(`💸 [Screen13] DERROTA! Resultado: ${result} = 1`);
       setGameResult('lose');
       localStorage.setItem('cavaleiro:apostaBartolph', betAmount);
-      
-      // PERDEU: Remover o valor da aposta da bolsa
+      // Atualizar ficha com moedas perdidas
       const fichaAtualizada = { ...ficha };
       const moedasOuro = fichaAtualizada.bolsa.find(item => item.tipo === 'ouro');
       if (moedasOuro && moedasOuro.quantidade !== undefined) {
         moedasOuro.quantidade = Math.max(0, moedasOuro.quantidade - parseInt(betAmount));
-        console.log(`💸 [Screen94] Jogador PERDEU ${betAmount} moedas! Total: ${moedasOuro.quantidade}`);
-        onUpdateFicha(fichaAtualizada);
+        console.log(`💸 [Screen13] Jogador PERDEU ${betAmount} moedas! Total: ${moedasOuro.quantidade}`);
       }
+      onUpdateFicha(fichaAtualizada);
     }
+    
+    console.log(`🎯 [Screen13] gameResult definido como: ${result >= 2 ? 'win' : 'lose'}`);
   };
   
   const navigateToNext = () => {
-    if (gameResult === 'win') {
-      onGoToScreen(54);
+    if (diceResult === 1) {
+      onGoToScreen(175); // Resultado 1
     } else {
-      onGoToScreen(162);
+      onGoToScreen(54); // Resultado 2-6
     }
   };
   
@@ -179,10 +178,9 @@ const Screen94: React.FC<Screen94Props> = ({ onGoToScreen, ficha, onUpdateFicha 
   }, []);
 
   return (
-    <Container data-screen="screen-94">
+    <Container data-screen="screen-13">
       {/* Controle de Volume */}
       <VolumeControl />
-      {/* Botão de controle de música */}
       <Box
         sx={{
           position: 'fixed',
@@ -191,16 +189,19 @@ const Screen94: React.FC<Screen94Props> = ({ onGoToScreen, ficha, onUpdateFicha 
           zIndex: 1000,
         }}
       >
-        <Tooltip title={currentTrack ? (isPlaying ? 'Pausar música' : 'Tocar música') : 'Nenhuma música carregada'}>
+        <Tooltip title={currentGroup ? (isPlaying ? 'Pausar música' : 'Tocar música') : 'Nenhuma música carregada'}>
           <IconButton
-            onClick={togglePlay}
-            disabled={!currentTrack}
+            onClick={() => {
+              playClick();
+              togglePlay();
+            }}
+            disabled={!currentGroup}
             sx={{
-              color: currentTrack ? (isPlaying ? '#B31212' : '#E0DFDB') : '#666',
+              color: currentGroup ? (isPlaying ? '#B31212' : '#E0DFDB') : '#666',
               background: 'rgba(15,17,20,0.8)',
               border: '1px solid rgba(255,255,255,0.1)',
-              opacity: currentTrack ? 1 : 0.5,
-              '&:hover': currentTrack ? {
+              opacity: currentGroup ? 1 : 0.5,
+              '&:hover': currentGroup ? {
                 background: 'rgba(179,18,18,0.2)',
                 borderColor: 'rgba(255,255,255,0.3)',
               } : {},
@@ -217,15 +218,7 @@ const Screen94: React.FC<Screen94Props> = ({ onGoToScreen, ficha, onUpdateFicha 
       <CardWrap>
         <CardContent sx={{ padding: '40px' }}>
           <NarrativeText>
-            Bartolph sorri com satisfação ao ver que você está considerando sua oferta. Ele balança os dados em suas mãos com um ar de confiança renovada.
-            <br /><br />
-            — Vejo que você tem espírito de jogador! — ele exclama, seus olhos brilhando com antecipação. — E como prometi, as regras são mais generosas desta vez.
-            <br /><br />
-            Ele coloca os dados sobre a mesa com cuidado teatral:
-            <br /><br />
-            — Agora você só precisa tirar 3 ou mais para vencer. É quase impossível perder! — ele ri, mas há algo na voz dele que soa... calculista.
-            <br /><br />
-            — Mas lembre-se, amigo: você precisa ter ouro suficiente para cobrir a aposta. Quanto quer arriscar desta vez?
+            Anote a quantidade de Moedas de Ouro que deseja apostar e aposte
           </NarrativeText>
           
           {!diceResult && (
@@ -245,76 +238,75 @@ const Screen94: React.FC<Screen94Props> = ({ onGoToScreen, ficha, onUpdateFicha 
                 fullWidth
               />
               
-                                            <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-                 <Button
-                   onClick={startGame}
-                   disabled={!betAmount || !!error || parseInt(betAmount) <= 0 || parseInt(betAmount) > availableGold}
-                   sx={{
-                     padding: '12px 24px',
-                     background: 'linear-gradient(135deg, rgba(139,69,19,0.9) 0%, rgba(160,82,45,0.8) 100%)',
-                     color: '#F5DEB3',
-                     border: '2px solid #D2B48C',
-                     borderRadius: '12px',
-                     fontSize: '16px',
-                     fontFamily: '"Cinzel", serif',
-                     fontWeight: 600,
-                     textTransform: 'none',
-                     cursor: 'pointer',
-                     transition: 'all 0.3s ease',
-                     outline: 'none',
-                     textShadow: '0 1px 2px rgba(0,0,0,0.8)',
-                     boxShadow: '0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
-                     width: 'auto',
-                   '&:focus-visible': {
-                     outline: '2px solid #FFD700',
-                     outlineOffset: '2px'
-                   },
-                   '&:hover': {
-                     background: 'linear-gradient(135deg, rgba(179,18,18,0.9) 0%, rgba(139,0,0,0.8) 100%)',
-                     borderColor: '#FFD700',
-                     color: '#FFFFFF',
-                     transform: 'translateY(-2px) scale(1.02)',
-                     boxShadow: '0 8px 25px rgba(179,18,18,0.4), inset 0 1px 0 rgba(255,255,255,0.2)'
-                   },
-                   '&:active': {
-                     transform: 'translateY(0) scale(0.98)'
-                   },
-                   '&:disabled': {
-                     background: 'rgba(128,128,128,0.5)',
-                     borderColor: '#666',
-                     color: '#999',
-                     cursor: 'not-allowed',
-                     transform: 'none',
-                     boxShadow: 'none'
-                   }
-                 }}
-               >
-                 Jogar os dados
-               </Button>
-                 </Box>
+              <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                <Button
+                  onClick={startGame}
+                  disabled={!betAmount || !!error || parseInt(betAmount) <= 0 || parseInt(betAmount) > availableGold}
+                  sx={{
+                    padding: '12px 24px',
+                    background: 'linear-gradient(135deg, rgba(139,69,19,0.9) 0%, rgba(160,82,45,0.8) 100%)',
+                    color: '#F5DEB3',
+                    border: '2px solid #D2B48C',
+                    borderRadius: '12px',
+                    fontSize: '16px',
+                    fontFamily: '"Cinzel", serif',
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    outline: 'none',
+                    textShadow: '0 1px 2px rgba(0,0,0,0.8)',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
+                    width: 'auto',
+                    '&:focus-visible': {
+                      outline: '2px solid #FFD700',
+                      outlineOffset: '2px'
+                    },
+                    '&:hover': {
+                      background: 'linear-gradient(135deg, rgba(179,18,18,0.9) 0%, rgba(139,0,0,0.8) 100%)',
+                      borderColor: '#FFD700',
+                      color: '#FFFFFF',
+                      transform: 'translateY(-2px) scale(1.02)',
+                      boxShadow: '0 8px 25px rgba(179,18,18,0.4), inset 0 1px 0 rgba(255,255,255,0.2)'
+                    },
+                    '&:active': {
+                      transform: 'translateY(0) scale(0.98)'
+                    },
+                    '&:disabled': {
+                      opacity: 0.6,
+                      cursor: 'not-allowed'
+                    }
+                  }}
+                >
+                  Apostar e Jogar Dado
+                </Button>
+              </Box>
+              
             </>
           )}
-          
+
           {diceResult && (
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="h2" sx={{ 
-                fontFamily: '"Cinzel", serif', 
-                color: gameResult === 'win' ? '#228B22' : '#B31212',
-                marginBottom: '24px',
-                fontSize: '4rem'
-              }}>
-                {diceResult}
-              </Typography>
-              
+            <Box sx={{ textAlign: 'center', mt: 3 }}>
               <Typography variant="h5" sx={{ 
                 fontFamily: '"Cinzel", serif', 
-                color: gameResult === 'win' ? '#228B22' : '#B31212',
-                marginBottom: '24px'
+                color: gameResult === 'win' ? '#4CAF50' : '#F44336',
+                mb: 2
               }}>
-                {gameResult === 'win' ? 'Você venceu!' : 'Você perdeu!'}
+                {gameResult === 'win' ? '🎉 Você Ganhou!' : '💸 Você Perdeu!'}
               </Typography>
               
-
+              <Typography variant="h6" sx={{ 
+                fontFamily: '"Spectral", serif', 
+                color: '#3d2817',
+                mb: 3
+              }}>
+                Resultado do dado: {diceResult}
+                <br />
+                {gameResult === 'win' 
+                  ? `Você ganhou ${betAmount} moedas!` 
+                  : `Você perdeu ${betAmount} moedas.`
+                }
+              </Typography>
               
               <Button
                 onClick={navigateToNext}
@@ -328,24 +320,10 @@ const Screen94: React.FC<Screen94Props> = ({ onGoToScreen, ficha, onUpdateFicha 
                   fontFamily: '"Cinzel", serif',
                   fontWeight: 600,
                   textTransform: 'none',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  outline: 'none',
-                  textShadow: '0 1px 2px rgba(0,0,0,0.8)',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
-                  '&:focus-visible': {
-                    outline: '2px solid #FFD700',
-                    outlineOffset: '2px'
-                  },
                   '&:hover': {
                     background: 'linear-gradient(135deg, rgba(179,18,18,0.9) 0%, rgba(139,0,0,0.8) 100%)',
                     borderColor: '#FFD700',
-                    color: '#FFFFFF',
-                    transform: 'translateY(-2px) scale(1.02)',
-                    boxShadow: '0 8px 25px rgba(179,18,18,0.4), inset 0 1px 0 rgba(255,255,255,0.2)'
-                  },
-                  '&:active': {
-                    transform: 'translateY(0) scale(0.98)'
+                    transform: 'translateY(-2px) scale(1.02)'
                   }
                 }}
               >
@@ -353,17 +331,17 @@ const Screen94: React.FC<Screen94Props> = ({ onGoToScreen, ficha, onUpdateFicha 
               </Button>
             </Box>
           )}
-
-          {/* Modal de dados 3D */}
-          <DiceRollModal3D
-            open={showDiceModal}
-            numDice={1}
-            onComplete={handleDiceComplete}
-          />
         </CardContent>
       </CardWrap>
+
+      {/* Modal de dados 3D */}
+      <DiceRollModal3D
+        open={showDiceModal}
+        numDice={1}
+        onComplete={handleDiceComplete}
+      />
     </Container>
   );
 };
 
-export default Screen94;
+export default Screen13;

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Box, Card, CardContent, Typography, IconButton, Tooltip } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
@@ -6,6 +6,7 @@ import { useClickSound } from '../hooks/useClickSound';
 import VolumeControl from './ui/VolumeControl';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
+import type { Ficha } from '../types';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -89,26 +90,47 @@ const ChoiceButton = styled('button')({
   }
 });
 
-interface Screen321Props {
+interface Screen208Props {
   onGoToScreen: (screenId: number) => void;
-  ficha: any;
-  onUpdateFicha: (ficha: any) => void;
+  ficha: Ficha;
+  onUpdateFicha: (ficha: Ficha) => void;
 }
 
-const Screen321: React.FC<Screen321Props> = ({ onGoToScreen, ficha: _ficha, onUpdateFicha: _onUpdateFicha }) => {
-  // Usa o sistema de grupos de áudio - automaticamente gerencia música do grupo 'royal-lendle' (people.mp3)
-  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(321);
+const Screen208: React.FC<Screen208Props> = ({ onGoToScreen, ficha, onUpdateFicha }) => {
+  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(208);
   const playClick = useClickSound(0.2);
+  const itemsLostRef = useRef(false);
 
-  // Verifica se o jogador aceitou o desafio do Bartolph
-  const aceitouBartolph = localStorage.getItem('cavaleiro:aceitouBartolph') === 'true';
+  // Perder todos os itens da bolsa quando a tela carrega (apenas uma vez)
+  useEffect(() => {
+    if (itemsLostRef.current) return;
+    
+    itemsLostRef.current = true;
+    
+    const fichaAtualizada = { ...ficha };
+    const itensPerdidos = fichaAtualizada.bolsa.length;
+    
+    // Limpar toda a bolsa
+    fichaAtualizada.bolsa = [];
+    
+    console.log(`💼 [Screen208] Todos os itens perdidos: ${itensPerdidos} itens removidos`);
+    
+    onUpdateFicha(fichaAtualizada);
+  }, [ficha, onUpdateFicha]);
+
+
+  const handleGameOver = () => {
+    playClick();
+    onGoToScreen(999); // Ir para rota do Game Over
+  };
+
 
   return (
-    <Container data-screen="screen-321">
+    <Container data-screen="screen-208">
       {/* Controle de Volume */}
       <VolumeControl />
       
-      {/* Controle de música do grupo */}
+      {/* Controle de Música */}
       <Box
         sx={{
           position: 'fixed',
@@ -142,51 +164,22 @@ const Screen321: React.FC<Screen321Props> = ({ onGoToScreen, ficha: _ficha, onUp
           </IconButton>
         </Tooltip>
       </Box>
-
+      
       <CardWrap>
         <CardContent sx={{ padding: '40px' }}>
           <NarrativeText>
-            {aceitouBartolph ? (
-              <>
-                Ao tentar ir para o outro lado do mercado, v
-              </>
-            ) : (
-              <>
-                V
-              </>
-            )}ocê se afasta de um vendedor insistente que tenta empurrar-lhe um peso de papel em forma de mangusto, mas acaba esbarrando em um grupo de seis guardas armados. O coração aperta no peito quando reconhece quem está à frente deles: Quinsberry Woad, o temido cobrador de impostos de Gallantaria, sempre acompanhado de sua guarda pessoal.
+            A noite parece interminável e, por causa do ronco do carcereiro, você não consegue pregar o olho.
             <br/><br/>
-            Com um ar solene, Woad retira um pergaminho de dentro de suas vestes e o abre diante de você:
+            Na madrugada, os guardas tomam seus pertences e o empurram para dentro de uma carroça de metal.
             <br/><br/>
-            — Comandante, por ordem da Coroa, estou autorizado a fazê-lo cumprir a Lei dos Impostos. Caso não haja pagamento imediato, tenho aqui uma ordem de prisão.
+            Levado às masmorras da cidade, você é acompanhado por uma multidão de malfeitores. Acorrentado a um poste de pedra, fica preso no meio de uma roda de miseráveis, sem qualquer esperança de voltar a ver a luz do dia.
             <br/><br/>
-            Ele coloca o documento em suas mãos e continua, com frieza calculada:
-            <br/><br/>
-            — O valor, já com juros reduzidos, fixado para cinco anos de cobrança, é de 568 Moedas de Ouro. Nem uma a mais, nem uma a menos. Diga-me... possui essa quantia?
-            <br/><br/>
-            A resposta é óbvia: você não tem como pagar uma soma tão exorbitante. O arrependimento de ter retornado à cidade pesa em sua mente. Agora, resta apenas escolher como agir.
+            E mesmo que um milagre aconteça… já será tarde demais para salvar Karnstein.
           </NarrativeText>
-
+          
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
-            <ChoiceButton onClick={() => {
-              playClick();
-              onGoToScreen(199);
-            }}>
-              Declara-se indigente e se entregar
-            </ChoiceButton>
-
-            <ChoiceButton onClick={() => {
-              playClick();
-              onGoToScreen(299);
-            }}>
-              Tentar subornar Quinsberry Woad
-            </ChoiceButton>
-
-            <ChoiceButton onClick={() => {
-              playClick();
-              onGoToScreen(338);
-            }}>
-              Tentar fugir
+            <ChoiceButton onClick={handleGameOver}>
+              Fim da sua aventura
             </ChoiceButton>
           </Box>
         </CardContent>
@@ -195,4 +188,4 @@ const Screen321: React.FC<Screen321Props> = ({ onGoToScreen, ficha: _ficha, onUp
   );
 };
 
-export default Screen321;
+export default Screen208;

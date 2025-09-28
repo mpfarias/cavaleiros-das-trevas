@@ -6,6 +6,7 @@ import { useClickSound } from '../hooks/useClickSound';
 import VolumeControl from './ui/VolumeControl';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
+import type { Ficha } from '../types';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -89,26 +90,29 @@ const ChoiceButton = styled('button')({
   }
 });
 
-interface Screen321Props {
+interface Screen123Props {
   onGoToScreen: (screenId: number) => void;
-  ficha: any;
-  onUpdateFicha: (ficha: any) => void;
+  ficha: Ficha;
+  onUpdateFicha: (ficha: Ficha) => void;
 }
 
-const Screen321: React.FC<Screen321Props> = ({ onGoToScreen, ficha: _ficha, onUpdateFicha: _onUpdateFicha }) => {
-  // Usa o sistema de grupos de áudio - automaticamente gerencia música do grupo 'royal-lendle' (people.mp3)
-  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(321);
+const Screen123: React.FC<Screen123Props> = ({ onGoToScreen, ficha, onUpdateFicha: _onUpdateFicha }) => {
+  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(123);
   const playClick = useClickSound(0.2);
 
-  // Verifica se o jogador aceitou o desafio do Bartolph
-  const aceitouBartolph = localStorage.getItem('cavaleiro:aceitouBartolph') === 'true';
+  // Verificar se o jogador tem Poção Corrosiva
+  const temPocaoCorrosiva = ficha.bolsa.some(item => 
+    item.id === 'almotolia-pocao-corrosiva' || 
+    item.nome?.toLowerCase().includes('poção corrosiva') ||
+    item.nome?.toLowerCase().includes('pocao corrosiva') ||
+    item.nome?.toLowerCase().includes('almotolia')
+  );
 
   return (
-    <Container data-screen="screen-321">
+    <Container data-screen="screen-123">
       {/* Controle de Volume */}
       <VolumeControl />
       
-      {/* Controle de música do grupo */}
       <Box
         sx={{
           position: 'fixed',
@@ -146,47 +150,22 @@ const Screen321: React.FC<Screen321Props> = ({ onGoToScreen, ficha: _ficha, onUp
       <CardWrap>
         <CardContent sx={{ padding: '40px' }}>
           <NarrativeText>
-            {aceitouBartolph ? (
-              <>
-                Ao tentar ir para o outro lado do mercado, v
-              </>
-            ) : (
-              <>
-                V
-              </>
-            )}ocê se afasta de um vendedor insistente que tenta empurrar-lhe um peso de papel em forma de mangusto, mas acaba esbarrando em um grupo de seis guardas armados. O coração aperta no peito quando reconhece quem está à frente deles: Quinsberry Woad, o temido cobrador de impostos de Gallantaria, sempre acompanhado de sua guarda pessoal.
+            O carcereiro cai na risada com a sua encenação; mal consegue acreditar que você tenha recorrido a um truque tão velho. Ele balança a cabeça, ainda rindo, e volta à leitura, soltando gargalhadas ocasionais ao lembrar da sua encenação barata.
             <br/><br/>
-            Com um ar solene, Woad retira um pergaminho de dentro de suas vestes e o abre diante de você:
-            <br/><br/>
-            — Comandante, por ordem da Coroa, estou autorizado a fazê-lo cumprir a Lei dos Impostos. Caso não haja pagamento imediato, tenho aqui uma ordem de prisão.
-            <br/><br/>
-            Ele coloca o documento em suas mãos e continua, com frieza calculada:
-            <br/><br/>
-            — O valor, já com juros reduzidos, fixado para cinco anos de cobrança, é de 568 Moedas de Ouro. Nem uma a mais, nem uma a menos. Diga-me... possui essa quantia?
-            <br/><br/>
-            A resposta é óbvia: você não tem como pagar uma soma tão exorbitante. O arrependimento de ter retornado à cidade pesa em sua mente. Agora, resta apenas escolher como agir.
+            Você terá de tentar outra coisa.
           </NarrativeText>
-
+          
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
-            <ChoiceButton onClick={() => {
-              playClick();
-              onGoToScreen(199);
-            }}>
-              Declara-se indigente e se entregar
+            {temPocaoCorrosiva && (
+              <ChoiceButton onClick={() => { playClick(); onGoToScreen(7); }}>
+                Usar a Poção Corrosiva no cadeado da cela
+              </ChoiceButton>
+            )}
+            <ChoiceButton onClick={() => { playClick(); onGoToScreen(26); }}>
+              Insultar o homem para fazê-lo se aproximar e então atacá-lo
             </ChoiceButton>
-
-            <ChoiceButton onClick={() => {
-              playClick();
-              onGoToScreen(299);
-            }}>
-              Tentar subornar Quinsberry Woad
-            </ChoiceButton>
-
-            <ChoiceButton onClick={() => {
-              playClick();
-              onGoToScreen(338);
-            }}>
-              Tentar fugir
+            <ChoiceButton onClick={() => { playClick(); onGoToScreen(208); }}>
+              Simplesmente se desesperar enquanto espera pela carroça das masmorras
             </ChoiceButton>
           </Box>
         </CardContent>
@@ -195,4 +174,4 @@ const Screen321: React.FC<Screen321Props> = ({ onGoToScreen, ficha: _ficha, onUp
   );
 };
 
-export default Screen321;
+export default Screen123;

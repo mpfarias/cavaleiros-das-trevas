@@ -4,6 +4,7 @@ import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
 import { GameAlert } from './ui/GameAlert';
+import VolumeControl from './ui/VolumeControl';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 
@@ -163,6 +164,9 @@ const Screen7: React.FC<Screen7Props> = ({ onGoToScreen, ficha, onUpdateFicha })
 
   return (
     <Container data-screen="screen-7">
+      {/* Controle de Volume */}
+      <VolumeControl />
+      
       {/* Alerta de uso da poção */}
       {showPotionAlert && (
         <GameAlert sx={{ top: '120px' }} $isVisible={showPotionAlert}>

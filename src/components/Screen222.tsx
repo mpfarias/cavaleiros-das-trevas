@@ -1,7 +1,10 @@
 import { useEffect, useState, useRef } from 'react';
+import React from 'react';
 import { Box, Card, CardContent, Typography, IconButton, Tooltip } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
+import { useClickSound } from '../hooks/useClickSound';
+import VolumeControl from './ui/VolumeControl';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import { GameAlert } from './ui/GameAlert';
@@ -181,6 +184,8 @@ const Screen222: React.FC<Screen222Props> = ({ onGoToScreen, ficha, onFichaChang
 
   return (
     <Container data-screen="screen-222">
+      {/* Controle de Volume */}
+      <VolumeControl />
       {/* Alertas de recompensa */}
       <GameAlert sx={{ top: '120px' }} $isVisible={showGoldAlert}>
         🪙 +6 Moedas de Ouro adicionadas!

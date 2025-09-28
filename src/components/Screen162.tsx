@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
+import React from 'react';
 import { Box, Card, CardContent, Typography, IconButton, Tooltip } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
+import { useClickSound } from '../hooks/useClickSound';
+import VolumeControl from './ui/VolumeControl';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import { GameAlert } from './ui/GameAlert';
@@ -129,6 +132,8 @@ const Screen162: React.FC<Screen162Props> = ({ onGoToScreen }) => {
 
   return (
     <Container data-screen="screen-162">
+      {/* Controle de Volume */}
+      <VolumeControl />
       {/* Alert de perda de moedas */}
       <GameAlert sx={{ top: '120px' }} $isVisible={showMoneyAlert}>
         💰 {moedasPerdidas} moedas perdidas na aposta!

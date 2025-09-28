@@ -3,6 +3,7 @@ import { Box, Card, CardContent, Typography, IconButton, Tooltip } from '@mui/ma
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
+import VolumeControl from './ui/VolumeControl';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 
@@ -100,6 +101,8 @@ const Screen338: React.FC<Screen338Props> = ({ onGoToScreen, ficha: _ficha, onUp
 
   return (
     <Container data-screen="screen-338">
+      {/* Controle de Volume */}
+      <VolumeControl />
       <Box
         sx={{
           position: 'fixed',

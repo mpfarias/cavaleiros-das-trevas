@@ -4,6 +4,7 @@ import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
 import { GameAlert } from './ui/GameAlert';
+import VolumeControl from './ui/VolumeControl';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 
@@ -192,6 +193,9 @@ const Screen199: React.FC<Screen199Props> = ({ onGoToScreen, ficha, onUpdateFich
 
   return (
     <Container data-screen="screen-199">
+      {/* Controle de Volume */}
+      <VolumeControl />
+      
       {/* Alerta de perda de arma */}
       {showWeaponAlert && (
         <GameAlert sx={{ top: '120px' }} $isVisible={showWeaponAlert}>
