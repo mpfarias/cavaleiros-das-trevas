@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { Box, Card, CardContent, Typography, IconButton, Tooltip } from '@mui/material';
+import { Box, Card, CardContent, Typography, IconButton, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
-import { useDiceSound } from '../hooks/useDiceSound';
 import VolumeControl from './ui/VolumeControl';
 import DiceRollModal3D from './ui/DiceRollModal3D';
+import { GameAlert } from './ui/GameAlert';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import type { Ficha } from '../types';
@@ -92,6 +92,51 @@ const ChoiceButton = styled('button')({
   }
 });
 
+const StyledDialog = styled(Dialog)({
+  '& .MuiDialog-paper': {
+    background: 'linear-gradient(135deg, rgba(245,222,179,0.98) 0%, rgba(222,184,135,0.95) 100%)',
+    border: '3px solid #8B4513',
+    borderRadius: '20px',
+    boxShadow: '0 20px 60px rgba(0,0,0,0.7)',
+    minWidth: '400px',
+    padding: '20px'
+  }
+});
+
+const StyledDialogTitle = styled(DialogTitle)({
+  fontFamily: '"Cinzel", serif',
+  fontSize: '24px',
+  fontWeight: 700,
+  color: '#4a2c00',
+  textAlign: 'center',
+  padding: '16px 24px'
+});
+
+const StyledDialogContent = styled(DialogContent)({
+  fontFamily: '"Spectral", serif',
+  fontSize: '18px',
+  color: '#3d2817',
+  textAlign: 'center',
+  padding: '24px'
+});
+
+const StyledButton = styled(Button)({
+  background: 'linear-gradient(135deg, rgba(139,69,19,0.9) 0%, rgba(160,82,45,0.8) 100%)',
+  color: '#F5DEB3',
+  border: '2px solid #D2B48C',
+  borderRadius: '8px',
+  fontSize: '16px',
+  fontFamily: '"Cinzel", serif',
+  fontWeight: 600,
+  padding: '10px 24px',
+  textTransform: 'none',
+  '&:hover': {
+    background: 'linear-gradient(135deg, rgba(179,18,18,0.9) 0%, rgba(139,0,0,0.8) 100%)',
+    borderColor: '#FFD700',
+    color: '#FFFFFF'
+  }
+});
+
 interface Screen301Props {
   onGoToScreen: (screenId: number) => void;
   ficha: Ficha;
@@ -102,10 +147,14 @@ interface Screen301Props {
 const Screen301: React.FC<Screen301Props> = ({ onGoToScreen, ficha, onUpdateFicha, onAdjustSorte }) => {
   const { currentGroup, isPlaying, togglePlay } = useAudioGroup(301);
   const playClick = useClickSound(0.2);
-  const playDiceSound = useDiceSound();
   
   const [showDiceModal, setShowDiceModal] = useState(false);
-  const [foguetesUsados, setFoguetesUsados] = useState(0);
+  const [foguetesParaUsar, setFoguetesParaUsar] = useState<number | null>(null);
+  const [inputFoguetes, setInputFoguetes] = useState<string>('');
+  const [showFoguetesAlert, setShowFoguetesAlert] = useState(false);
+  const [showResultDialog, setShowResultDialog] = useState(false);
+  const [teveSorte, setTeveSorte] = useState(false);
+  const [diceResult, setDiceResult] = useState<{ dice: number[], total: number } | null>(null);
 
   // Verificar se tem Documento de Perdão Cívico
   const temDocumentoPerdao = ficha.bolsa.some(item => 
@@ -126,38 +175,86 @@ const Screen301: React.FC<Screen301Props> = ({ onGoToScreen, ficha, onUpdateFich
     item.nome.toLowerCase().includes('foguete')
   ).length;
 
+  const handleNaoUsarFoguetes = () => {
+    playClick();
+    setFoguetesParaUsar(0);
+    setInputFoguetes('');
+  };
+
+  const handleInputChange = (valor: string) => {
+    // Permitir apenas números
+    if (valor === '' || /^\d+$/.test(valor)) {
+      const num = valor === '' ? 0 : parseInt(valor, 10);
+      
+      // Validar limites
+      if (num >= 1 && num <= quantidadeFoguetes) {
+        setInputFoguetes(valor);
+        setFoguetesParaUsar(num);
+      } else if (valor === '') {
+        setInputFoguetes('');
+        setFoguetesParaUsar(null);
+      }
+    }
+  };
+
   const handleTesteSorte = () => {
     playClick();
     setShowDiceModal(true);
   };
 
-  const handleDiceRoll = (result: number) => {
-    playDiceSound();
+  const handleDiceRoll = (dice: number[], total: number) => {
+    // Fechar modal de dados
+    setShowDiceModal(false);
     
-    // Aplicar modificador dos foguetes
-    const resultadoFinal = result - foguetesUsados;
+    // Salvar resultado dos dados
+    setDiceResult({ dice, total });
     
-    // Subtrair pontos de sorte
-    onAdjustSorte(-1);
+    // Aplicar modificador dos foguetes (cada foguete reduz 1 ponto)
+    const foguetesUsados = foguetesParaUsar || 0;
+    const resultadoFinal = total - foguetesUsados;
     
-    // Remover foguetes usados
+    // Remover os foguetes usados da bolsa
     if (foguetesUsados > 0) {
-      const fichaAtualizada = { ...ficha };
-      let foguetesRemovidos = 0;
+      let removidos = 0;
       
-      fichaAtualizada.bolsa = fichaAtualizada.bolsa.filter(item => {
-        if (item.nome.toLowerCase().includes('foguete') && foguetesRemovidos < foguetesUsados) {
-          foguetesRemovidos++;
+      // Criar nova bolsa sem os foguetes usados
+      const novaBolsa = ficha.bolsa.filter(item => {
+        if (item.nome.toLowerCase().includes('foguete') && removidos < foguetesUsados) {
+          removidos++;
           return false;
         }
         return true;
       });
       
+      // Criar nova ficha com a bolsa atualizada
+      const fichaAtualizada: Ficha = {
+        ...ficha,
+        bolsa: novaBolsa
+      };
+      
       onUpdateFicha(fichaAtualizada);
+      
+      // Mostrar alerta de foguetes usados
+      setShowFoguetesAlert(true);
+      setTimeout(() => setShowFoguetesAlert(false), 3000);
     }
     
-    // Navegar baseado no resultado
-    if (resultadoFinal <= ficha.sorte.atual) {
+    // Subtrair pontos de sorte
+    onAdjustSorte(-1);
+    
+    // Verificar resultado
+    const sucesso = resultadoFinal <= ficha.sorte.atual;
+    setTeveSorte(sucesso);
+    
+    // Mostrar dialog de resultado
+    setShowResultDialog(true);
+  };
+
+  const handleCloseResultDialog = () => {
+    setShowResultDialog(false);
+    
+    // Navegar IMEDIATAMENTE - o localStorage já foi atualizado
+    if (teveSorte) {
       onGoToScreen(145); // Sucesso
     } else {
       onGoToScreen(208); // Falha
@@ -166,6 +263,11 @@ const Screen301: React.FC<Screen301Props> = ({ onGoToScreen, ficha, onUpdateFich
 
   return (
     <Container data-screen="screen-301">
+      {/* Alerta de foguetes usados */}
+      <GameAlert sx={{ top: '120px' }} $isVisible={showFoguetesAlert}>
+        🎆 {foguetesParaUsar} foguete(s) usado(s) para distrair os guardas!
+      </GameAlert>
+      
       {/* Controle de Volume */}
       <VolumeControl />
       
@@ -179,28 +281,30 @@ const Screen301: React.FC<Screen301Props> = ({ onGoToScreen, ficha, onUpdateFich
         }}
       >
         <Tooltip title={currentGroup ? (isPlaying ? 'Pausar música' : 'Tocar música') : 'Nenhuma música carregada'}>
-          <IconButton
-            onClick={() => {
-              playClick();
-              togglePlay();
-            }}
-            disabled={!currentGroup}
-            sx={{
-              color: currentGroup ? (isPlaying ? '#B31212' : '#E0DFDB') : '#666',
-              background: 'rgba(15,17,20,0.8)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              opacity: currentGroup ? 1 : 0.5,
-              '&:hover': currentGroup ? {
-                background: 'rgba(179,18,18,0.2)',
-                borderColor: 'rgba(255,255,255,0.3)',
-              } : {},
-              '&:disabled': {
-                cursor: 'not-allowed'
-              }
-            }}
-          >
-            {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-          </IconButton>
+          <span>
+            <IconButton
+              onClick={() => {
+                playClick();
+                togglePlay();
+              }}
+              disabled={!currentGroup}
+              sx={{
+                color: currentGroup ? (isPlaying ? '#B31212' : '#E0DFDB') : '#666',
+                background: 'rgba(15,17,20,0.8)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                opacity: currentGroup ? 1 : 0.5,
+                '&:hover': currentGroup ? {
+                  background: 'rgba(179,18,18,0.2)',
+                  borderColor: 'rgba(255,255,255,0.3)',
+                } : {},
+                '&:disabled': {
+                  cursor: 'not-allowed'
+                }
+              }}
+            >
+              {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
+            </IconButton>
+          </span>
         </Tooltip>
       </Box>
 
@@ -232,42 +336,130 @@ const Screen301: React.FC<Screen301Props> = ({ onGoToScreen, ficha, onUpdateFich
             {/* Se não tem documento E não está no carrinho de lixo, precisa fazer teste de sorte */}
             {!temDocumentoPerdao && !estaNoCarrinhoLixo && (
               <>
-                <ChoiceButton onClick={handleTesteSorte}>
-                  Testar a Sorte para passar despercebido
-                </ChoiceButton>
-
-                {/* Opção para usar foguetes se tiver */}
+                {/* Mostrar seletor de foguetes se tiver */}
                 {temFoguetes && (
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '16px' }}>
-                    <Typography variant="body2" sx={{ color: '#3d2817', textAlign: 'center', fontFamily: '"Spectral", serif' }}>
-                      Você tem {quantidadeFoguetes} foguete(s). Quantos deseja usar para distrair os guardas?
+                  <Box sx={{ 
+                    background: 'rgba(139,69,19,0.1)', 
+                    padding: '16px', 
+                    borderRadius: '8px',
+                    marginBottom: '16px',
+                    border: '1px solid rgba(139,69,19,0.3)'
+                  }}>
+                    <Typography variant="body2" sx={{ 
+                      color: '#3d2817', 
+                      textAlign: 'center', 
+                      fontFamily: '"Spectral", serif', 
+                      marginBottom: '16px',
+                      fontWeight: 600 
+                    }}>
+                      Você possui {quantidadeFoguetes} foguete(s) de distração. Quantos deseja usar para distrair os guardas?
+                      <br/>
+                      <span style={{ fontSize: '14px', fontWeight: 400 }}>
+                        (Cada foguete reduz 1 ponto do resultado do teste de sorte)
+                      </span>
                     </Typography>
                     
-                    <Box sx={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                      {Array.from({ length: Math.min(quantidadeFoguetes, 3) }, (_, i) => i + 1).map(num => (
-                        <ChoiceButton 
-                          key={num}
-                          onClick={() => {
-                            playClick();
-                            setFoguetesUsados(num);
+                    <Box sx={{ 
+                      display: 'flex', 
+                      gap: '12px', 
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                      marginBottom: '12px' 
+                    }}>
+                      {/* Botão para não usar foguetes */}
+                      <ChoiceButton 
+                        onClick={handleNaoUsarFoguetes}
+                        style={{ 
+                          minWidth: '120px',
+                          maxWidth: '140px',
+                          padding: '12px 16px',
+                          background: foguetesParaUsar === 0 
+                            ? 'linear-gradient(135deg, rgba(179,18,18,0.9) 0%, rgba(139,0,0,0.8) 100%)' 
+                            : 'linear-gradient(135deg, rgba(139,69,19,0.7) 0%, rgba(160,82,45,0.6) 100%)',
+                          borderColor: foguetesParaUsar === 0 ? '#FFD700' : '#D2B48C'
+                        }}
+                      >
+                        Não usar
+                      </ChoiceButton>
+                      
+                      {/* Separador */}
+                      <Typography sx={{ color: '#3d2817', fontFamily: '"Spectral", serif', fontWeight: 600 }}>
+                        ou
+                      </Typography>
+                      
+                      {/* Input para quantidade de foguetes */}
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Typography sx={{ color: '#3d2817', fontFamily: '"Spectral", serif', fontWeight: 600 }}>
+                          Usar:
+                        </Typography>
+                        <input
+                          type="number"
+                          min="1"
+                          max={quantidadeFoguetes}
+                          value={inputFoguetes}
+                          onChange={(e) => handleInputChange(e.target.value)}
+                          placeholder="0"
+                          style={{
+                            width: '70px',
+                            padding: '12px',
+                            fontSize: '16px',
+                            fontFamily: '"Spectral", serif',
+                            fontWeight: 600,
+                            textAlign: 'center',
+                            background: 'rgba(255,255,255,0.8)',
+                            border: '2px solid #8B4513',
+                            borderRadius: '8px',
+                            color: '#3d2817',
+                            outline: 'none',
+                            transition: 'all 0.3s ease'
                           }}
-                          style={{ 
-                            minWidth: '60px',
-                            backgroundColor: foguetesUsados === num ? '#B31212' : 'rgba(139, 69, 19, 0.8)',
+                          onFocus={(e) => {
+                            e.target.style.borderColor = '#B31212';
+                            e.target.style.background = 'rgba(255,255,255,0.95)';
                           }}
-                        >
-                          {num}
-                        </ChoiceButton>
-                      ))}
+                          onBlur={(e) => {
+                            e.target.style.borderColor = '#8B4513';
+                            e.target.style.background = 'rgba(255,255,255,0.8)';
+                          }}
+                        />
+                        <Typography sx={{ color: '#3d2817', fontFamily: '"Spectral", serif' }}>
+                          (máx. {quantidadeFoguetes})
+                        </Typography>
+                      </Box>
                     </Box>
                     
-                    {foguetesUsados > 0 && (
-                      <Typography variant="body2" sx={{ color: '#4CAF50', textAlign: 'center', fontFamily: '"Spectral", serif' }}>
-                        Usando {foguetesUsados} foguete(s) - Resultado do teste será reduzido em {foguetesUsados}
+                    {/* Mostrar resumo da seleção */}
+                    {foguetesParaUsar !== null && (
+                      <Typography variant="body2" sx={{ 
+                        color: foguetesParaUsar > 0 ? '#2e7d32' : '#3d2817', 
+                        textAlign: 'center', 
+                        fontFamily: '"Spectral", serif',
+                        fontWeight: 600,
+                        marginTop: '8px'
+                      }}>
+                        {foguetesParaUsar > 0 
+                          ? `✓ Você vai usar ${foguetesParaUsar} foguete(s) - Redução de ${foguetesParaUsar} ponto(s) no teste`
+                          : '✓ Você não vai usar foguetes - Teste sem redução'
+                        }
                       </Typography>
                     )}
                   </Box>
                 )}
+
+                <ChoiceButton 
+                  onClick={handleTesteSorte}
+                  disabled={temFoguetes && foguetesParaUsar === null}
+                  style={{
+                    opacity: (temFoguetes && foguetesParaUsar === null) ? 0.5 : 1,
+                    cursor: (temFoguetes && foguetesParaUsar === null) ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  {temFoguetes && foguetesParaUsar === null 
+                    ? 'Escolha quantos foguetes usar primeiro'
+                    : 'Testar a Sorte para passar despercebido'
+                  }
+                </ChoiceButton>
               </>
             )}
           </Box>
@@ -277,12 +469,41 @@ const Screen301: React.FC<Screen301Props> = ({ onGoToScreen, ficha, onUpdateFich
       {/* Modal de dados */}
       <DiceRollModal3D
         open={showDiceModal}
-        onClose={() => setShowDiceModal(false)}
-        onRollComplete={handleDiceRoll}
-        diceCount={2}
-        title="Teste de Sorte"
-        description={`Role 2d6. Se o resultado for menor ou igual a ${ficha.sorte.atual}${foguetesUsados > 0 ? ` (reduzido em ${foguetesUsados} pelos foguetes)` : ''}, você terá sucesso.`}
+        numDice={2}
+        onComplete={handleDiceRoll}
+        bonus={0}
       />
+
+      {/* Dialog de resultado do teste de sorte */}
+      <StyledDialog open={showResultDialog} onClose={undefined} maxWidth="xs">
+        <StyledDialogTitle>
+          {teveSorte ? 'Você teve sorte' : 'Você não teve sorte'}
+        </StyledDialogTitle>
+        <StyledDialogContent>
+          {diceResult && (
+            <>
+              <Typography sx={{ fontSize: '18px', fontWeight: 'bold', color: '#3d2817', marginBottom: '8px' }}>
+                Dados: {diceResult.dice.join(' + ')} = {diceResult.total}
+              </Typography>
+              {foguetesParaUsar && foguetesParaUsar > 0 && (
+                <>
+                  <Typography sx={{ fontSize: '16px', color: '#8B4513', marginTop: '8px' }}>
+                    Foguetes usados: -{foguetesParaUsar}
+                  </Typography>
+                  <Typography sx={{ fontSize: '18px', fontWeight: 'bold', color: '#2e7d32', marginTop: '8px' }}>
+                    Resultado final: {diceResult.total - foguetesParaUsar}
+                  </Typography>
+                </>
+              )}
+            </>
+          )}
+        </StyledDialogContent>
+        <DialogActions sx={{ justifyContent: 'center', paddingBottom: '24px' }}>
+          <StyledButton onClick={handleCloseResultDialog}>
+            Ir
+          </StyledButton>
+        </DialogActions>
+      </StyledDialog>
     </Container>
   );
 };

@@ -35,6 +35,9 @@ import Screen233 from '../components/Screen233';
 import Screen272 from '../components/Screen272';
 import Screen301 from '../components/Screen301';
 import Screen351 from '../components/Screen351';
+import Screen145 from '../components/Screen145';
+import Screen190 from '../components/Screen190';
+import Screen28 from '../components/Screen28';
 import GameOverScreen from '../components/GameOverScreen';
 import type { Ficha } from '../types';
 
@@ -45,12 +48,39 @@ type ScreenRouterProps = {
   onFichaChange: (ficha: Ficha) => void;
 };
 
-const ScreenRouter: React.FC<ScreenRouterProps> = ({ ficha, onGameResult, onAdjustSorte, onFichaChange }) => {
+const ScreenRouter: React.FC<ScreenRouterProps> = ({ ficha: fichaFromProps, onGameResult, onAdjustSorte, onFichaChange }) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const screenId = Number(id);
 
+  // 🔥 SOLUÇÃO: Sempre usar a ficha mais recente do localStorage
+  // Isso garante que mudanças feitas na tela anterior sejam refletidas imediatamente
+  const [ficha, setFicha] = React.useState<Ficha>(() => {
+    try {
+      const saved = localStorage.getItem('cavaleiro:ficha');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {
+      console.error('Erro ao ler ficha do localStorage:', e);
+    }
+    return fichaFromProps;
+  });
 
+  // Atualizar ficha quando a tela mudar (garantir sincronização)
+  React.useEffect(() => {
+    try {
+      const saved = localStorage.getItem('cavaleiro:ficha');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setFicha(parsed);
+        return;
+      }
+    } catch (e) {
+      console.error('Erro ao ler ficha do localStorage:', e);
+    }
+    setFicha(fichaFromProps);
+  }, [fichaFromProps, screenId]);
 
   // Verificação de segurança: se a ficha for inválida, redireciona para a tela inicial
   if (!ficha || !ficha.bolsa || !Array.isArray(ficha.bolsa)) {
@@ -276,6 +306,24 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({ ficha, onGameResult, onAdju
   if (screenId === 222) {
     return (
       <Screen222 onGoToScreen={goToScreen} ficha={ficha} onFichaChange={onFichaChange} />
+    );
+  }
+
+  if (screenId === 145) {
+    return (
+      <Screen145 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 190) {
+    return (
+      <Screen190 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 28) {
+    return (
+      <Screen28 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
     );
   }
 

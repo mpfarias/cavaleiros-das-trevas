@@ -279,20 +279,17 @@ function AppContent() {
     // 🔧 Validar e corrigir a bolsa automaticamente
     const fichaValidada = validarBolsa(newFicha);
     
-    // Se houve correções, logar para debug
-    if (fichaValidada.bolsa.length !== newFicha.bolsa.length) {
-      // Bolsa corrigida automaticamente - removidas duplicatas
-    }
-    
     // Aplicar modificadores dos itens aos atributos
     const fichaComModificadores = applyModifiersToAttributes(fichaValidada);
     
-    setFichaWithLog(fichaComModificadores);
+    // IMPORTANTE: Salvar no localStorage ANTES de setState para garantir consistência
     try {
       localStorage.setItem('cavaleiro:ficha', JSON.stringify(fichaComModificadores));
     } catch (e) {
       console.error('🎲 [App] Falha ao salvar no localStorage:', e);
     }
+    
+    setFichaWithLog(fichaComModificadores);
   };
 
   const handleLocationSelect = (location: string) => {
@@ -486,14 +483,23 @@ function AppContent() {
           }} ficha={ficha} />} />
 
           <Route path="/game/:id" element={<ScreenRouter ficha={ficha} onGameResult={handleGameResult} onAdjustSorte={(delta:number)=>{
-            setFichaWithLog(prev=>{
-              const next = { ...prev } as Ficha;
-              const inicial = next.sorte.inicial;
-              const novoAtual = Math.max(0, Math.min(inicial, next.sorte.atual + delta));
-              next.sorte = { ...next.sorte, atual: novoAtual };
-              try { localStorage.setItem('cavaleiro:ficha', JSON.stringify(next)); } catch {}
-              return next;
-            });
+            // Ler do localStorage para garantir a ficha mais atualizada
+            let fichaAtualizada: Ficha;
+            try {
+              const saved = localStorage.getItem('cavaleiro:ficha');
+              if (saved) {
+                fichaAtualizada = JSON.parse(saved);
+              } else {
+                fichaAtualizada = { ...ficha };
+              }
+            } catch (e) {
+              fichaAtualizada = { ...ficha };
+            }
+            
+            const inicial = fichaAtualizada.sorte.inicial;
+            const novoAtual = Math.max(0, Math.min(inicial, fichaAtualizada.sorte.atual + delta));
+            fichaAtualizada.sorte = { ...fichaAtualizada.sorte, atual: novoAtual };
+            handleFichaChange(fichaAtualizada);
           }} onFichaChange={handleFichaChange} />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

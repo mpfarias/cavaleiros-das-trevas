@@ -30,6 +30,7 @@ import anelAgilidadeImg from '../assets/images/anel-agilidade.png';
 import pocaoAnestesicaImg from '../assets/images/pocao-anestesica.png';
 import algemasImg from '../assets/images/algemas.png';
 import cordaGanchoImg from '../assets/images/corda-e-gancho.png';
+import espadaAcoImg from '../assets/images/espada-de-aco.png';
 
 // Keyframes para animação da imagem
 const fadeInImage = keyframes`
@@ -242,9 +243,22 @@ const InventoryModal: React.FC<InventoryModalProps> = ({ open, onClose, ficha, o
       'anel-agilidade': anelAgilidadeImg,
       'pocao-anestesica': pocaoAnestesicaImg,
       'algemas': algemasImg,
-      'corda-e-gancho': cordaGanchoImg
+      'corda-e-gancho': cordaGanchoImg,
+      'espada_inicial': espadaAcoImg
     };
-    return imageMap[item.id];
+    
+    // Buscar primeiro pelo ID exato
+    if (imageMap[item.id]) {
+      return imageMap[item.id];
+    }
+    
+    // Buscar pelo nome para itens com IDs dinâmicos
+    const nomeLower = item.nome.toLowerCase();
+    if (nomeLower.includes('foguete')) return foguetesImg;
+    if (nomeLower.includes('provisão') || nomeLower.includes('provisao')) return provisoesImg;
+    if (nomeLower.includes('espada') && nomeLower.includes('aço')) return espadaAcoImg;
+    
+    return undefined;
   }, []);
 
   // Função para mostrar imagem no hover

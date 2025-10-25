@@ -12,6 +12,7 @@ import bgmTavern from '../assets/sounds/bgm-tavern-sound.mp3';
 import bgmPrison from '../assets/sounds/bgm-taken-to-prison.mp3';
 import bgmRunning from '../assets/sounds/bgm-running.mp3';
 import bgmBattle from '../assets/sounds/bgm-battle.mp3';
+import bgmCreepy from '../assets/sounds/bgm-creepy.mp3';
 
 // Definição dos grupos de áudio
 export type AudioGroup = 
@@ -24,6 +25,7 @@ export type AudioGroup =
   | 'prison'          // bgm-taken-to-prison.mp3 - Prisão, masmorras
   | 'chase'           // bgm-running.mp3 - Perseguição, fuga
   | 'battle'          // bgm-battle.mp3 - Combate
+  | 'creepy'          // bgm-creepy.mp3 - Cavaleiros das Trevas, terror
   | 'cinematic';      // bgm-intro.mp3, rainning.mp3 - Cinemática
 
 // Mapeamento de grupos para arquivos de áudio
@@ -37,6 +39,7 @@ const AUDIO_GROUP_MAP: Record<AudioGroup, string> = {
   'prison': bgmPrison,
   'chase': bgmRunning,
   'battle': bgmBattle,
+  'creepy': bgmCreepy,
   'cinematic': bgmIntro
 };
 
@@ -90,6 +93,9 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   272: 'battle',                // Batalha com Homem-Orc (rota /game/272) - bgm-battle.mp3
   301: 'royal-lendle',          // Porta Leste (rota /game/301) - people.mp3
   351: 'chase',                 // Rua estreita à esquerda (rota /game/351) - bgm-running.mp3
+  145: 'creepy',                // Cavaleiros das Trevas (rota /game/145) - bgm-creepy.mp3
+  190: 'creepy',                // Enfrentar Cavaleiros das Trevas (rota /game/190) - bgm-creepy.mp3
+  28: 'creepy',                 // Fugir dos Cavaleiros das Trevas (rota /game/28) - bgm-creepy.mp3
 };
 
 export const useAudioGroup = (screenId: number | string) => {
