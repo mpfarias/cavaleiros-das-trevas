@@ -180,7 +180,6 @@ function useAudioManager(audioSources: AudioMap | undefined) {
   const loadTags = async () => {
     if (!finalAudioSources) return;
 
-    console.log('🎵 [IntroCinematic] Iniciando carregamento de áudios...');
     
     const entries = Object.entries(finalAudioSources);
     const promises = entries.map(([k, url]) => new Promise<void>((res, rej) => {
@@ -206,7 +205,6 @@ function useAudioManager(audioSources: AudioMap | undefined) {
       
       const handleCanPlay = () => {
         clearTimeout(timeout);
-        console.log(`✅ [IntroCinematic] Áudio carregado: ${k}`);
         res();
       };
       
@@ -231,7 +229,6 @@ function useAudioManager(audioSources: AudioMap | undefined) {
     
     try {
       await Promise.all(promises);
-      console.log('🎵 [IntroCinematic] Todos os áudios carregados com sucesso');
     } catch (error) {
       console.error('❌ [IntroCinematic] Erro ao carregar áudios:', error);
       throw error;
@@ -866,7 +863,6 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
       setIsLoading(true);
       setGateOpen(false);
 
-      console.log('🎬 [IntroCinematic] Iniciando carregamento de áudio...');
       
       // Garantir que o contexto de áudio está disponível
       ensureAudioContext();
@@ -879,7 +875,6 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
       
       await Promise.race([loadPromise, timeoutPromise]);
       
-      console.log('🎵 [IntroCinematic] Áudio carregado com sucesso');
       audioLoaded.current = true;
       
       // Pequeno delay para garantir que tudo está pronto

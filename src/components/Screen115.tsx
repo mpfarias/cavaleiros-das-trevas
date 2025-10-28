@@ -146,7 +146,7 @@ const Screen115: React.FC<Screen115Props> = ({ onGoToScreen, ficha, onAdjustSort
             }}>
               Testar a Sorte (2d6)
             </Button>
-            <Typography variant="caption" sx={{ color: '#CBBBA0' }}>
+            <Typography variant="caption" sx={{ color: '#3d2817' }}>
               A SORTE atual é {sorteAtual}. Você perderá 1 ponto ao testar.
             </Typography>
           </Box>
@@ -176,7 +176,6 @@ const Screen115: React.FC<Screen115Props> = ({ onGoToScreen, ficha, onAdjustSort
                 } else {
                   // Marcar que veio da tela 115 para mostrar alert de moedas na tela 140
                   localStorage.setItem('cavaleiro:veioDaTela115', 'true');
-                  console.log('🔗 [Screen115] Jogador falhou no teste de sorte - indo para tela 140');
                   onGoToScreen(140);
                 }
               }}>

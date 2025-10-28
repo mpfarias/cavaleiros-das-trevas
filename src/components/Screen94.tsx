@@ -144,7 +144,6 @@ const Screen94: React.FC<Screen94Props> = ({ onGoToScreen, ficha, onUpdateFicha 
       const moedasOuro = fichaAtualizada.bolsa.find(item => item.tipo === 'ouro');
       if (moedasOuro && moedasOuro.quantidade !== undefined) {
         moedasOuro.quantidade += parseInt(betAmount);
-        console.log(`💰 [Screen94] Jogador GANHOU ${betAmount} moedas! Total: ${moedasOuro.quantidade}`);
         onUpdateFicha(fichaAtualizada);
       }
     } else {
@@ -156,7 +155,6 @@ const Screen94: React.FC<Screen94Props> = ({ onGoToScreen, ficha, onUpdateFicha 
       const moedasOuro = fichaAtualizada.bolsa.find(item => item.tipo === 'ouro');
       if (moedasOuro && moedasOuro.quantidade !== undefined) {
         moedasOuro.quantidade = Math.max(0, moedasOuro.quantidade - parseInt(betAmount));
-        console.log(`💸 [Screen94] Jogador PERDEU ${betAmount} moedas! Total: ${moedasOuro.quantidade}`);
         onUpdateFicha(fichaAtualizada);
       }
     }

@@ -179,7 +179,7 @@ const Screen38: React.FC<Screen38Props> = ({ onGoToScreen, ficha, onUpdateFicha,
             }}>
               Testar a Sorte (2d6)
             </Button>
-            <Typography variant="caption" sx={{ color: '#CBBBA0' }}>
+            <Typography variant="caption" sx={{ color: '#3d2817' }}>
               A SORTE atual é {sorteAtual}. Você perderá 1 ponto ao testar.
             </Typography>
           </Box>

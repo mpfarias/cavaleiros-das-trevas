@@ -162,7 +162,6 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({
   // Iniciar música assustadora quando o Game Over aparece
   useEffect(() => {
     if (!musicStartedRef.current) {
-      console.log('🎵 [GameOverScreen] Iniciando música assustadora...');
       changeTrack('/src/assets/sounds/bgm-scary.mp3');
       musicStartedRef.current = true;
     }
@@ -176,7 +175,6 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({
 
   // Log único para evitar spam
   useEffect(() => {
-    console.log('🎮 [GameOverScreen] Componente montado - ID único:', Math.random().toString(36).substr(2, 9));
   }, []);
 
   return (

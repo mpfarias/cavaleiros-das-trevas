@@ -38,6 +38,16 @@ import Screen351 from '../components/Screen351';
 import Screen145 from '../components/Screen145';
 import Screen190 from '../components/Screen190';
 import Screen28 from '../components/Screen28';
+import Screen306 from '../components/Screen306';
+import Screen166 from '../components/Screen166';
+import Screen277 from '../components/Screen277';
+import Screen286 from '../components/Screen286';
+import Screen279 from '../components/Screen279';
+import Screen360 from '../components/Screen360';
+import Screen243 from '../components/Screen243';
+import Screen262 from '../components/Screen262';
+import Screen46 from '../components/Screen46';
+import Screen259 from '../components/Screen259';
 import GameOverScreen from '../components/GameOverScreen';
 import type { Ficha } from '../types';
 
@@ -46,6 +56,18 @@ type ScreenRouterProps = {
   onGameResult: (won: boolean, goldChange: number) => void;
   onAdjustSorte: (delta: number) => void;
   onFichaChange: (ficha: Ficha) => void;
+};
+
+// Mapeamento de mensagens de Game Over customizadas por tela de morte
+const DEATH_MESSAGES: Record<number, { reason: string; location: string }> = {
+  346: {
+    reason: 'Não importa o que você faça — nada pode salvá-lo agora. Em breve, seu corpo sem vida se juntará ao de Mendokan e ao de todas as vítimas do massacre do Estreito de Magyár.',
+    location: 'Estrada próxima a Royal Lendle - Massacre do Estreito de Magyár'
+  },
+  999: {
+    reason: 'Sua aventura chegou ao fim',
+    location: 'Um lugar desconhecido'
+  }
 };
 
 const ScreenRouter: React.FC<ScreenRouterProps> = ({ ficha: fichaFromProps, onGameResult, onAdjustSorte, onFichaChange }) => {
@@ -327,19 +349,85 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({ ficha: fichaFromProps, onGa
     );
   }
 
-  if (screenId === 999) {
+  if (screenId === 306) {
+    return (
+      <Screen306 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 166) {
+    return (
+      <Screen166 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 277) {
+    return (
+      <Screen277 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 286) {
+    return (
+      <Screen286 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 279) {
+    return (
+      <Screen279 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 360) {
+    return (
+      <Screen360 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 243) {
+    return (
+      <Screen243 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 262) {
+    return (
+      <Screen262 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 46) {
+    return (
+      <Screen46 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 259) {
+    return (
+      <Screen259 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  // Verificar se é uma tela de Game Over (morte)
+  if (DEATH_MESSAGES[screenId]) {
+    const deathMessage = DEATH_MESSAGES[screenId];
     return (
       <GameOverScreen
         onRestart={() => {
-          console.log('🔄 [ScreenRouter] Reiniciando jogo...');
           window.location.reload();
         }}
         onContinue={() => {
-          console.log('📁 [ScreenRouter] Continuando aventura...');
           navigate('/game/0');
         }}
-        deathReason="Sua aventura chegou ao fim"
-        deathLocation="Um lugar desconhecido"
+        deathReason={deathMessage.reason}
+        deathLocation={deathMessage.location}
+        characterStats={{
+          nome: ficha.nome,
+          pericia: ficha.pericia,
+          forca: ficha.forca,
+          sorte: ficha.sorte
+        }}
       />
     );
   }

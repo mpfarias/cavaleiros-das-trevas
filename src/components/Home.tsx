@@ -27,12 +27,10 @@ const Home: React.FC<HomeProps> = ({ onStart }) => {
   // Inicializa a música de fundo quando o componente monta
   useEffect(() => {
     // 🧹 Limpar localStorage para nova sessão
-    console.log('🏠 [Home] Limpando localStorage para nova sessão');
     try {
       localStorage.removeItem('cavaleiro:ficha');
       localStorage.removeItem('cavaleiro:screenId');
       localStorage.removeItem('cavaleiro:lastScreen');
-      console.log('🏠 [Home] localStorage limpo com sucesso');
     } catch (error) {
       console.warn('🏠 [Home] Erro ao limpar localStorage:', error);
     }
@@ -79,7 +77,6 @@ const Home: React.FC<HomeProps> = ({ onStart }) => {
             
             // Validar se é um arquivo de save válido
             if (saveData.ficha && saveData.version) {
-              console.log('🎮 [Home] Jogo carregado com sucesso:', saveData);
               
               // Salvar no localStorage para que o App.tsx possa carregar
               localStorage.setItem('cavaleiro:ficha', JSON.stringify(saveData.ficha));

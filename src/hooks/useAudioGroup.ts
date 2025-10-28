@@ -96,6 +96,13 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   145: 'creepy',                // Cavaleiros das Trevas (rota /game/145) - bgm-creepy.mp3
   190: 'creepy',                // Enfrentar Cavaleiros das Trevas (rota /game/190) - bgm-creepy.mp3
   28: 'creepy',                 // Fugir dos Cavaleiros das Trevas (rota /game/28) - bgm-creepy.mp3
+  306: 'creepy',                // Fingir-se de morto (rota /game/306) - bgm-creepy.mp3
+  279: 'creepy',                // Sucesso ao fingir-se de morto (rota /game/279) - bgm-creepy.mp3
+  166: 'chase',                 // Casa da velhinha - Fuga dos guardas (rota /game/166) - bgm-running.mp3
+  277: 'chase',                 // Casa da velhinha - Fuga dos guardas com sorte (rota /game/277) - bgm-running.mp3
+  360: 'chase',                 // Fuga dos guardas pela rua (rota /game/360) - bgm-running.mp3
+  243: 'chase',                 // Revistar corpo Bartolph - Fuga dos guardas (rota /game/243) - bgm-running.mp3
+  262: 'chase',                 // Beco sem saída - Guarda solitário (rota /game/262) - bgm-running.mp3
 };
 
 export const useAudioGroup = (screenId: number | string) => {

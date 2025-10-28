@@ -145,6 +145,18 @@ const Screen145: React.FC<Screen145Props> = ({ onGoToScreen, ficha, onUpdateFich
       <CardWrap>
         <CardContent sx={{ padding: '40px' }}>
           <NarrativeText>
+            Mendokan e seus dois companheiros aguardam por você no ponto combinado.
+            <br/><br/>
+            Um deles é bastante idoso e tem dificuldade para se locomover, o que obriga o grupo a viajar apenas durante a noite para compensar o ritmo mais lento.
+            <br/><br/>
+            Quando finalmente alcançam o estreito de Magyaar, todos estão exaustos.
+            <br/><br/>
+            Essa é a parte mais estreita da Estrada do Comércio, um trilho de pedras que se estende à esquerda, junto a um enorme rochedo.
+            <br/><br/>
+            À direita, há uma ravina de seis metros de largura e cerca de trinta metros de profundidade.
+            <br/><br/>
+            Do outro lado, é possível avistar um caminho, usado por aqueles que viajam em direção a Lendle.
+            <br/><br/>
             De repente, um grito terrível ecoa pelo ar, seguido por outro, e mais outro ainda. Os aldeões se encolhem de medo, enquanto você se prepara para a luta.
             <br/><br/>
             É então que você os vê vindo direto em sua direção: cinco cavaleiros montados em criaturas assustadoras, cujos cascos fazem o chão tremer a cada passo. Apesar das máscaras metálicas que usam, você consegue ver como têm a pele velha e ressecada, e olhos que parecem buracos negros sem fundo.

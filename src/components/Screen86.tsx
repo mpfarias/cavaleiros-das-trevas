@@ -135,25 +135,21 @@ const Screen86: React.FC<Screen86Props> = ({
 
   const handleDiceComplete = (dice: number[]) => {
     const result = dice[0]; // Pega o resultado do primeiro (e único) dado
-    console.log(`🎲 [Screen86] Dado rolado: ${result}, Aposta: ${betAmount}`);
     
     setDiceResult(result);
     setShowDiceModal(false);
     
     // Verificar resultado (regras originais da tela 86: 4+ para vencer)
     if (result >= 4) {
-      console.log(`🎉 [Screen86] VITÓRIA! Resultado: ${result} >= 4`);
       setGameResult('win');
       localStorage.setItem('cavaleiro:apostaBartolph', betAmount);
       onGameResult(true, parseInt(betAmount)); // Notificar vitória
     } else {
-      console.log(`💸 [Screen86] DERROTA! Resultado: ${result} < 4`);
       setGameResult('lose');
       localStorage.setItem('cavaleiro:apostaBartolph', betAmount);
       onGameResult(false, -parseInt(betAmount)); // Notificar derrota
     }
     
-    console.log(`🎯 [Screen86] gameResult definido como: ${result >= 4 ? 'win' : 'lose'}`);
   };
   
   const navigateToNext = () => {

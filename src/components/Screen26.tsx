@@ -108,7 +108,6 @@ const Screen26: React.FC<Screen26Props> = ({ onGoToScreen, ficha, onUpdateFicha 
 
   // Estabilizar o callback onUpdateFicha para evitar re-renderizações do BattleSystem
   const stableOnUpdateFicha = useCallback((updatedFicha: any) => {
-    console.log('🔄 [Screen26] onUpdateFicha chamado com ficha atualizada');
     onUpdateFicha(updatedFicha);
   }, [onUpdateFicha]);
 
@@ -116,10 +115,8 @@ const Screen26: React.FC<Screen26Props> = ({ onGoToScreen, ficha, onUpdateFicha 
   useEffect(() => {
     const initializeBattleAudio = async () => {
       try {
-        console.log('🎵 [Screen26] Inicializando áudio de batalha...');
         await changeTrack('/src/assets/sounds/bgm-battle.mp3');
         tryStartMusic();
-        console.log('🎵 [Screen26] Áudio de batalha inicializado com sucesso!');
       } catch (error) {
         console.warn('🎵 [Screen26] Erro ao inicializar áudio de batalha:', error);
       }
@@ -154,7 +151,6 @@ const Screen26: React.FC<Screen26Props> = ({ onGoToScreen, ficha, onUpdateFicha 
 
   const handleDefeat = () => {
     // Em caso de derrota, atualizar o estado para mostrar GameOverScreen
-    console.log('💀 [Screen26] Jogador foi derrotado, atualizando estado para defeat');
     setBattleState('defeat');
   };
 

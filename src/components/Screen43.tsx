@@ -116,7 +116,6 @@ const Screen43: React.FC<Screen43Props> = ({ onGoToScreen }) => {
       if (apostaAnterior) {
         const valorApostado = parseInt(apostaAnterior);
         setMoedasPerdidas(valorApostado);
-        console.log(`💰 [Screen43] Jogador perdeu ${valorApostado} moedas na aposta`);
         
         // Marcar que veio da tela 43 para suprimir alert em Screen140
         localStorage.setItem('cavaleiro:veioDaTela43', 'true');
@@ -188,7 +187,6 @@ const Screen43: React.FC<Screen43Props> = ({ onGoToScreen }) => {
               // Marcar que veio da tela 43 para suprimir alert de moedas na tela 140
               try {
                 localStorage.setItem('cavaleiro:veioDaTela43', 'true');
-                console.log('🔗 [Screen43] Marcado: jogador veio da tela 43 para tela 140');
               } catch (error) {
                 console.error('❌ [Screen43] Erro ao marcar origem:', error);
               }

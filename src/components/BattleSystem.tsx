@@ -148,6 +148,9 @@ interface Enemy {
   pericia: number;
   forca: number;
   imagem: string;
+  customDamage?: number; // Dano customizado (padrão é 2)
+  disableLuckTest?: boolean; // Desabilitar teste de sorte
+  ignoreArmor?: boolean; // Ignorar armadura
 }
 
 interface BattleSystemProps {
@@ -244,7 +247,6 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
   }, [enemyForca, playerForca, onVictory, onDefeat]);
 
   const startBattle = useCallback(() => {
-    console.log('🚀 START BATTLE - Iniciando batalha');
     playClick();
     setBattleState('battle');
     setCurrentTurn(1);
@@ -264,10 +266,8 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
   }, [playClick]);
 
   const resolveTurn = useCallback(() => {
-    console.log('⚔️ RESOLVE TURN - Iniciando');
     
     if (enemyRoll === null || playerRoll === null) {
-      console.log('❌ RESOLVE TURN - Dados faltando, saindo');
       return;
     }
 
@@ -279,11 +279,11 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
 
     if (playerPower > enemyPower) {
       result = 'player_hit';
-      damage = 2;
+      damage = enemy.customDamage || 2;
       setEnemyForca(prev => prev - damage);
     } else if (enemyPower > playerPower) {
       result = 'enemy_hit';
-      damage = 2;
+      damage = enemy.customDamage || 2;
       const updatedFicha = { ...ficha };
       updatedFicha.forca.atual = Math.max(0, playerForca - damage);
       onUpdateFicha(updatedFicha);
@@ -339,23 +339,18 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
     if (!luckTestType) return;
     
     // Consome 1 ponto de sorte
-    console.log(`🎲 [TESTE DE SORTE] Sorte ANTES da subtração: ${ficha.sorte.atual}`);
     
     const updatedFicha = { ...ficha };
     updatedFicha.sorte.atual = Math.max(0, ficha.sorte.atual - 1);
     onUpdateFicha(updatedFicha);
     
-    console.log(`🎲 [TESTE DE SORTE] Sorte DEPOIS da subtração: ${updatedFicha.sorte.atual}`);
 
     // Teste de sorte: se o total for igual ou MENOR que a sorte ATUAL do jogador, é sucesso
-    console.log(`🎲 [TESTE DE SORTE] Dados: ${total}, Sorte atual: ${ficha.sorte.atual}`);
-    console.log(`🎲 [TESTE DE SORTE] ${total} <= ${ficha.sorte.atual}? ${total <= ficha.sorte.atual}`);
     
     const isSuccess = total <= ficha.sorte.atual;
     
     if (luckTestType === 'damage') {
       if (isSuccess) {
-        console.log(`🎯 [TESTE DE SORTE] SUCESSO! Dados ${total} <= Sorte ${ficha.sorte.atual}`);
         // Regra 2: Dano dobrado - ao invés de 2 pontos, o inimigo perde 4 pontos
         // Como já perdeu 2 pontos no turno, aplicamos +2 pontos adicionais
         setEnemyForca(prev => Math.max(0, prev - 2));
@@ -366,7 +361,6 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
           turn.turn === currentTurn ? { ...turn, finalDamage: 4, luckTestApplied: true } : turn
         ));
       } else {
-        console.log(`🎯 [TESTE DE SORTE] FALHA! Dados ${total} > Sorte ${ficha.sorte.atual}`);
         // Regra 3: Se falhar no teste de sorte para dano, o inimigo perde apenas 1 ponto
         // Como já perdeu 2 pontos no turno, revertemos +1 ponto
         setEnemyForca(prev => Math.min(enemy.forca, prev + 1));
@@ -430,6 +424,10 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
   };
 
   const canShowLuckButton = (turn: TurnResult) => {
+    // Se o inimigo desabilita teste de sorte, nunca mostra o botão
+    if (enemy.disableLuckTest) {
+      return false;
+    }
     return (turn.result === 'player_hit' && !turn.playerLuck) || 
            (turn.result === 'enemy_hit' && !turn.enemyLuck);
   };
@@ -845,7 +843,7 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
             setShowGameOver(false);
             window.location.reload();
           }}
-          onMainMenu={() => {
+          onContinue={() => {
             setShowGameOver(false);
             window.location.href = '/';
           }}

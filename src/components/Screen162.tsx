@@ -120,7 +120,6 @@ const Screen162: React.FC<Screen162Props> = ({ onGoToScreen }) => {
       if (apostaAnterior) {
         const valorApostado = parseInt(apostaAnterior);
         setMoedasPerdidas(valorApostado);
-        console.log(`💰 [Screen162] Jogador perdeu ${valorApostado} moedas na aposta`);
         
         // Limpar localStorage após mostrar o alert
         localStorage.removeItem('cavaleiro:apostaBartolph');

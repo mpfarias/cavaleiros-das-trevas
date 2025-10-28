@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Box, Card, CardContent, Typography, IconButton, Tooltip } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
-import { GameAlert } from './ui/GameAlert';
 import VolumeControl from './ui/VolumeControl';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
+import type { Ficha } from '../types';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -90,52 +90,22 @@ const ChoiceButton = styled('button')({
   }
 });
 
-interface Screen175Props {
+interface Screen262Props {
   onGoToScreen: (screenId: number) => void;
-  ficha: any;
-  onUpdateFicha: (ficha: any) => void;
+  ficha: Ficha;
+  onUpdateFicha: (ficha: Ficha) => void;
 }
 
-const Screen175: React.FC<Screen175Props> = ({ onGoToScreen, ficha: _ficha, onUpdateFicha: _onUpdateFicha }) => {
-  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(162);
+const Screen262: React.FC<Screen262Props> = ({ onGoToScreen }) => {
+  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(262);
   const playClick = useClickSound(0.2);
-  
-  const [moedasPerdidas, setMoedasPerdidas] = useState(0);
-  const [showMoneyAlert, setShowMoneyAlert] = useState(false);
-
-  useEffect(() => {
-    // Calcular moedas perdidas baseado na aposta anterior
-    try {
-      const apostaAnterior = localStorage.getItem('cavaleiro:apostaBartolph');
-      if (apostaAnterior) {
-        const valorApostado = parseInt(apostaAnterior);
-        setMoedasPerdidas(valorApostado);
-        
-        // Mostrar alerta com delay e ocultar após 5 segundos
-        setTimeout(() => {
-          setShowMoneyAlert(true);
-          // Ocultar após 5 segundos
-          setTimeout(() => setShowMoneyAlert(false), 5000);
-        }, 500);
-        
-        // Limpar localStorage após mostrar o alert
-        localStorage.removeItem('cavaleiro:apostaBartolph');
-      }
-    } catch (error) {
-      console.error('❌ [Screen175] Erro ao ler aposta anterior:', error);
-    }
-  }, []);
 
   return (
-    <Container data-screen="screen-175">
+    <Container data-screen="screen-262">
       {/* Controle de Volume */}
       <VolumeControl />
       
-      {/* Alerta de perda de dinheiro */}
-      <GameAlert sx={{ top: '120px' }} $isVisible={showMoneyAlert}>
-        💰 {moedasPerdidas > 0 ? `${moedasPerdidas} moedas perdidas na aposta!` : 'Moedas perdidas na aposta!'}
-      </GameAlert>
-      
+      {/* Controle de Música */}
       <Box
         sx={{
           position: 'fixed',
@@ -145,47 +115,56 @@ const Screen175: React.FC<Screen175Props> = ({ onGoToScreen, ficha: _ficha, onUp
         }}
       >
         <Tooltip title={currentGroup ? (isPlaying ? 'Pausar música' : 'Tocar música') : 'Nenhuma música carregada'}>
-          <IconButton
-            onClick={() => {
-              playClick();
-              togglePlay();
-            }}
-            disabled={!currentGroup}
-            sx={{
-              color: currentGroup ? (isPlaying ? '#B31212' : '#E0DFDB') : '#666',
-              background: 'rgba(15,17,20,0.8)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              opacity: currentGroup ? 1 : 0.5,
-              '&:hover': currentGroup ? {
-                background: 'rgba(179,18,18,0.2)',
-                borderColor: 'rgba(255,255,255,0.3)',
-              } : {},
-              '&:disabled': {
-                cursor: 'not-allowed'
-              }
-            }}
-          >
-            {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-          </IconButton>
+          <span>
+            <IconButton
+              onClick={() => {
+                playClick();
+                togglePlay();
+              }}
+              disabled={!currentGroup}
+              sx={{
+                color: currentGroup ? (isPlaying ? '#B31212' : '#E0DFDB') : '#666',
+                background: 'rgba(15,17,20,0.8)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                opacity: currentGroup ? 1 : 0.5,
+                '&:hover': currentGroup ? {
+                  background: 'rgba(179,18,18,0.2)',
+                  borderColor: 'rgba(255,255,255,0.3)',
+                } : {},
+                '&:disabled': {
+                  cursor: 'not-allowed'
+                }
+              }}
+            >
+              {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
+            </IconButton>
+          </span>
         </Tooltip>
       </Box>
 
       <CardWrap>
         <CardContent sx={{ padding: '40px' }}>
           <NarrativeText>
-            Bartolph aproxima o rosto sorridente do seu e anuncia:
+            Depois de algumas curvas, a vielinha termina em um beco sem saída.
             <br/><br/>
-            — Desculpe, mas acabou por agora. Não gosto de jogar com derrotados e, além disso... preciso dormir. O jogo terminou!
+            A única opção seria voltar para trás — justamente de onde surge um guarda à sua procura.
             <br/><br/>
-            A proximidade dele faz sua pele arder e um nó apertar sua garganta. Você perdeu o ouro que apostou. Por fim, você se levanta e deixa a taverna Primeiro Passo.
+            Você se prepara para o combate, quando seu pé bate em algo metálico: uma tampa de esgoto.
           </NarrativeText>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
             <ChoiceButton onClick={() => {
               playClick();
-              onGoToScreen(30);
+              onGoToScreen(375);
             }}>
-              Deixar a taverna
+              Entrar no esgoto e tentar escapar por baixo da cidade
+            </ChoiceButton>
+
+            <ChoiceButton onClick={() => {
+              playClick();
+              onGoToScreen(46);
+            }}>
+              Enfrentar o guarda solitário
             </ChoiceButton>
           </Box>
         </CardContent>
@@ -194,4 +173,5 @@ const Screen175: React.FC<Screen175Props> = ({ onGoToScreen, ficha: _ficha, onUp
   );
 };
 
-export default Screen175;
+export default Screen262;
+

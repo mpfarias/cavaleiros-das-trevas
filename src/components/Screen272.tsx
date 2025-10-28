@@ -108,7 +108,6 @@ const Screen272: React.FC<Screen272Props> = ({ onGoToScreen, ficha, onUpdateFich
 
   // Estabilizar o callback onUpdateFicha para evitar re-renderizações do BattleSystem
   const stableOnUpdateFicha = useCallback((updatedFicha: any) => {
-    console.log('🔄 [Screen272] onUpdateFicha chamado com ficha atualizada');
     onUpdateFicha(updatedFicha);
   }, [onUpdateFicha]);
 
@@ -116,10 +115,8 @@ const Screen272: React.FC<Screen272Props> = ({ onGoToScreen, ficha, onUpdateFich
   useEffect(() => {
     const initializeBattleAudio = async () => {
       try {
-        console.log('🎵 [Screen272] Inicializando áudio de batalha...');
         await changeTrack('/src/assets/sounds/bgm-battle.mp3');
         tryStartMusic();
-        console.log('🎵 [Screen272] Áudio de batalha inicializado com sucesso!');
       } catch (error) {
         console.warn('🎵 [Screen272] Erro ao inicializar áudio de batalha:', error);
       }
@@ -154,7 +151,6 @@ const Screen272: React.FC<Screen272Props> = ({ onGoToScreen, ficha, onUpdateFich
 
   const handleDefeat = () => {
     // Em caso de derrota, atualizar o estado para mostrar GameOverScreen
-    console.log('💀 [Screen272] Jogador foi derrotado, atualizando estado para defeat');
     setBattleState('defeat');
   };
 
@@ -318,7 +314,6 @@ const Screen272: React.FC<Screen272Props> = ({ onGoToScreen, ficha, onUpdateFich
                 const forcaAtual = ficha.forca.atual;
                 const tomouDano = forcaAtual < danoOriginal;
                 
-                console.log(`🩸 [Screen272] Força original: ${danoOriginal}, Atual: ${forcaAtual}, Tomou dano: ${tomouDano}`);
                 
                 if (tomouDano) {
                   // Vitória com dano - vai para tela 4

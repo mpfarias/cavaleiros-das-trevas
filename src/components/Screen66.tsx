@@ -351,24 +351,19 @@ const Screen66: React.FC<Screen66Props> = ({ onGoToScreen, ficha, onUpdateFicha 
           }
         }
         
-        console.log('🎲 [Screen66] Executando compra...');
         // Se chegou aqui, pode comprar normalmente
         executePurchase(selectedItem, quantity, totalCost, currentGold);
       } else {
-        console.log('🎲 [Screen66] Ouro insuficiente para compra');
       }
     } else {
-      console.log('🎲 [Screen66] selectedItem ou ficha.bolsa é null/undefined');
     }
   };
 
   // Função para executar a compra
   const executePurchase = (item: MarketItem, qty: number, cost: number, currentGold: number) => {
-    console.log('🎲 [Screen66] executePurchase chamado com:', { item, qty, cost, currentGold });
     
     try {
       let newBolsa = [...ficha.bolsa];
-      console.log('🎲 [Screen66] Bolsa atual:', newBolsa);
       
       // Atualiza o ouro
       newBolsa = newBolsa.map(existingItem => 
@@ -376,7 +371,6 @@ const Screen66: React.FC<Screen66Props> = ({ onGoToScreen, ficha, onUpdateFicha 
           ? { ...existingItem, quantidade: currentGold - cost }
           : existingItem
       );
-      console.log('🎲 [Screen66] Bolsa após atualizar ouro:', newBolsa);
       
       // Adiciona o novo item à bolsa com efeitos detalhados
       const newItem = {
@@ -405,38 +399,29 @@ const Screen66: React.FC<Screen66Props> = ({ onGoToScreen, ficha, onUpdateFicha 
         } : undefined,
         durabilidadeAtual: item.effects.durability
       };
-      console.log('🎲 [Screen66] Novo item criado:', newItem);
       
       newBolsa.push(newItem);
-      console.log('🎲 [Screen66] Bolsa após adicionar item:', newBolsa);
       
       const newFicha = {
         ...ficha,
         bolsa: newBolsa
       };
-      console.log('🎲 [Screen66] Nova ficha criada:', newFicha);
       
       // Aplica os modificadores dos itens aos atributos
-      console.log('🎲 [Screen66] Aplicando efeitos dos itens...');
       let updatedFicha;
       try {
         // Para itens da Tela 66, não aplicamos modificadores automáticos
         // Os efeitos só são aplicados quando o item é usado durante o jogo
         updatedFicha = newFicha;
-        console.log('🎲 [Screen66] Ficha mantida sem modificadores automáticos (efeitos só quando usado)');
       } catch (error) {
         console.error('🎲 [Screen66] Erro ao processar ficha:', error);
         updatedFicha = newFicha;
       }
       
-      console.log('🎲 [Screen66] Chamando onUpdateFicha...');
-      console.log('🎲 [Screen66] onUpdateFicha é uma função?', typeof onUpdateFicha);
-      console.log('🎲 [Screen66] onUpdateFicha:', onUpdateFicha);
       
       // Chama a função de atualização
       onUpdateFicha(updatedFicha);
       
-      console.log('🎲 [Screen66] onUpdateFicha foi chamada com sucesso');
       
       // Configurar informações para os alerts ANTES de fechar o modal
       setPurchaseInfo({
@@ -446,37 +431,24 @@ const Screen66: React.FC<Screen66Props> = ({ onGoToScreen, ficha, onUpdateFicha 
         remaining: currentGold - cost
       });
       
-      console.log('🎲 [Screen66] purchaseInfo configurado:', {
-        itemName: item.name,
-        quantity: qty,
-        cost: cost,
-        remaining: currentGold - cost
-      });
-      
       // Mostrar alert de compra
-      console.log('🎲 [Screen66] Mostrando alert de compra...');
       setShowPurchaseAlert(true);
       setTimeout(() => setShowPurchaseAlert(false), 3000);
       
       // Mostrar alert de moedas após 1 segundo
       setTimeout(() => {
-        console.log('🎲 [Screen66] Mostrando alert de moedas...');
         setShowMoneyAlert(true);
         setTimeout(() => setShowMoneyAlert(false), 3000);
       }, 1000);
       
       // Fechar o modal por último
-      console.log('🎲 [Screen66] Fechando modal...');
       setShowPurchaseDialog(false);
       setSelectedItem(null);
       setQuantity(1);
       
-      console.log('🎲 [Screen66] Compra finalizada com sucesso!');
       
       // Verificação adicional: verificar se a ficha foi realmente atualizada
       setTimeout(() => {
-        console.log('🎲 [Screen66] Verificação pós-compra - ficha atual:', ficha);
-        console.log('🎲 [Screen66] Verificação pós-compra - bolsa atual:', ficha.bolsa);
       }, 100);
       
     } catch (error) {

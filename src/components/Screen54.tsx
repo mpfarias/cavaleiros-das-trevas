@@ -128,7 +128,6 @@ const Screen54: React.FC<Screen54Props> = ({ onGoToScreen, ficha, onUpdateFicha 
       if (apostaAnterior && !alertShownRef.current) {
         const valorApostado = parseInt(apostaAnterior);
         setMoedasGanhas(valorApostado);
-        console.log(`💰 [Screen54] Jogador ganhou ${valorApostado} moedas na aposta`);
         
         // Mostrar alerta com delay e ocultar após 5 segundos
         setTimeout(() => {
@@ -179,7 +178,6 @@ const Screen54: React.FC<Screen54Props> = ({ onGoToScreen, ficha, onUpdateFicha 
       // Limpar a aposta do localStorage
       localStorage.removeItem('cavaleiro:apostaBartolph');
       
-      console.log(`💰 [Screen54] Jogador perdeu ${moedasParaPerder} moedas por escolher ir embora`);
     }
   };
   

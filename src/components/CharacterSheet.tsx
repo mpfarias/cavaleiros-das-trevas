@@ -290,7 +290,6 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
 
   const handleStartAdventure = useCallback(async () => {
     try {
-      console.log('🎬 [CharacterSheet] Iniciando aventura...');
       
       // Pausar música da ficha
       pause();
@@ -309,10 +308,8 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
 
       // Delay para o som e depois navegar para cinematográfica
       setTimeout(() => {
-        console.log('🎬 [CharacterSheet] Navegando para tela de introdução...');
         try {
           onStartCinematic();
-          console.log('✅ [CharacterSheet] Navegação para introdução iniciada');
         } catch (error) {
           console.error('❌ [CharacterSheet] Erro ao navegar para introdução:', error);
           // Fallback: tentar novamente

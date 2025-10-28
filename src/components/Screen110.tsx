@@ -84,10 +84,8 @@ const Screen110: React.FC<Screen110Props> = ({ onGoToScreen, ficha, onUpdateFich
 
   // Adicionar 2 Provisões quando a tela carrega (apenas uma vez)
   useEffect(() => {
-    console.log('🍞 [Screen110] useEffect executado, provisionsAddedRef.current:', provisionsAddedRef.current);
     
     if (provisionsAddedRef.current) {
-      console.log('🍞 [Screen110] Provisões já foram adicionadas, pulando...');
       return;
     }
     
@@ -96,11 +94,9 @@ const Screen110: React.FC<Screen110Props> = ({ onGoToScreen, ficha, onUpdateFich
     const fichaAtualizada = { ...ficha };
     const provisoesExistentes = fichaAtualizada.bolsa.find(item => item.tipo === 'provisao');
     
-    console.log('🍞 [Screen110] Provisões existentes antes:', provisoesExistentes?.quantidade || 0);
     
     if (provisoesExistentes) {
       provisoesExistentes.quantidade = (provisoesExistentes.quantidade || 0) + 2;
-      console.log('🍞 [Screen110] Provisões após adição:', provisoesExistentes.quantidade);
     } else {
       fichaAtualizada.bolsa.push({
         id: `provisao_${Date.now()}`,
@@ -108,10 +104,8 @@ const Screen110: React.FC<Screen110Props> = ({ onGoToScreen, ficha, onUpdateFich
         quantidade: 2,
         nome: 'Provisões'
       });
-      console.log('🍞 [Screen110] Criadas novas Provisões: 2');
     }
     
-    console.log('🍞 [Screen110] Chamando onUpdateFicha');
     onUpdateFicha(fichaAtualizada);
     
     // Mostrar alerta após um pequeno delay
@@ -203,7 +197,7 @@ const Screen110: React.FC<Screen110Props> = ({ onGoToScreen, ficha, onUpdateFich
             }}>
               Testar a Perícia (2d6)
             </Button>
-            <Typography variant="caption" sx={{ color: '#CBBBA0' }}>
+            <Typography variant="caption" sx={{ color: '#3d2817' }}>
               A PERÍCIA atual é {periciaAtual}. Você não perderá pontos ao testar.
             </Typography>
           </Box>

@@ -115,7 +115,6 @@ const Screen233: React.FC<Screen233Props> = ({ onGoToScreen, ficha, onUpdateFich
     // Limpar toda a bolsa
     fichaAtualizada.bolsa = [];
     
-    console.log(`💼 [Screen233] Todos os itens perdidos: ${itensPerdidos} itens removidos`);
     
     onUpdateFicha(fichaAtualizada);
     

@@ -129,7 +129,6 @@ const Screen140: React.FC<Screen140Props> = ({ onGoToScreen, ficha, onUpdateFich
       try {
         const fichaAtualizada = { ...ficha };
         
-        console.log('🔍 [Screen140] Aplicando perdas para ficha:', fichaAtualizada);
         
         // 1. Perder 1 ponto de força (da força atual, não inicial)
         const forcaAnterior = fichaAtualizada.forca.atual;
@@ -138,7 +137,6 @@ const Screen140: React.FC<Screen140Props> = ({ onGoToScreen, ficha, onUpdateFich
         } else {
           fichaAtualizada.forca.atual = 1; // Mínimo de 1
         }
-        console.log(`⚔️ [Screen140] Força alterada: ${forcaAnterior} → ${fichaAtualizada.forca.atual}`);
         
         // 2. Perder dinheiro (o que ganhou + o que apostou)
         const apostaAnterior = localStorage.getItem('cavaleiro:apostaBartolph');
@@ -151,10 +149,6 @@ const Screen140: React.FC<Screen140Props> = ({ onGoToScreen, ficha, onUpdateFich
         // Armazenar no estado para mostrar no alert
         setMoedasPerdidas(moedasParaPerder);
         
-        console.log(`💰 [Screen140] Aposta anterior: ${valorApostado}`);
-        console.log(`💰 [Screen140] Moedas que ganhou: ${valorApostado}`);
-        console.log(`💰 [Screen140] Moedas que eram dele: ${valorApostado}`);
-        console.log(`💰 [Screen140] Total a perder: ${moedasParaPerder}`);
         
         // Remover moedas da bolsa
         const moedasOuro = fichaAtualizada.bolsa.find(item => item.tipo === 'ouro');
@@ -162,18 +156,14 @@ const Screen140: React.FC<Screen140Props> = ({ onGoToScreen, ficha, onUpdateFich
           const moedasAnteriores = moedasOuro.quantidade;
           const novaQuantidade = Math.max(0, moedasOuro.quantidade - moedasParaPerder);
           moedasOuro.quantidade = novaQuantidade;
-          console.log(`🪙 [Screen140] Moedas alteradas: ${moedasAnteriores} → ${novaQuantidade}`);
         } else {
-          console.log('⚠️ [Screen140] Nenhuma moeda encontrada na bolsa');
         }
         
         // Limpar o localStorage da aposta
         localStorage.removeItem('cavaleiro:apostaBartolph');
-        console.log('🗑️ [Screen140] localStorage da aposta limpo');
         
         // Atualizar a ficha
         onUpdateFicha(fichaAtualizada);
-        console.log('✅ [Screen140] Ficha atualizada com sucesso');
         
         // Marcar que as perdas foram aplicadas
         perdasAplicadasRef.current = true;
@@ -189,25 +179,21 @@ const Screen140: React.FC<Screen140Props> = ({ onGoToScreen, ficha, onUpdateFich
         const veioDaTela43 = localStorage.getItem('cavaleiro:veioDaTela43') === 'true';
         const veioDaTela115 = localStorage.getItem('cavaleiro:veioDaTela115') === 'true';
         
-        console.log(`🔍 [Screen140] Verificando origem: veioDaTela43 = ${veioDaTela43}, veioDaTela115 = ${veioDaTela115}`);
         
         if (!veioDaTela43) {
           // Mostra alert de moedas se NÃO veio da tela 43
-          console.log('💰 [Screen140] Mostrando alert de moedas perdidas');
           setTimeout(() => {
             setShowMoneyAlert(true);
             // Ocultar após 5 segundos
             setTimeout(() => setShowMoneyAlert(false), 5000);
           }, 1500);
         } else {
-          console.log('🔗 [Screen140] Jogador veio da tela 43 - alert de moedas suprimido');
           // Limpar a marca de origem
           localStorage.removeItem('cavaleiro:veioDaTela43');
         }
         
         // Se veio da tela 115, limpar a marcação
         if (veioDaTela115) {
-          console.log('🔗 [Screen140] Jogador veio da tela 115 - alert de moedas será mostrado');
           localStorage.removeItem('cavaleiro:veioDaTela115');
         }
         

@@ -183,21 +183,18 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
 
   // Inicializar cena 3D
   const initScene = useCallback(() => {
-    console.log('🎲 [DiceRollModal3D] Iniciando inicialização da cena...');
     
     if (!canvasRef.current) {
       console.error('❌ [DiceRollModal3D] Canvas ref não disponível');
       return;
     }
 
-    console.log('🎲 [DiceRollModal3D] Canvas encontrado, criando cena...');
 
     // Scene
     const scene = new THREE.Scene();
     scene.background = new THREE.Color('#0b0d10');
     sceneRef.current = scene;
 
-    console.log('🎲 [DiceRollModal3D] Cena criada, configurando câmera...');
 
     // Camera ortográfica (top-down) ajustada para mesa maior com paredes mais altas
     const orthoSize = 3.2; // Aumentado de 2.8 para 3.2 para visualizar paredes mais altas
@@ -210,7 +207,6 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
     camera.up.set(0, 0, -1);
     camera.lookAt(target);
 
-    console.log('🎲 [DiceRollModal3D] Câmera configurada, criando renderer...');
 
     // Renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -220,7 +216,6 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
     canvasRef.current.appendChild(renderer.domElement);
     rendererRef.current = renderer;
     
-    console.log('🎲 [DiceRollModal3D] Renderer criado, adicionando luzes...');
 
     // Luzes
     scene.add(new THREE.HemisphereLight(0xffffff, 0x223344, 0.9));
@@ -282,12 +277,10 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
     world.allowSleep = true;
     worldRef.current = world;
     
-    console.log('🎲 [DiceRollModal3D] Mundo físico criado com sucesso');
 
     const groundMat = new CANNON.Material('ground');
     const diceMat = new CANNON.Material('dice');
     
-    console.log('🎲 [DiceRollModal3D] Materiais físicos criados com sucesso');
 
     // Materiais de contato
     world.addContactMaterial(new CANNON.ContactMaterial(groundMat, diceMat, {
@@ -302,7 +295,6 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
       restitution: 0.06
     }));
     
-    console.log('🎲 [DiceRollModal3D] Materiais de contato criados com sucesso');
 
     // Adicionar corpos estáticos
     const addStaticBox = (x: number, y: number, z: number, sx: number, sy: number, sz: number, mat: CANNON.Material = groundMat) => {
@@ -311,16 +303,13 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
       body.addShape(shape);
       body.position.set(x, y, z);
       world.addBody(body);
-      console.log('🎲 [DiceRollModal3D] Parede física criada:', { x, y, z, sx, sy, sz });
       return body;
     };
 
     // Chão
     addStaticBox(0, -0.5, 0, inner, 1, inner, groundMat);
-    console.log('🎲 [DiceRollModal3D] Chão físico criado com sucesso');
 
     // Bordas físicas - ajustadas para garantir contenção
-    console.log('🎲 [DiceRollModal3D] Criando paredes físicas:', { inner, wallT, wallH });
     
     // Paredes laterais (X)
     addStaticBox(inner/2 + wallT/2, yBorder, 0, wallT, wallH, inner + wallT*2, groundMat);
@@ -330,12 +319,10 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
     addStaticBox(0, yBorder, inner/2 + wallT/2, inner + wallT*2, wallH, wallT, groundMat);
     addStaticBox(0, yBorder, -inner/2 - wallT/2, inner + wallT*2, wallH, wallT, groundMat);
     
-    console.log('🎲 [DiceRollModal3D] Paredes físicas criadas com sucesso');
 
     // Tetos invisíveis - aumentados para conter dados mais fortes
     const ceilSize = inner + wallT*2 + 0.80; // Aumentado de 0.40 para 0.80
     addStaticBox(0, wallH + 1.2, 0, ceilSize, 0.5, ceilSize, groundMat); // Aumentado altura e espessura
-    console.log('🎲 [DiceRollModal3D] Teto físico criado com sucesso');
 
     // Adicionar dados
     diceRef.current = [];
@@ -368,9 +355,7 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
       }
     };
 
-    console.log('🎲 [DiceRollModal3D] Iniciando loop de animação...');
     animate();
-    console.log('🎲 [DiceRollModal3D] Cena inicializada com sucesso!');
   }, [numDice, createDie]);
 
   // Limpar recursos
@@ -393,17 +378,14 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
 
   // Rolar dados
   const rollDice = useCallback(() => {
-    console.log('🎲 [DiceRollModal3D] Função rollDice chamada');
     
     if (!worldRef.current || !diceRef.current.length) {
       console.error('❌ [DiceRollModal3D] Mundo físico ou dados não disponíveis para rolagem');
       return;
     }
     
-    console.log('🎲 [DiceRollModal3D] Iniciando rolagem dos dados...');
     
     // Tocar som dos dados
-    console.log('🔊 [DiceRollModal3D] Tocando som dos dados...');
     playDice();
     
     setIsRolling(true);
@@ -512,7 +494,6 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
 
   // Efeitos
   useEffect(() => {
-    console.log('🎲 [DiceRollModal3D] useEffect executado, open:', open);
     
     if (open) {
       // Resetar estados imediatamente quando o modal abre
@@ -520,12 +501,10 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
       setResults(null);
       setTotal(null);
       
-      console.log('🎲 [DiceRollModal3D] Modal aberto, aguardando renderização...');
       
       // Pequeno delay mínimo para garantir que o DOM esteja renderizado
       // antes de inicializar a cena 3D (necessário para Three.js)
       const timer = setTimeout(() => {
-        console.log('🎲 [DiceRollModal3D] Inicializando cena após delay...');
         initScene();
         // Rolar dados imediatamente após inicializar a cena
         rollDice();
@@ -533,7 +512,6 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
       
       return () => clearTimeout(timer);
     } else {
-      console.log('🎲 [DiceRollModal3D] Modal fechado, limpando recursos...');
       cleanup();
     }
 

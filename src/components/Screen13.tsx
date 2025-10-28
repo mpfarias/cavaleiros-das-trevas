@@ -126,14 +126,12 @@ const Screen13: React.FC<Screen13Props> = ({ onGoToScreen, ficha, onUpdateFicha 
 
   const handleDiceComplete = (dice: number[], total: number) => {
     const result = dice[0]; // Pega o resultado do primeiro (e único) dado
-    console.log(`🎲 [Screen13] Dado rolado: ${result}, Aposta: ${betAmount}`);
     
     setDiceResult(result);
     setShowDiceModal(false);
     
     // Verificar resultado (regras da tela 13: 2+ para vencer, 1 perde)
     if (result >= 2) {
-      console.log(`🎉 [Screen13] VITÓRIA! Resultado: ${result} >= 2`);
       setGameResult('win');
       localStorage.setItem('cavaleiro:apostaBartolph', betAmount);
       // Atualizar ficha com moedas ganhas
@@ -141,11 +139,9 @@ const Screen13: React.FC<Screen13Props> = ({ onGoToScreen, ficha, onUpdateFicha 
       const moedasOuro = fichaAtualizada.bolsa.find(item => item.tipo === 'ouro');
       if (moedasOuro && moedasOuro.quantidade !== undefined) {
         moedasOuro.quantidade += parseInt(betAmount);
-        console.log(`💰 [Screen13] Jogador GANHOU ${betAmount} moedas! Total: ${moedasOuro.quantidade}`);
       }
       onUpdateFicha(fichaAtualizada);
     } else {
-      console.log(`💸 [Screen13] DERROTA! Resultado: ${result} = 1`);
       setGameResult('lose');
       localStorage.setItem('cavaleiro:apostaBartolph', betAmount);
       // Atualizar ficha com moedas perdidas
@@ -153,12 +149,10 @@ const Screen13: React.FC<Screen13Props> = ({ onGoToScreen, ficha, onUpdateFicha 
       const moedasOuro = fichaAtualizada.bolsa.find(item => item.tipo === 'ouro');
       if (moedasOuro && moedasOuro.quantidade !== undefined) {
         moedasOuro.quantidade = Math.max(0, moedasOuro.quantidade - parseInt(betAmount));
-        console.log(`💸 [Screen13] Jogador PERDEU ${betAmount} moedas! Total: ${moedasOuro.quantidade}`);
       }
       onUpdateFicha(fichaAtualizada);
     }
     
-    console.log(`🎯 [Screen13] gameResult definido como: ${result >= 2 ? 'win' : 'lose'}`);
   };
   
   const navigateToNext = () => {

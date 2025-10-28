@@ -13,7 +13,7 @@ import {
   Divider,
   Chip
 } from '@mui/material';
-import { Close as CloseIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { Close as CloseIcon } from '@mui/icons-material';
 import { styled, keyframes } from '@mui/material/styles';
 import type { Ficha, Item } from '../types';
 
@@ -31,6 +31,7 @@ import pocaoAnestesicaImg from '../assets/images/pocao-anestesica.png';
 import algemasImg from '../assets/images/algemas.png';
 import cordaGanchoImg from '../assets/images/corda-e-gancho.png';
 import espadaAcoImg from '../assets/images/espada-de-aco.png';
+import dadoViciadoImg from '../assets/images/dado-viciado.png';
 
 // Keyframes para animação da imagem
 const fadeInImage = keyframes`
@@ -146,20 +147,6 @@ const ItemQuantity = styled(Typography)({
   textAlign: 'center'
 });
 
-const RemoveButton = styled(IconButton)({
-  color: '#B31212',
-  backgroundColor: 'rgba(179,18,18,0.1)',
-  border: '1px solid rgba(179,18,18,0.3)',
-  padding: '4px',
-  marginLeft: '8px',
-  transition: 'all 0.2s ease',
-  '&:hover': {
-    backgroundColor: 'rgba(179,18,18,0.2)',
-    borderColor: 'rgba(179,18,18,0.5)',
-    transform: 'scale(1.1)'
-  }
-});
-
 const HoverImage = styled(Box)({
   position: 'fixed',
   zIndex: 1500,
@@ -217,18 +204,6 @@ const InventoryModal: React.FC<InventoryModalProps> = ({ open, onClose, ficha, o
     setTabValue(newValue);
   };
 
-  // Função para remover item da bolsa
-  const handleRemoveItem = (itemToRemove: Item) => {
-    if (!onUpdateFicha) {
-      console.warn('onUpdateFicha não fornecido - não é possível remover itens');
-      return;
-    }
-
-    const newBolsa = ficha.bolsa.filter(item => item.id !== itemToRemove.id);
-    const newFicha = { ...ficha, bolsa: newBolsa };
-    onUpdateFicha(newFicha);
-  };
-
   // Função para obter a imagem do item
   const getItemImage = useCallback((item: Item): string | undefined => {
     const imageMap: Record<string, string> = {
@@ -244,7 +219,8 @@ const InventoryModal: React.FC<InventoryModalProps> = ({ open, onClose, ficha, o
       'pocao-anestesica': pocaoAnestesicaImg,
       'algemas': algemasImg,
       'corda-e-gancho': cordaGanchoImg,
-      'espada_inicial': espadaAcoImg
+      'espada_inicial': espadaAcoImg,
+      'dado-viciado': dadoViciadoImg
     };
     
     // Buscar primeiro pelo ID exato
@@ -257,6 +233,7 @@ const InventoryModal: React.FC<InventoryModalProps> = ({ open, onClose, ficha, o
     if (nomeLower.includes('foguete')) return foguetesImg;
     if (nomeLower.includes('provisão') || nomeLower.includes('provisao')) return provisoesImg;
     if (nomeLower.includes('espada') && nomeLower.includes('aço')) return espadaAcoImg;
+    if (nomeLower.includes('dado') && nomeLower.includes('viciado')) return dadoViciadoImg;
     
     return undefined;
   }, []);
@@ -306,7 +283,23 @@ const InventoryModal: React.FC<InventoryModalProps> = ({ open, onClose, ficha, o
   }, 0);
 
   const renderItemsList = (items: Item[], emptyMessage: string) => {
-    if (items.length === 0) {
+    // Agrupar itens iguais e somar quantidades
+    const groupedItems = items.reduce((acc, item) => {
+      // Usar o NOME como chave para agrupar (itens com mesmo nome são agrupados)
+      const existingItem = acc.find(i => i.nome === item.nome);
+      
+      if (existingItem) {
+        // Se já existe, somar a quantidade
+        existingItem.quantidade = (existingItem.quantidade || 1) + (item.quantidade || 1);
+      } else {
+        // Se não existe, adicionar novo item
+        acc.push({ ...item, quantidade: item.quantidade || 1 });
+      }
+      
+      return acc;
+    }, [] as Item[]);
+
+    if (groupedItems.length === 0) {
       return (
         <Box sx={{ 
           textAlign: 'center', 
@@ -319,9 +312,9 @@ const InventoryModal: React.FC<InventoryModalProps> = ({ open, onClose, ficha, o
       );
     }
 
-    return items.map((item) => (
+    return groupedItems.map((item, index) => (
       <ItemCard 
-        key={item.id}
+        key={`${item.id}-${index}`}
         onMouseEnter={(e) => handleItemHover(e, item)}
         onMouseLeave={handleItemLeave}
         onMouseMove={handleItemMove}
@@ -429,17 +422,10 @@ const InventoryModal: React.FC<InventoryModalProps> = ({ open, onClose, ficha, o
               </Box>
             )}
           </ItemInfo>
-          <ItemQuantity>
-            {item.quantidade}x
-          </ItemQuantity>
-          {onUpdateFicha && (
-            <RemoveButton
-              onClick={() => handleRemoveItem(item)}
-              title="Remover item"
-              size="small"
-            >
-              <DeleteIcon fontSize="small" />
-            </RemoveButton>
+          {item.quantidade && item.quantidade > 1 && (
+            <ItemQuantity>
+              {item.quantidade}x
+            </ItemQuantity>
           )}
         </ItemContent>
       </ItemCard>

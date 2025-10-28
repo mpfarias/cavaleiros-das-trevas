@@ -1,11 +1,13 @@
-import React from 'react';
-import { Box, Card, CardContent, Typography, IconButton, Tooltip } from '@mui/material';
+import React, { useState } from 'react';
+import { Box, Card, CardContent, Typography, IconButton, Tooltip, Button } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
 import VolumeControl from './ui/VolumeControl';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
+import DiceRollModal3D from './ui/DiceRollModal3D';
+import type { Ficha } from '../types';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -57,55 +59,50 @@ const NarrativeText = styled(Typography)({
   textShadow: '0 1px 2px rgba(245,222,179,0.8)'
 });
 
-const ChoiceButton = styled('button')({
-  padding: '16px 24px',
-  background: 'linear-gradient(135deg, rgba(139,69,19,0.9) 0%, rgba(160,82,45,0.8) 100%)',
-  color: '#F5DEB3',
-  border: '2px solid #D2B48C',
-  borderRadius: '12px',
-  fontSize: '16px',
-  fontFamily: '"Cinzel", serif',
-  fontWeight: 600,
-  textAlign: 'left',
-  cursor: 'pointer',
-  transition: 'all 0.3s ease',
-  outline: 'none',
-  textShadow: '0 1px 2px rgba(0,0,0,0.8)',
-  boxShadow: '0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
-  width: '100%',
-  '&:focus-visible': {
-    outline: '2px solid #FFD700',
-    outlineOffset: '2px'
-  },
-  '&:hover': {
-    background: 'linear-gradient(135deg, rgba(179,18,18,0.9) 0%, rgba(139,0,0,0.8) 100%)',
-    borderColor: '#FFD700',
-    color: '#FFFFFF',
-    transform: 'translateY(-2px) scale(1.02)',
-    boxShadow: '0 8px 25px rgba(179,18,18,0.4), inset 0 1px 0 rgba(255,255,255,0.2)'
-  },
-  '&:active': {
-    transform: 'translateY(0) scale(0.98)'
-  }
-});
-
-interface Screen351Props {
+interface Screen306Props {
   onGoToScreen: (screenId: number) => void;
-  ficha: any;
-  onUpdateFicha: (ficha: any) => void;
+  ficha: Ficha;
+  onUpdateFicha: (ficha: Ficha) => void;
 }
 
-const Screen351: React.FC<Screen351Props> = ({ onGoToScreen, ficha, onUpdateFicha: _onUpdateFicha }) => {
-  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(351);
+const Screen306: React.FC<Screen306Props> = ({ onGoToScreen, ficha, onUpdateFicha }) => {
+  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(306);
   const playClick = useClickSound(0.2);
+  const [showDiceModal, setShowDiceModal] = useState(false);
 
-  // Verificar se tem dado viciado na bolsa
-  const temDadoViciado = ficha.bolsa.some((item: any) => 
-    item.id === 'dado-viciado' || item.nome === 'Dado Viciado'
-  );
+  const handleTestLuck = () => {
+    playClick();
+    setShowDiceModal(true);
+  };
+
+  const handleDiceRoll = (dice: number[], total: number) => {
+    setShowDiceModal(false);
+
+    const sorteAtual = ficha.sorte.atual;
+    const hasLuck = total <= sorteAtual;
+
+    // Reduz 1 ponto de sorte após o teste
+    const fichaAtualizada: Ficha = {
+      ...ficha,
+      sorte: {
+        ...ficha.sorte,
+        atual: Math.max(0, ficha.sorte.atual - 1)
+      }
+    };
+    onUpdateFicha(fichaAtualizada);
+
+    // Navega para próxima tela
+    setTimeout(() => {
+      if (hasLuck) {
+        onGoToScreen(279);
+      } else {
+        onGoToScreen(346);
+      }
+    }, 500);
+  };
 
   return (
-    <Container data-screen="screen-351">
+    <Container data-screen="screen-306">
       {/* Controle de Volume */}
       <VolumeControl />
       
@@ -149,36 +146,37 @@ const Screen351: React.FC<Screen351Props> = ({ onGoToScreen, ficha, onUpdateFich
       <CardWrap>
         <CardContent sx={{ padding: '40px' }}>
           <NarrativeText>
-            A estrada que você tomou leva até o bairro dos pedintes, um labirinto de ruas imundas, cheias de lixo, vagabundos e batedores de carteira. À medida que você se aproxima do centro, as vozes dos seus perseguidores vão ficando mais distantes.
+            Sob o olhar atento de cinco pares de olhos, você tenta não mover nem um único músculo.
             <br/><br/>
-            Mas Quinsberry certamente não desistirá de caçá-lo, então o melhor é continuar fugindo.
+            Agora é hora de Testar a sua Sorte.
           </NarrativeText>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
-            {/* Opção para quem TEM dado viciado */}
-            {temDadoViciado && (
-              <ChoiceButton onClick={() => {
-                playClick();
-                onGoToScreen(286);
-              }}>
-                Seguir adiante - Você tem um dado viciado, então vire aqui
-              </ChoiceButton>
-            )}
-
-            {/* Opção para quem NÃO TEM dado viciado */}
-            {!temDadoViciado && (
-              <ChoiceButton onClick={() => {
-                playClick();
-                onGoToScreen(360);
-              }}>
-                Seguir adiante
-              </ChoiceButton>
-            )}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px', alignItems: 'center' }}>
+            <Button variant="contained" onClick={handleTestLuck} sx={{
+              background: 'linear-gradient(135deg, rgba(139,69,19,0.9) 0%, rgba(160,82,45,0.8) 100%)',
+              border: '1px solid #D2B48C',
+              fontFamily: '"Cinzel", serif',
+              fontWeight: 700
+            }}>
+              Testar a Sorte (2d6)
+            </Button>
+            <Typography variant="caption" sx={{ color: '#3d2817' }}>
+              A SORTE atual é {ficha.sorte.atual}. Você perderá 1 ponto ao testar.
+            </Typography>
           </Box>
         </CardContent>
       </CardWrap>
+
+      <DiceRollModal3D
+        open={showDiceModal}
+        onClose={() => setShowDiceModal(false)}
+        onComplete={handleDiceRoll}
+        numDice={2}
+        bonus={0}
+      />
     </Container>
   );
 };
 
-export default Screen351;
+export default Screen306;
+

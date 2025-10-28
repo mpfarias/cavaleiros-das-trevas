@@ -118,7 +118,6 @@ const Screen126: React.FC<Screen126Props> = ({ onGoToScreen, ficha, onUpdateFich
       const quantidadeAnterior = provisoesExistentes.quantidade;
       provisoesExistentes.quantidade = Math.max(0, provisoesExistentes.quantidade - 2);
       
-      console.log(`🍞 [Screen126] Provisões perdidas: ${quantidadeAnterior} → ${provisoesExistentes.quantidade}`);
       
       onUpdateFicha(fichaAtualizada);
       
