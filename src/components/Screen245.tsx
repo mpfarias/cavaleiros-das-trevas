@@ -5,9 +5,11 @@ import { useAudio } from '../hooks/useAudio';
 import { useClickSound } from '../hooks/useClickSound';
 import VolumeControl from './ui/VolumeControl';
 import BattleSystem from './BattleSystem';
+import DiceRollModal3D from './ui/DiceRollModal3D';
+import { GameAlert } from './ui/GameAlert';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
-import cavaleiroImg from '../assets/images/personagens/cavaleiro03.png';
+import cavaleiroImg from '../assets/images/personagens/cavaleiro05.png';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -91,20 +93,25 @@ const ChoiceButton = styled('button')({
   }
 });
 
-interface Screen259Props {
+interface Screen245Props {
   onGoToScreen: (screenId: number) => void;
   ficha: any;
   onUpdateFicha: (ficha: any) => void;
 }
 
-const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFicha }) => {
+const Screen245: React.FC<Screen245Props> = ({ onGoToScreen, ficha, onUpdateFicha }) => {
   const { isPlaying, togglePlay, changeTrack, tryStartMusic } = useAudio();
   const currentGroup = 'battle';
   const playClick = useClickSound(0.2);
   
-  const [battleState, setBattleState] = useState<'intro' | 'battle' | 'victory'>('intro');
+  const [battleState, setBattleState] = useState<'intro' | 'skill-test' | 'battle' | 'victory'>('intro');
   const battleSystemRef = useRef<any>(null);
   const [showBattleInfoModal, setShowBattleInfoModal] = useState(false);
+  
+  // Estados para o teste de perícia inicial
+  const [showSkillDiceModal, setShowSkillDiceModal] = useState(false);
+  const [showSkillAlert, setShowSkillAlert] = useState(false);
+  const [skillResult, setSkillResult] = useState<string>('');
 
   const stableOnUpdateFicha = useCallback((updatedFicha: any) => {
     onUpdateFicha(updatedFicha);
@@ -131,26 +138,54 @@ const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFich
     }, 2000);
   };
 
-  const handleStartBattle = () => {
-    setBattleState('battle');
-    
-    const waitForBattleSystem = (attempts = 0) => {
-      if (battleSystemRef.current?.startBattle) {
-        battleSystemRef.current.startBattle();
-      } else if (attempts < 10) {
-        setTimeout(() => waitForBattleSystem(attempts + 1), 100);
-      } else {
-        console.error('BattleSystem não foi inicializado corretamente');
-        setBattleState('intro');
-      }
-    };
-    
-    setTimeout(() => waitForBattleSystem(), 150);
+  const handleStartSkillTest = () => {
+    playClick();
+    setBattleState('skill-test');
+    setShowSkillDiceModal(true);
   };
+
+  const handleSkillDiceComplete = useCallback((_dice: number[], total: number) => {
+    setShowSkillDiceModal(false);
+    
+    const periciaAtual = ficha.pericia.atual;
+    const isSuccess = total <= periciaAtual;
+    
+    if (isSuccess) {
+      // Sucesso! Desviou da estrela
+      setSkillResult(`Sucesso! Dados: ${total} - Você desviou da estrela mortal!`);
+      setShowSkillAlert(true);
+      
+      setTimeout(() => {
+        setShowSkillAlert(false);
+        // Após o alert, inicia a batalha
+        setTimeout(() => {
+          setBattleState('battle');
+          
+          const waitForBattleSystem = (attempts = 0) => {
+            if (battleSystemRef.current?.startBattle) {
+              battleSystemRef.current.startBattle();
+            } else if (attempts < 10) {
+              setTimeout(() => waitForBattleSystem(attempts + 1), 100);
+            }
+          };
+          
+          setTimeout(() => waitForBattleSystem(), 150);
+        }, 500);
+      }, 3000);
+    } else {
+      // Falha! Estrela acertou = morte instantânea
+      setSkillResult(`Você falhou no teste de Perícia! Dados: ${total} - A estrela de Metal-Cruel perfura seu corpo. A dor é insuportável... e então... nada.`);
+      setShowSkillAlert(true);
+      
+      // Redireciona para Game Over após 4 segundos
+      setTimeout(() => {
+        onGoToScreen(999); // Game Over genérico
+      }, 4000);
+    }
+  }, [ficha, onGoToScreen]);
 
   const handleDefeat = () => {
     // Derrota pelo cavaleiro = morte
-    // Podemos criar uma tela específica ou usar GameOver padrão
     onGoToScreen(999); // Game Over genérico
   };
 
@@ -163,13 +198,11 @@ const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFich
   };
 
   const enemy = {
-    nome: 'Terceiro Cavaleiro das Trevas',
+    nome: 'Quinto Cavaleiro das Trevas',
     pericia: 9,
     forca: 9,
-    imagem: cavaleiroImg,
-    customDamage: 4, // Dano customizado: 4 ao invés de 2
-    disableLuckTest: true, // Cavaleiros das Trevas: sem teste de sorte
-    ignoreArmor: true // Ignora armadura
+    imagem: cavaleiroImg
+    // Permite teste de sorte e armadura normalmente (após o teste inicial)
   };
 
   return (
@@ -207,15 +240,17 @@ const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFich
         </Box>
       )}
 
-      <Container data-screen="screen-259">
+      <Container data-screen="screen-245">
         <CardWrap>
         <CardContent sx={{ padding: '40px' }}>
           {battleState === 'intro' && (
             <>
               <NarrativeText>
-                Este Cavaleiro das Trevas é um mestre espadachim, manejando duas espadas longas e afiadas com incrível destreza.
+                Este Cavaleiro das Trevas carrega consigo várias estrelas de arremesso, letais e esculpidas em uma substância mágica chamada Metal-Cruel.
                 <br/><br/>
-                Sempre que você perder um turno de combate contra esse inimigo formidável, você perderá <strong style={{ color: '#D32F2F' }}>4 pontos de FORÇA</strong> em vez de apenas 2.
+                As feridas causadas por esse metal nunca cicatrizam completamente, rasgando a carne e condenando suas vítimas a uma morte lenta e dolorosa.
+                <br/><br/>
+                No início do combate, o Cavaleiro atira uma dessas estrelas.
                 <br/><br/>
                 <Box component="span" sx={{ 
                   color: '#D32F2F', 
@@ -229,10 +264,16 @@ const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFich
                   borderRadius: '8px',
                   border: '2px solid #D32F2F'
                 }}>
-                  ⚠️ ATENÇÃO: Nem armaduras nem o teste de Sorte podem ser usados para reduzir esse dano devastador!
+                  ⚠️ ATENÇÃO: Teste sua PERÍCIA para desviar!
+                  <br/>
+                  • Sucesso: Você desvia e o combate começa
+                  <br/>
+                  • Falha: A estrela acerta... MORTE INSTANTÂNEA!
+                  <br/>
+                  (A ferida de Metal-Cruel é SEMPRE fatal)
                 </Box>
                 <br/><br/>
-                <strong>TERCEIRO CAVALEIRO DAS TREVAS — PERÍCIA {enemy.pericia} | FORÇA {enemy.forca}</strong>
+                <strong>QUINTO CAVALEIRO DAS TREVAS — PERÍCIA {enemy.pericia} | FORÇA {enemy.forca}</strong>
               </NarrativeText>
 
               <Box sx={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
@@ -275,11 +316,27 @@ const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFich
                   Conhecer Sistema de Batalhas
                 </Button>
                 
-                <ChoiceButton onClick={handleStartBattle}>
-                  Iniciar Batalha
+                <ChoiceButton onClick={handleStartSkillTest}>
+                  Testar a Perícia e Iniciar Batalha
                 </ChoiceButton>
               </Box>
             </>
+          )}
+
+          {battleState === 'skill-test' && (
+            <Box sx={{ textAlign: 'center', padding: '40px' }}>
+              <Typography variant="h5" sx={{ 
+                color: '#8B4513',
+                marginBottom: '24px',
+                fontFamily: '"Cinzel", serif',
+                fontWeight: 'bold'
+              }}>
+                O Cavaleiro lança a estrela mortal...
+              </Typography>
+              <Typography variant="body1" sx={{ color: 'text.primary' }}>
+                Rolando dados para o teste de Perícia...
+              </Typography>
+            </Box>
           )}
 
           {battleState === 'battle' && (
@@ -311,13 +368,28 @@ const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFich
                 color: 'text.primary',
                 marginBottom: '32px'
               }}>
-                Você derrotou o mestre espadachim! Continuando sua fuga...
+                Você derrotou o cavaleiro das estrelas! Continuando sua fuga...
               </Typography>
             </Box>
           )}
         </CardContent>
         </CardWrap>
       </Container>
+
+      {/* Modal de dados para o teste de perícia */}
+      <DiceRollModal3D
+        open={showSkillDiceModal}
+        numDice={2}
+        onComplete={handleSkillDiceComplete}
+        title="Teste de Perícia"
+      />
+
+      {/* Alerta com resultado do teste de perícia */}
+      {showSkillAlert && (
+        <GameAlert sx={{ top: '120px', zIndex: 1200 }} $isVisible={showSkillAlert}>
+          {skillResult}
+        </GameAlert>
+      )}
 
       {/* Modal de informações de batalha */}
       <Dialog 
@@ -373,11 +445,17 @@ const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFich
             <br/>
             <strong style={{ color: '#D32F2F' }}>⚠️ ESPECIAL NESTA BATALHA:</strong>
             <br/>
-            • Cada golpe causa <strong>4 pontos de dano</strong> (ao invés de 2)
+            • <strong>ANTES da batalha</strong>, você faz um teste de PERÍCIA
             <br/>
-            • <strong>Não é possível testar a Sorte</strong>
+            • Role 2d6: se total ≤ sua PERÍCIA → desvia da estrela
             <br/>
-            • <strong>Armaduras não reduzem o dano</strong>
+            • Se falhar: a estrela de Metal-Cruel acerta → <strong>MORTE INSTANTÂNEA!</strong>
+            <br/>
+            • O Metal-Cruel é mágico e SEMPRE fatal, sem exceção
+            <br/>
+            • Se desviar com sucesso, o combate segue normalmente
+            <br/>
+            • No combate, armadura e teste de Sorte funcionam
             <br/>
             • A batalha termina quando a FORÇA de alguém chegar a zero
           </Typography>
@@ -406,5 +484,5 @@ const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFich
   );
 };
 
-export default Screen259;
+export default Screen245;
 

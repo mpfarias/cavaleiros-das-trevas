@@ -151,6 +151,7 @@ interface Enemy {
   customDamage?: number; // Dano customizado (padrão é 2)
   disableLuckTest?: boolean; // Desabilitar teste de sorte
   ignoreArmor?: boolean; // Ignorar armadura
+  attacksPerTurn?: number; // Número de ataques por turno (padrão é 1)
 }
 
 interface BattleSystemProps {
@@ -160,6 +161,7 @@ interface BattleSystemProps {
   onVictory: () => void;
   onDefeat: () => void;
   onGoToScreen?: (screenId: number) => void; // Adicionar prop para navegação
+  beforeTurnStart?: () => Promise<void>; // Callback executado antes de cada turno iniciar
 }
 
 interface TurnResult {
@@ -174,6 +176,9 @@ interface TurnResult {
   enemyLuck?: boolean;
   finalDamage?: number; // Dano real final após teste de sorte
   luckTestApplied?: boolean; // Se o teste de sorte foi aplicado
+  luckTestSuccess?: boolean; // Se o teste de sorte foi bem-sucedido
+  enemyMultipleRolls?: number[]; // Múltiplas rolagens do inimigo (para attacksPerTurn > 1)
+  multipleResults?: Array<{ enemyRoll: number; enemyPower: number; result: 'player_hit' | 'enemy_hit' | 'dodge'; damage: number }>; // Resultados individuais de cada ataque
 }
 
 const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(({
@@ -182,7 +187,8 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
   onUpdateFicha,
   onVictory,
   onDefeat,
-  onGoToScreen
+  onGoToScreen,
+  beforeTurnStart
 }, ref) => {
 
   const playClick = useClickSound(0.2);
@@ -195,8 +201,9 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
   const [luckResult, setLuckResult] = useState<string>('');
    
   // Estados para o sistema de dados
-  const [dicePhase, setDicePhase] = useState<'enemy' | 'player'>('enemy');
+  const [dicePhase, setDicePhase] = useState<'enemy' | 'enemy2' | 'player'>('enemy');
   const [enemyRoll, setEnemyRoll] = useState<number | null>(null);
+  const [enemyRoll2, setEnemyRoll2] = useState<number | null>(null); // Segunda rolagem do inimigo (se attacksPerTurn > 1)
   const [playerRoll, setPlayerRoll] = useState<number | null>(null);
   const [diceModalOpen, setDiceModalOpen] = useState(false);
   
@@ -246,24 +253,38 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
     }
   }, [enemyForca, playerForca, onVictory, onDefeat]);
 
-  const startBattle = useCallback(() => {
+  const startBattle = useCallback(async () => {
     playClick();
     setBattleState('battle');
     setCurrentTurn(1);
+    
+    // Executar callback antes do turno, se existir
+    if (beforeTurnStart) {
+      await beforeTurnStart();
+    }
+    
     setDicePhase('enemy');
     setEnemyRoll(null);
+    setEnemyRoll2(null);
     setPlayerRoll(null);
     setDiceModalOpen(true);
-  }, [playClick]);
+  }, [playClick, beforeTurnStart]);
 
-  const nextTurn = useCallback(() => {
+  const nextTurn = useCallback(async () => {
     playClick();
     setCurrentTurn(prev => prev + 1);
+    
+    // Executar callback antes do turno, se existir
+    if (beforeTurnStart) {
+      await beforeTurnStart();
+    }
+    
     setDicePhase('enemy');
     setEnemyRoll(null);
+    setEnemyRoll2(null);
     setPlayerRoll(null);
     setDiceModalOpen(true);
-  }, [playClick]);
+  }, [playClick, beforeTurnStart]);
 
   const resolveTurn = useCallback(() => {
     
@@ -271,48 +292,177 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
       return;
     }
 
-    const enemyPower = enemyRoll + enemy.pericia;
     const playerPower = playerRoll + playerPericia;
+    const baseDamage = enemy.customDamage || 2;
+    const hasMultipleAttacks = (enemy.attacksPerTurn && enemy.attacksPerTurn > 1) || false;
 
-    let result: TurnResult['result'];
-    let damage = 0;
+    // ⚠️ ATENÇÃO: Esta lógica de múltiplos ataques SÓ é ativada quando:
+    // 1. O inimigo tem attacksPerTurn > 1 (hasMultipleAttacks = true)
+    // 2. E a segunda rolagem existe (enemyRoll2 !== null)
+    // Para inimigos normais (sem attacksPerTurn ou attacksPerTurn = 1), 
+    // a batalha funciona normalmente no bloco 'else' abaixo
+    if (hasMultipleAttacks && enemyRoll2 !== null) {
+      const multipleResults = [];
+      let totalPlayerDamage = 0;
+      let playerWonAtLeastOnce = false; // Flag para controlar dano do jogador
 
-    if (playerPower > enemyPower) {
-      result = 'player_hit';
-      damage = enemy.customDamage || 2;
-      setEnemyForca(prev => prev - damage);
-    } else if (enemyPower > playerPower) {
-      result = 'enemy_hit';
-      damage = enemy.customDamage || 2;
-      const updatedFicha = { ...ficha };
-      updatedFicha.forca.atual = Math.max(0, playerForca - damage);
-      onUpdateFicha(updatedFicha);
+      // Primeira rolagem do inimigo
+      const enemyPower1 = enemyRoll + enemy.pericia;
+      if (playerPower > enemyPower1) {
+        // Jogador venceu este ataque
+        playerWonAtLeastOnce = true;
+        multipleResults.push({
+          enemyRoll: enemyRoll,
+          enemyPower: enemyPower1,
+          result: 'player_hit' as const,
+          damage: 2 // Mostra 2 no display, mas só aplica uma vez
+        });
+      } else if (enemyPower1 > playerPower) {
+        // Inimigo venceu - causa dano base (2 pontos para cavaleiro comum)
+        totalPlayerDamage += 2; // Sempre 2 por ataque, não baseDamage
+        multipleResults.push({
+          enemyRoll: enemyRoll,
+          enemyPower: enemyPower1,
+          result: 'enemy_hit' as const,
+          damage: 2
+        });
+      } else {
+        multipleResults.push({
+          enemyRoll: enemyRoll,
+          enemyPower: enemyPower1,
+          result: 'dodge' as const,
+          damage: 0
+        });
+      }
+
+      // Segunda rolagem do inimigo
+      const enemyPower2 = enemyRoll2 + enemy.pericia;
+      if (playerPower > enemyPower2) {
+        // Jogador venceu este ataque
+        playerWonAtLeastOnce = true;
+        multipleResults.push({
+          enemyRoll: enemyRoll2,
+          enemyPower: enemyPower2,
+          result: 'player_hit' as const,
+          damage: 2 // Mostra 2 no display, mas só aplica uma vez
+        });
+      } else if (enemyPower2 > playerPower) {
+        // Inimigo venceu - causa dano base (2 pontos para cavaleiro comum)
+        totalPlayerDamage += 2; // Sempre 2 por ataque, não baseDamage
+        multipleResults.push({
+          enemyRoll: enemyRoll2,
+          enemyPower: enemyPower2,
+          result: 'enemy_hit' as const,
+          damage: 2
+        });
+      } else {
+        multipleResults.push({
+          enemyRoll: enemyRoll2,
+          enemyPower: enemyPower2,
+          result: 'dodge' as const,
+          damage: 0
+        });
+      }
+
+      // Aplicar dano: jogador causa apenas 2 pontos NO TOTAL se vencer pelo menos 1 ataque
+      if (playerWonAtLeastOnce) {
+        setEnemyForca(prev => prev - 2); // Sempre 2, não importa quantos ataques venceu
+      }
+      
+      // Inimigo causa 2 pontos POR CADA ataque que venceu
+      if (totalPlayerDamage > 0) {
+        const updatedFicha = { ...ficha };
+        updatedFicha.forca.atual = Math.max(0, playerForca - totalPlayerDamage);
+        onUpdateFicha(updatedFicha);
+      }
+
+      // Calcular dano total causado ao inimigo
+      const totalEnemyDamage = playerWonAtLeastOnce ? 2 : 0;
+      
+      // Determinar resultado geral
+      let overallResult: TurnResult['result'];
+      if (totalEnemyDamage > totalPlayerDamage) {
+        overallResult = 'player_hit';
+      } else if (totalPlayerDamage > totalEnemyDamage) {
+        overallResult = 'enemy_hit';
+      } else if (totalPlayerDamage === 0 && totalEnemyDamage === 0) {
+        overallResult = 'dodge';
+      } else {
+        overallResult = 'enemy_hit'; // Empate com dano = inimigo vence
+      }
+
+      // O damage deve refletir apenas o dano do resultado (não soma ambos os lados)
+      const resultDamage = overallResult === 'player_hit' ? totalEnemyDamage : 
+                           overallResult === 'enemy_hit' ? totalPlayerDamage : 
+                           0;
+
+      const turnResult: TurnResult = {
+        turn: currentTurn,
+        playerRoll,
+        enemyRoll, // Usar a primeira rolagem como principal
+        playerPower,
+        enemyPower: enemyPower1, // Usar o primeiro poder como principal
+        result: overallResult,
+        damage: resultDamage, // Apenas o dano relevante para o resultado
+        finalDamage: resultDamage,
+        luckTestApplied: false,
+        enemyMultipleRolls: [enemyRoll, enemyRoll2],
+        multipleResults
+      };
+
+      setTurnHistory(prev => [...prev, turnResult]);
+      setCurrentTurnResult(turnResult);
+      setShowBattleResultModal(true);
     } else {
-      result = 'dodge';
-      damage = 0;
+      // Lógica padrão para um único ataque
+      const enemyPower = enemyRoll + enemy.pericia;
+
+      let result: TurnResult['result'];
+      let damage = 0;
+
+      if (playerPower > enemyPower) {
+        result = 'player_hit';
+        // Jogador sempre causa dano normal (2), customDamage é só para o inimigo
+        damage = 2;
+        setEnemyForca(prev => prev - damage);
+      } else if (enemyPower > playerPower) {
+        result = 'enemy_hit';
+        // Inimigo usa customDamage se definido
+        damage = baseDamage;
+        const updatedFicha = { ...ficha };
+        updatedFicha.forca.atual = Math.max(0, playerForca - damage);
+        onUpdateFicha(updatedFicha);
+      } else {
+        result = 'dodge';
+        damage = 0;
+      }
+
+      const turnResult: TurnResult = {
+        turn: currentTurn,
+        playerRoll,
+        enemyRoll,
+        playerPower,
+        enemyPower,
+        result,
+        damage,
+        finalDamage: damage,
+        luckTestApplied: false
+      };
+
+      setTurnHistory(prev => [...prev, turnResult]);
+      setCurrentTurnResult(turnResult);
+      setShowBattleResultModal(true);
     }
-
-    const turnResult: TurnResult = {
-      turn: currentTurn,
-      playerRoll,
-      enemyRoll,
-      playerPower,
-      enemyPower,
-      result,
-      damage,
-      finalDamage: damage, // Inicialmente igual ao dano base
-      luckTestApplied: false
-    };
-
-    setTurnHistory(prev => [...prev, turnResult]);
-    setCurrentTurnResult(turnResult);
-    setShowBattleResultModal(true);
-  }, [enemyRoll, playerRoll, enemy.pericia, playerPericia, currentTurn, ficha, playerForca, onUpdateFicha]);
+  }, [enemyRoll, enemyRoll2, playerRoll, enemy.pericia, enemy.attacksPerTurn, enemy.customDamage, playerPericia, currentTurn, ficha, playerForca, onUpdateFicha]);
 
   const handleDiceComplete = useCallback((_dice: number[], total: number) => {
     if (dicePhase === 'enemy') {
       setEnemyRoll(total);
-      setDicePhase('player');
+      // NÃO muda dicePhase ainda - será mudado em handleEnemyModalClose
+      setShowEnemyResultModal(true);
+    } else if (dicePhase === 'enemy2') {
+      setEnemyRoll2(total);
+      // NÃO muda dicePhase ainda - será mudado em handleEnemyModalClose
       setShowEnemyResultModal(true);
     } else {
       setPlayerRoll(total);
@@ -358,17 +508,17 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
         
         // Atualizar o histórico com o dano final
         setTurnHistory(prev => prev.map(turn => 
-          turn.turn === currentTurn ? { ...turn, finalDamage: 4, luckTestApplied: true } : turn
+          turn.turn === currentTurn ? { ...turn, finalDamage: 4, luckTestApplied: true, luckTestSuccess: true } : turn
         ));
       } else {
         // Regra 3: Se falhar no teste de sorte para dano, o inimigo perde apenas 1 ponto
         // Como já perdeu 2 pontos no turno, revertemos +1 ponto
         setEnemyForca(prev => Math.min(enemy.forca, prev + 1));
-        setLuckResult(`Falha! Dados: ${total} - Dano reduzido! Inimigo perde apenas 1 ponto de FORÇA`);
+        setLuckResult(`Você falhou no teste de Sorte! Dados: ${total} - Dano reduzido! Inimigo perde apenas 1 ponto de FORÇA`);
         
         // Atualizar o histórico com o dano final
         setTurnHistory(prev => prev.map(turn => 
-          turn.turn === currentTurn ? { ...turn, finalDamage: 1, luckTestApplied: true } : turn
+          turn.turn === currentTurn ? { ...turn, finalDamage: 1, luckTestApplied: true, luckTestSuccess: false } : turn
         ));
       }
     } else {
@@ -382,18 +532,18 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
         
         // Atualizar o histórico com o dano final
         setTurnHistory(prev => prev.map(turn => 
-          turn.turn === currentTurn ? { ...turn, finalDamage: 1, luckTestApplied: true } : turn
+          turn.turn === currentTurn ? { ...turn, finalDamage: 1, luckTestApplied: true, luckTestSuccess: true } : turn
         ));
       } else {
         // Regra 5: Se falhar no teste de sorte para redução, o jogador perde 3 pontos
         // Como já perdeu 2 pontos no turno, aplicamos +1 ponto adicional
         updatedFicha.forca.atual = Math.max(0, playerForca - 1);
         onUpdateFicha(updatedFicha);
-        setLuckResult(`Falha! Dados: ${total} - Dano aumentado! +1 FORÇA perdida (Total perdido: 3 pontos)`);
+        setLuckResult(`Você falhou no teste de Sorte! Dados: ${total} - Dano aumentado! +1 FORÇA perdida (Total perdido: 3 pontos)`);
         
         // Atualizar o histórico com o dano final
         setTurnHistory(prev => prev.map(turn => 
-          turn.turn === currentTurn ? { ...turn, finalDamage: 3, luckTestApplied: true } : turn
+          turn.turn === currentTurn ? { ...turn, finalDamage: 3, luckTestApplied: true, luckTestSuccess: false } : turn
         ));
       }
     }
@@ -435,10 +585,21 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
   const handleEnemyModalClose = useCallback(() => {
     setShowEnemyResultModal(false);
     setTimeout(() => {
-      setDicePhase('player');
-      setDiceModalOpen(true);
+      // Se é a primeira rolagem do inimigo e ele ataca múltiplas vezes, rolar novamente
+      if (dicePhase === 'enemy' && enemy.attacksPerTurn && enemy.attacksPerTurn > 1) {
+        setDicePhase('enemy2');
+        setDiceModalOpen(true);
+      } else if (dicePhase === 'enemy2') {
+        // Segunda rolagem completa, agora é a vez do jogador
+        setDicePhase('player');
+        setDiceModalOpen(true);
+      } else {
+        // Rolagem única do inimigo completa, vez do jogador
+        setDicePhase('player');
+        setDiceModalOpen(true);
+      }
     }, 300);
-  }, []);
+  }, [dicePhase, enemy.attacksPerTurn]);
 
   const handlePlayerModalClose = useCallback(() => {
     setShowPlayerResultModal(false);
@@ -496,30 +657,47 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
               <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
                 Turno {turn.turn}
               </Typography>
-                             <Typography variant="body2" sx={{ color: '#d35656ff', fontSize: '12px' }}>
-                 Você: {turn.playerRoll} + {playerPericia} = {turn.playerPower} | 
-                 {enemy.nome}: {turn.enemyRoll} + {enemy.pericia} = {turn.enemyPower}
-               </Typography>
-                             <Typography variant="body2" sx={{ 
-                 color: turn.result === 'player_hit' ? '#2b7e2eff' : 
-                        turn.result === 'enemy_hit' ? '#F44336' : '#FF9800',
-                 fontWeight: 'bold'
-               }}>
-                 {getTurnResultText(turn)}
-               </Typography>
+              
+              {/* Mostrar múltiplos ataques se existirem */}
+              {turn.multipleResults && turn.multipleResults.length > 0 ? (
+                <>
+                  <Typography variant="body2" sx={{ color: '#d35656ff', fontSize: '12px', marginTop: '4px' }}>
+                    Você: {turn.playerRoll} + {playerPericia} = {turn.playerPower}
+                  </Typography>
+                  {turn.multipleResults.map((attack, idx) => (
+                    <Typography key={idx} variant="body2" sx={{ color: '#d35656ff', fontSize: '11px', marginLeft: '8px' }}>
+                      {idx + 1}º Ataque: {attack.enemyRoll} + {enemy.pericia} = {attack.enemyPower}
+                    </Typography>
+                  ))}
+                </>
+              ) : (
+                <Typography variant="body2" sx={{ color: '#d35656ff', fontSize: '12px' }}>
+                  Você: {turn.playerRoll} + {playerPericia} = {turn.playerPower} | 
+                  {enemy.nome}: {turn.enemyRoll} + {enemy.pericia} = {turn.enemyPower}
+                </Typography>
+              )}
+              
+              <Typography variant="body2" sx={{ 
+                color: turn.result === 'player_hit' ? '#2b7e2eff' : 
+                       turn.result === 'enemy_hit' ? '#F44336' : '#FF9800',
+                fontWeight: 'bold',
+                marginTop: '4px'
+              }}>
+                {getTurnResultText(turn)}
+              </Typography>
                
-               {/* Indicador de teste de sorte aplicado */}
-               {turn.luckTestApplied && (
-                 <Typography variant="caption" sx={{ 
-                   color: '#FFD700',
-                   fontStyle: 'italic',
-                   fontSize: '11px',
-                   display: 'block',
-                   marginTop: '4px'
-                 }}>
-                   Teste de sorte aplicado
-                 </Typography>
-               )}
+              {/* Indicador de teste de sorte aplicado */}
+              {turn.luckTestApplied && (
+                <Typography variant="caption" sx={{ 
+                  color: turn.luckTestSuccess ? '#4CAF50' : '#F44336',
+                  fontStyle: 'italic',
+                  fontSize: '11px',
+                  display: 'block',
+                  marginTop: '4px'
+                }}>
+                  {turn.luckTestSuccess ? '✓ Teste de sorte: SUCESSO' : '✗ Teste de sorte: FALHA'}
+                </Typography>
+              )}
               
             </Box>
           ))}
@@ -601,7 +779,11 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
               fontFamily: '"Cinzel", serif',
               fontWeight: 'bold'
             }}>
-              Poder de Ataque do {enemy.nome}
+              {dicePhase === 'enemy' && enemy.attacksPerTurn && enemy.attacksPerTurn > 1
+                ? '1º Ataque do'
+                : dicePhase === 'enemy2' 
+                ? '2º Ataque do' 
+                : 'Poder de Ataque do'} {enemy.nome}
             </Typography>
             
             <Box sx={{ textAlign: 'center', marginBottom: '24px' }}>
@@ -610,13 +792,19 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
                 fontWeight: 'bold',
                 marginBottom: '8px'
               }}>
-                {enemyRoll} + {enemy.pericia} = {enemyRoll! + enemy.pericia}
+                {dicePhase === 'enemy2' && enemyRoll2 !== null 
+                  ? `${enemyRoll2} + ${enemy.pericia} = ${enemyRoll2 + enemy.pericia}`
+                  : `${enemyRoll} + ${enemy.pericia} = ${enemyRoll! + enemy.pericia}`
+                }
               </Typography>
             </Box>
 
             <Box sx={{ textAlign: 'center' }}>
               <ModalButton onClick={handleEnemyModalClose}>
-                Lançar Dados para Você
+                {dicePhase === 'enemy' && enemy.attacksPerTurn && enemy.attacksPerTurn > 1 
+                  ? 'Rolar 2º Ataque do Inimigo'
+                  : 'Lançar Dados para Você'
+                }
               </ModalButton>
             </Box>
           </BattleModal>
@@ -673,31 +861,90 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
             </Typography>
             
             <Box sx={{ marginBottom: '24px' }}>
-              <Box sx={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                marginBottom: '16px',
-                padding: '12px',
-                background: 'rgba(139,69,19,0.1)',
-                borderRadius: '8px'
-              }}>
-                <Typography variant="body1" sx={{ color: '#B31212', fontWeight: 'bold' }}>
-                  {enemy.nome}: {currentTurnResult.enemyRoll} + {enemy.pericia} = {currentTurnResult.enemyPower}
-                </Typography>
-                <Typography variant="body1" sx={{ color: '#4CAF50', fontWeight: 'bold' }}>
-                  Você: {currentTurnResult.playerRoll} + {playerPericia} = {currentTurnResult.playerPower}
-                </Typography>
-              </Box>
-              
-              <Typography variant="h6" sx={{ 
-                textAlign: 'center',
-                color: currentTurnResult.result === 'player_hit' ? '#4CAF50' : 
-                       currentTurnResult.result === 'enemy_hit' ? '#B31212' : '#FF9800',
-                fontWeight: 'bold',
-                marginBottom: '16px'
-              }}>
-                {getTurnResultText(currentTurnResult)}
-              </Typography>
+              {currentTurnResult.multipleResults && currentTurnResult.multipleResults.length > 0 ? (
+                // Mostrar múltiplos resultados para ataques múltiplos
+                <>
+                  <Typography variant="body2" sx={{ 
+                    textAlign: 'center', 
+                    marginBottom: '16px', 
+                    fontWeight: 'bold',
+                    color: '#8B4513'
+                  }}>
+                    Você: {currentTurnResult.playerRoll} + {playerPericia} = {currentTurnResult.playerPower}
+                  </Typography>
+                  
+                  {currentTurnResult.multipleResults.map((attackResult, index) => (
+                    <Box key={index} sx={{ 
+                      display: 'flex', 
+                      flexDirection: 'column',
+                      marginBottom: '12px',
+                      padding: '12px',
+                      background: 'rgba(139,69,19,0.1)',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(139,69,19,0.2)'
+                    }}>
+                      <Typography variant="body2" sx={{ 
+                        color: '#B31212', 
+                        fontWeight: 'bold',
+                        marginBottom: '4px'
+                      }}>
+                        {index + 1}º Ataque: {attackResult.enemyRoll} + {enemy.pericia} = {attackResult.enemyPower}
+                      </Typography>
+                      <Typography variant="body2" sx={{ 
+                        color: attackResult.result === 'player_hit' ? '#4CAF50' : 
+                               attackResult.result === 'enemy_hit' ? '#B31212' : '#FF9800',
+                        fontWeight: 'bold'
+                      }}>
+                        {attackResult.result === 'player_hit' 
+                          ? `✓ Você acertou!`
+                          : attackResult.result === 'enemy_hit'
+                          ? `✗ Você foi atingido! (${attackResult.damage} de dano)`
+                          : '○ Empate! Ambos se defenderam'
+                        }
+                      </Typography>
+                    </Box>
+                  ))}
+                  
+                  <Typography variant="h6" sx={{ 
+                    textAlign: 'center',
+                    color: currentTurnResult.result === 'player_hit' ? '#4CAF50' : 
+                           currentTurnResult.result === 'enemy_hit' ? '#B31212' : '#FF9800',
+                    fontWeight: 'bold',
+                    marginTop: '16px'
+                  }}>
+                    {getTurnResultText(currentTurnResult)}
+                  </Typography>
+                </>
+              ) : (
+                // Mostrar resultado único padrão
+                <>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    marginBottom: '16px',
+                    padding: '12px',
+                    background: 'rgba(139,69,19,0.1)',
+                    borderRadius: '8px'
+                  }}>
+                    <Typography variant="body1" sx={{ color: '#B31212', fontWeight: 'bold' }}>
+                      {enemy.nome}: {currentTurnResult.enemyRoll} + {enemy.pericia} = {currentTurnResult.enemyPower}
+                    </Typography>
+                    <Typography variant="body1" sx={{ color: '#4CAF50', fontWeight: 'bold' }}>
+                      Você: {currentTurnResult.playerRoll} + {playerPericia} = {currentTurnResult.playerPower}
+                    </Typography>
+                  </Box>
+                  
+                  <Typography variant="h6" sx={{ 
+                    textAlign: 'center',
+                    color: currentTurnResult.result === 'player_hit' ? '#4CAF50' : 
+                           currentTurnResult.result === 'enemy_hit' ? '#B31212' : '#FF9800',
+                    fontWeight: 'bold',
+                    marginBottom: '16px'
+                  }}>
+                    {getTurnResultText(currentTurnResult)}
+                  </Typography>
+                </>
+              )}
             </Box>
 
             {canShowLuckButton(currentTurnResult) && (

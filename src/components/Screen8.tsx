@@ -7,7 +7,7 @@ import VolumeControl from './ui/VolumeControl';
 import BattleSystem from './BattleSystem';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
-import cavaleiroImg from '../assets/images/personagens/cavaleiro03.png';
+import cavaleiroImg from '../assets/images/personagens/cavaleiro01.png';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -91,13 +91,13 @@ const ChoiceButton = styled('button')({
   }
 });
 
-interface Screen259Props {
+interface Screen8Props {
   onGoToScreen: (screenId: number) => void;
   ficha: any;
   onUpdateFicha: (ficha: any) => void;
 }
 
-const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFicha }) => {
+const Screen8: React.FC<Screen8Props> = ({ onGoToScreen, ficha, onUpdateFicha }) => {
   const { isPlaying, togglePlay, changeTrack, tryStartMusic } = useAudio();
   const currentGroup = 'battle';
   const playClick = useClickSound(0.2);
@@ -150,7 +150,6 @@ const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFich
 
   const handleDefeat = () => {
     // Derrota pelo cavaleiro = morte
-    // Podemos criar uma tela específica ou usar GameOver padrão
     onGoToScreen(999); // Game Over genérico
   };
 
@@ -163,13 +162,11 @@ const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFich
   };
 
   const enemy = {
-    nome: 'Terceiro Cavaleiro das Trevas',
+    nome: 'Primeiro Cavaleiro das Trevas',
     pericia: 9,
     forca: 9,
     imagem: cavaleiroImg,
-    customDamage: 4, // Dano customizado: 4 ao invés de 2
-    disableLuckTest: true, // Cavaleiros das Trevas: sem teste de sorte
-    ignoreArmor: true // Ignora armadura
+    attacksPerTurn: 2 // Ataca 2 vezes por turno (permite teste de sorte e armadura)
   };
 
   return (
@@ -207,15 +204,13 @@ const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFich
         </Box>
       )}
 
-      <Container data-screen="screen-259">
+      <Container data-screen="screen-8">
         <CardWrap>
         <CardContent sx={{ padding: '40px' }}>
           {battleState === 'intro' && (
             <>
               <NarrativeText>
-                Este Cavaleiro das Trevas é um mestre espadachim, manejando duas espadas longas e afiadas com incrível destreza.
-                <br/><br/>
-                Sempre que você perder um turno de combate contra esse inimigo formidável, você perderá <strong style={{ color: '#D32F2F' }}>4 pontos de FORÇA</strong> em vez de apenas 2.
+                O Cavaleiro das Trevas que você enfrenta não empunha qualquer arma — ele é um mestre das artes marciais, e suas mãos letais e cadavéricas se movem com velocidade sobrenatural.
                 <br/><br/>
                 <Box component="span" sx={{ 
                   color: '#D32F2F', 
@@ -229,10 +224,12 @@ const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFich
                   borderRadius: '8px',
                   border: '2px solid #D32F2F'
                 }}>
-                  ⚠️ ATENÇÃO: Nem armaduras nem o teste de Sorte podem ser usados para reduzir esse dano devastador!
+                  ⚠️ Durante o combate, o Cavaleiro das Trevas ataca <strong>DUAS VEZES POR TURNO</strong>.
+                  <br/>
+                  Resolva o confronto como se estivesse lutando contra dois inimigos simultaneamente.
                 </Box>
                 <br/><br/>
-                <strong>TERCEIRO CAVALEIRO DAS TREVAS — PERÍCIA {enemy.pericia} | FORÇA {enemy.forca}</strong>
+                <strong>PRIMEIRO CAVALEIRO DAS TREVAS — PERÍCIA {enemy.pericia} | FORÇA {enemy.forca}</strong>
               </NarrativeText>
 
               <Box sx={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
@@ -311,7 +308,7 @@ const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFich
                 color: 'text.primary',
                 marginBottom: '32px'
               }}>
-                Você derrotou o mestre espadachim! Continuando sua fuga...
+                Você derrotou o mestre das artes marciais! Continuando sua fuga...
               </Typography>
             </Box>
           )}
@@ -373,11 +370,17 @@ const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFich
             <br/>
             <strong style={{ color: '#D32F2F' }}>⚠️ ESPECIAL NESTA BATALHA:</strong>
             <br/>
-            • Cada golpe causa <strong>4 pontos de dano</strong> (ao invés de 2)
+            • Este cavaleiro <strong>ataca 2 vezes por turno</strong>
             <br/>
-            • <strong>Não é possível testar a Sorte</strong>
+            • Ele rola os dados DUAS VEZES e compara cada resultado com o seu
             <br/>
-            • <strong>Armaduras não reduzem o dano</strong>
+            • Você recebe 2 de dano por cada ataque que ele vencer
+            <br/>
+            • Se ele vencer os dois ataques, você toma 4 pontos de dano no total
+            <br/>
+            • Se você vencer pelo menos 1 ataque, ele toma apenas 2 pontos de dano
+            <br/>
+            • Você pode usar armadura e testar a sorte normalmente
             <br/>
             • A batalha termina quando a FORÇA de alguém chegar a zero
           </Typography>
@@ -406,5 +409,5 @@ const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFich
   );
 };
 
-export default Screen259;
+export default Screen8;
 

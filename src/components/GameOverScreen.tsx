@@ -237,7 +237,7 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({
             fontFamily: '"Cinzel", serif',
             fontWeight: 'bold'
           }}>
-            Estatísticas Finais de {characterStats.nome}
+            Suas Estatísticas Finais
           </Typography>
           
           <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }}>

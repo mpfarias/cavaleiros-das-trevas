@@ -5,9 +5,11 @@ import { useAudio } from '../hooks/useAudio';
 import { useClickSound } from '../hooks/useClickSound';
 import VolumeControl from './ui/VolumeControl';
 import BattleSystem from './BattleSystem';
+import DiceRollModal3D from './ui/DiceRollModal3D';
+import { GameAlert } from './ui/GameAlert';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
-import cavaleiroImg from '../assets/images/personagens/cavaleiro03.png';
+import cavaleiroImg from '../assets/images/personagens/cavaleiro02.png';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -91,13 +93,13 @@ const ChoiceButton = styled('button')({
   }
 });
 
-interface Screen259Props {
+interface Screen394Props {
   onGoToScreen: (screenId: number) => void;
   ficha: any;
   onUpdateFicha: (ficha: any) => void;
 }
 
-const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFicha }) => {
+const Screen394: React.FC<Screen394Props> = ({ onGoToScreen, ficha, onUpdateFicha }) => {
   const { isPlaying, togglePlay, changeTrack, tryStartMusic } = useAudio();
   const currentGroup = 'battle';
   const playClick = useClickSound(0.2);
@@ -105,6 +107,12 @@ const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFich
   const [battleState, setBattleState] = useState<'intro' | 'battle' | 'victory'>('intro');
   const battleSystemRef = useRef<any>(null);
   const [showBattleInfoModal, setShowBattleInfoModal] = useState(false);
+  
+  // Estados para o sistema de punhal
+  const [showDaggerDiceModal, setShowDaggerDiceModal] = useState(false);
+  const [showDaggerAlert, setShowDaggerAlert] = useState(false);
+  const [daggerResult, setDaggerResult] = useState<string>('');
+  const daggerResolveRef = useRef<(() => void) | null>(null);
 
   const stableOnUpdateFicha = useCallback((updatedFicha: any) => {
     onUpdateFicha(updatedFicha);
@@ -131,6 +139,43 @@ const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFich
     }, 2000);
   };
 
+  // Função executada ANTES de cada turno - rola o dado do punhal
+  const handleBeforeTurnStart = useCallback(async () => {
+    return new Promise<void>((resolve) => {
+      // Armazena o resolve para ser chamado depois
+      daggerResolveRef.current = resolve;
+      // Abre o modal do punhal
+      setShowDaggerDiceModal(true);
+    });
+  }, []);
+
+  const handleDaggerDiceComplete = useCallback((_dice: number[], total: number) => {
+    // Fecha o modal
+    setShowDaggerDiceModal(false);
+    
+    if (total >= 5) {
+      // Acertou! Perde 2 pontos de FORÇA
+      const updatedFicha = { ...ficha };
+      updatedFicha.forca.atual = Math.max(0, ficha.forca.atual - 2);
+      onUpdateFicha(updatedFicha);
+      setDaggerResult(`O Cavaleiro acertou o punhal em você! Perdeu 2 pontos de FORÇA (Dado: ${total})`);
+    } else {
+      // Errou!
+      setDaggerResult(`O Cavaleiro errou o arremesso do punhal! (Dado: ${total})`);
+    }
+    
+    setShowDaggerAlert(true);
+    setTimeout(() => setShowDaggerAlert(false), 3000);
+    
+    // Resolve a Promise após um pequeno delay para garantir que o modal fechou
+    setTimeout(() => {
+      if (daggerResolveRef.current) {
+        daggerResolveRef.current();
+        daggerResolveRef.current = null;
+      }
+    }, 500);
+  }, [ficha, onUpdateFicha]);
+
   const handleStartBattle = () => {
     setBattleState('battle');
     
@@ -150,7 +195,6 @@ const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFich
 
   const handleDefeat = () => {
     // Derrota pelo cavaleiro = morte
-    // Podemos criar uma tela específica ou usar GameOver padrão
     onGoToScreen(999); // Game Over genérico
   };
 
@@ -163,13 +207,11 @@ const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFich
   };
 
   const enemy = {
-    nome: 'Terceiro Cavaleiro das Trevas',
+    nome: 'Segundo Cavaleiro das Trevas',
     pericia: 9,
     forca: 9,
-    imagem: cavaleiroImg,
-    customDamage: 4, // Dano customizado: 4 ao invés de 2
-    disableLuckTest: true, // Cavaleiros das Trevas: sem teste de sorte
-    ignoreArmor: true // Ignora armadura
+    imagem: cavaleiroImg
+    // Permite teste de sorte e armadura normalmente
   };
 
   return (
@@ -207,15 +249,15 @@ const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFich
         </Box>
       )}
 
-      <Container data-screen="screen-259">
+      <Container data-screen="screen-394">
         <CardWrap>
         <CardContent sx={{ padding: '40px' }}>
           {battleState === 'intro' && (
             <>
               <NarrativeText>
-                Este Cavaleiro das Trevas é um mestre espadachim, manejando duas espadas longas e afiadas com incrível destreza.
+                Este Cavaleiro das Trevas carrega no peito vários punhais finamente trabalhados.
                 <br/><br/>
-                Sempre que você perder um turno de combate contra esse inimigo formidável, você perderá <strong style={{ color: '#D32F2F' }}>4 pontos de FORÇA</strong> em vez de apenas 2.
+                No início de cada combate, ele atira uma das suas facas.
                 <br/><br/>
                 <Box component="span" sx={{ 
                   color: '#D32F2F', 
@@ -229,10 +271,16 @@ const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFich
                   borderRadius: '8px',
                   border: '2px solid #D32F2F'
                 }}>
-                  ⚠️ ATENÇÃO: Nem armaduras nem o teste de Sorte podem ser usados para reduzir esse dano devastador!
+                  ⚠️ ATENÇÃO: Antes de cada turno, 1 dado será lançado!
+                  <br/>
+                  • Resultado 1-4: O cavaleiro erra o punhal
+                  <br/>
+                  • Resultado 5-6: O cavaleiro acerta o punhal em você ( perde 2 de FORÇA)
+                  <br/>
+                  Nem armaduras nem teste de Sorte reduzem o dano do punhal!
                 </Box>
                 <br/><br/>
-                <strong>TERCEIRO CAVALEIRO DAS TREVAS — PERÍCIA {enemy.pericia} | FORÇA {enemy.forca}</strong>
+                <strong>SEGUNDO CAVALEIRO DAS TREVAS — PERÍCIA {enemy.pericia} | FORÇA {enemy.forca}</strong>
               </NarrativeText>
 
               <Box sx={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
@@ -290,6 +338,7 @@ const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFich
               onVictory={handleVictory}
               onDefeat={handleDefeat}
               onGoToScreen={onGoToScreen}
+              beforeTurnStart={handleBeforeTurnStart}
               ref={battleSystemRef}
             />
           )}
@@ -311,13 +360,28 @@ const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFich
                 color: 'text.primary',
                 marginBottom: '32px'
               }}>
-                Você derrotou o mestre espadachim! Continuando sua fuga...
+                Você derrotou o cavaleiro dos punhais! Continuando sua fuga...
               </Typography>
             </Box>
           )}
         </CardContent>
         </CardWrap>
       </Container>
+
+      {/* Modal de dados para o punhal */}
+      <DiceRollModal3D
+        open={showDaggerDiceModal}
+        numDice={1}
+        onComplete={handleDaggerDiceComplete}
+        title="Arremesso do Punhal"
+      />
+
+      {/* Alerta com resultado do punhal */}
+      {showDaggerAlert && (
+        <GameAlert sx={{ top: '120px', zIndex: 1200 }} $isVisible={showDaggerAlert}>
+          {daggerResult}
+        </GameAlert>
+      )}
 
       {/* Modal de informações de batalha */}
       <Dialog 
@@ -373,11 +437,19 @@ const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFich
             <br/>
             <strong style={{ color: '#D32F2F' }}>⚠️ ESPECIAL NESTA BATALHA:</strong>
             <br/>
-            • Cada golpe causa <strong>4 pontos de dano</strong> (ao invés de 2)
+            • <strong>ANTES de cada turno</strong>, o cavaleiro atira um punhal
             <br/>
-            • <strong>Não é possível testar a Sorte</strong>
+            • Você rola 1 dado para ver se o punhal acerta
             <br/>
-            • <strong>Armaduras não reduzem o dano</strong>
+            • Resultado 1-4: O punhal erra (sem dano)
+            <br/>
+            • Resultado 5-6: O punhal acerta (-2 FORÇA)
+            <br/>
+            • O dano do punhal ignora armadura e não pode ser reduzido com Sorte
+            <br/>
+            • Após o punhal, o combate segue normalmente
+            <br/>
+            • No combate normal, armadura e teste de Sorte funcionam
             <br/>
             • A batalha termina quando a FORÇA de alguém chegar a zero
           </Typography>
@@ -406,5 +478,5 @@ const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFich
   );
 };
 
-export default Screen259;
+export default Screen394;
 
