@@ -9,10 +9,13 @@ import bgmModal from '../assets/sounds/bgm-modal.mp3';
 import mapMusic from '../assets/sounds/nature-sound-map.mp3';
 import bgmIntro from '../assets/sounds/bgm-intro.mp3';
 import bgmTavern from '../assets/sounds/bgm-tavern-sound.mp3';
-import bgmPrison from '../assets/sounds/bgm-prison.mp3';
+import bgmPrisonTaken from '../assets/sounds/bgm-taken-to-prison.mp3';
+import bgmHiding from '../assets/sounds/bgm-hiding.mp3';
 import bgmRunning from '../assets/sounds/bgm-running.mp3';
 import bgmBattle from '../assets/sounds/bgm-battle.mp3';
 import bgmCreepy from '../assets/sounds/bgm-creepy.mp3';
+import bgmDramatic from '../assets/sounds/bgm-dramatic.mp3';
+import bgmSewers from '../assets/sounds/bgm-sewers.mp3';
 
 // Definição dos grupos de áudio
 export type AudioGroup = 
@@ -22,10 +25,13 @@ export type AudioGroup =
   | 'character-sheet' // bgm-ficha.mp3 - Preparação
   | 'home-intro'      // bgm-modal.mp3 - Menu, introdução
   | 'map'             // nature-sound-map.mp3 - Exploração
-  | 'prison'          // bgm-prison.mp3 - Prisão, masmorras
+  | 'prison'          // bgm-taken-to-prison.mp3 - Prisão, masmorras
+  | 'hiding'          // bgm-hiding.mp3 - Escondendo-se (tela 72)
   | 'chase'           // bgm-running.mp3 - Perseguição, fuga
   | 'battle'          // bgm-battle.mp3 - Combate
   | 'creepy'          // bgm-creepy.mp3 - Cavaleiros das Trevas, terror
+  | 'dramatic'        // bgm-dramatic.mp3 - Momentos dramáticos, tensão
+  | 'sewers'          // bgm-sewers.mp3 - Esgotos, Slygore
   | 'cinematic';      // bgm-intro.mp3, rainning.mp3 - Cinemática
 
 // Mapeamento de grupos para arquivos de áudio
@@ -36,10 +42,13 @@ const AUDIO_GROUP_MAP: Record<AudioGroup, string> = {
   'character-sheet': bgmFicha,
   'home-intro': bgmModal,
   'map': mapMusic,
-  'prison': bgmPrison,
+  'prison': bgmPrisonTaken,
+  'hiding': bgmHiding,
   'chase': bgmRunning,
   'battle': bgmBattle,
   'creepy': bgmCreepy,
+  'dramatic': bgmDramatic,
+  'sewers': bgmSewers,
   'cinematic': bgmIntro
 };
 
@@ -65,12 +74,12 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   222: 'tavern',                 // Sucesso no teste (rota /game/222) - bgm-tavern-sound.mp3
   
   // Prisão e masmorras
-  199: 'prison',                 // Prisão (rota /game/199) - bgm-prison.mp3
-  7: 'prison',                   // Escape da prisão (rota /game/7) - bgm-prison.mp3
+  199: 'prison',                 // Prisão (rota /game/199) - bgm-taken-to-prison.mp3
+  7: 'prison',                   // Escape da prisão (rota /game/7) - bgm-taken-to-prison.mp3
   26: 'battle',                  // Combate com carcereiro (rota /game/26) - bgm-battle.mp3
-  38: 'prison',                  // Teste de sorte na prisão (rota /game/38) - bgm-prison.mp3
+  38: 'prison',                  // Teste de sorte na prisão (rota /game/38) - bgm-taken-to-prison.mp3
   74: 'chase',                   // Sucesso no teste de sorte - fuga (rota /game/74) - bgm-running.mp3
-  123: 'prison',                 // Falha no teste de sorte (rota /game/123) - bgm-prison.mp3
+  123: 'prison',                 // Falha no teste de sorte (rota /game/123) - bgm-taken-to-prison.mp3
   
   // Character Sheet
   'sheet': 'character-sheet',   // Character Sheet (rota /sheet)
@@ -88,9 +97,11 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   60: 'chase',                  // Carrinho de lixo (rota /game/60) - bgm-running.mp3
   126: 'chase',                 // Entrar no carro de lixo (rota /game/126) - bgm-running.mp3
   134: 'chase',                 // Rua estreita à esquerda (rota /game/134) - bgm-running.mp3
-  208: 'prison',                // Aguardar carroça das masmorras (rota /game/208) - bgm-prison.mp3
-  233: 'prison',                // Aceitar negócio com Quinsberry (rota /game/233) - bgm-prison.mp3
+  208: 'prison',                // Aguardar carroça das masmorras (rota /game/208) - bgm-taken-to-prison.mp3
+  233: 'prison',                // Aceitar negócio com Quinsberry (rota /game/233) - bgm-taken-to-prison.mp3
   272: 'battle',                // Batalha com Homem-Orc (rota /game/272) - bgm-battle.mp3
+  4: 'dramatic',                // Ferida mágica do Homem-Orc (rota /game/4) - bgm-dramatic.mp3
+  40: 'dramatic',               // Vitória contra Homem-Orc - Chave Preta (rota /game/40) - bgm-dramatic.mp3
   8: 'battle',                  // Batalha com Primeiro Cavaleiro das Trevas (rota /game/8) - bgm-battle.mp3
   259: 'battle',                // Batalha com Terceiro Cavaleiro das Trevas (rota /game/259) - bgm-battle.mp3
   394: 'battle',                // Batalha com Segundo Cavaleiro das Trevas (rota /game/394) - bgm-battle.mp3
@@ -104,12 +115,13 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   306: 'creepy',                // Fingir-se de morto (rota /game/306) - bgm-creepy.mp3
   279: 'creepy',                // Sucesso ao fingir-se de morto (rota /game/279) - bgm-creepy.mp3
   335: 'creepy',                // Vitória sobre Cavaleiro das Trevas (rota /game/335) - bgm-creepy.mp3
-  72: 'prison',                 // Perseguição reiniciada pelos Cavaleiros (rota /game/72) - bgm-prison.mp3
+  72: 'hiding',                 // Perseguição reiniciada pelos Cavaleiros (rota /game/72) - bgm-hiding.mp3
   166: 'chase',                 // Casa da velhinha - Fuga dos guardas (rota /game/166) - bgm-running.mp3
   277: 'chase',                 // Casa da velhinha - Fuga dos guardas com sorte (rota /game/277) - bgm-running.mp3
   360: 'chase',                 // Fuga dos guardas pela rua (rota /game/360) - bgm-running.mp3
   243: 'chase',                 // Revistar corpo Bartolph - Fuga dos guardas (rota /game/243) - bgm-running.mp3
   262: 'chase',                 // Beco sem saída - Guarda solitário (rota /game/262) - bgm-running.mp3
+  375: 'sewers',                // Esgotos - Encontro com Slygore (rota /game/375) - bgm-sewers.mp3
 };
 
 export const useAudioGroup = (screenId: number | string) => {

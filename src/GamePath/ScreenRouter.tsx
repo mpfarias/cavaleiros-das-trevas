@@ -54,6 +54,9 @@ import Screen183 from '../components/Screen183';
 import Screen245 from '../components/Screen245';
 import Screen335 from '../components/Screen335';
 import Screen72 from '../components/Screen72';
+import Screen4 from '../components/Screen4';
+import Screen40 from '../components/Screen40';
+import Screen375 from '../components/Screen375';
 import GameOverScreen from '../components/GameOverScreen';
 import type { Ficha } from '../types';
 
@@ -448,6 +451,24 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({ ficha: fichaFromProps, onGa
   if (screenId === 72) {
     return (
       <Screen72 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 4) {
+    return (
+      <Screen4 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 40) {
+    return (
+      <Screen40 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 375) {
+    return (
+      <Screen375 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
     );
   }
 

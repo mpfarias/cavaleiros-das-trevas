@@ -32,6 +32,7 @@ import algemasImg from '../assets/images/algemas.png';
 import cordaGanchoImg from '../assets/images/corda-e-gancho.png';
 import espadaAcoImg from '../assets/images/espada-de-aco.png';
 import dadoViciadoImg from '../assets/images/dado-viciado.png';
+import chavePretaImg from '../assets/images/chave-preta.png';
 
 // Keyframes para animação da imagem
 const fadeInImage = keyframes`
@@ -220,7 +221,8 @@ const InventoryModal: React.FC<InventoryModalProps> = ({ open, onClose, ficha, o
       'algemas': algemasImg,
       'corda-e-gancho': cordaGanchoImg,
       'espada_inicial': espadaAcoImg,
-      'dado-viciado': dadoViciadoImg
+      'dado-viciado': dadoViciadoImg,
+      'chave-preta': chavePretaImg
     };
     
     // Buscar primeiro pelo ID exato
