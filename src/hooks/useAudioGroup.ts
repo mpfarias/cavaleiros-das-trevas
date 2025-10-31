@@ -122,6 +122,9 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   243: 'chase',                 // Revistar corpo Bartolph - Fuga dos guardas (rota /game/243) - bgm-running.mp3
   262: 'chase',                 // Beco sem saída - Guarda solitário (rota /game/262) - bgm-running.mp3
   375: 'sewers',                // Esgotos - Encontro com Slygore (rota /game/375) - bgm-sewers.mp3
+  70: 'battle',                 // Slygore - áudio de batalha (rota /game/70) - bgm-battle.mp3
+  2: 'hiding',                  // Salto na ravina (rota /game/2) - usa o mesmo da tela 72
+  317: 'battle',                // Após usar foguete contra Slygore (rota /game/317) - bgm-battle.mp3
 };
 
 export const useAudioGroup = (screenId: number | string) => {

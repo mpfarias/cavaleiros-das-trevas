@@ -50,6 +50,9 @@ export interface Ficha {
   };
   bolsa: Item[];
   modificadoresAtivos: ActiveModifiers;
+  flags?: {
+    visitedMarketFromSewers?: boolean;
+  };
 }
 
 // Validação e saneamento de Ficha
@@ -102,6 +105,9 @@ export const FichaSchema = z.object({
     sorte: 0,
     ataque: 0,
   }),
+  flags: z.object({
+    visitedMarketFromSewers: z.boolean().optional()
+  }).partial().optional(),
 }).strict()
 
 export const createEmptyFicha = (): Ficha => ({

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Box, Card, CardContent, Typography, IconButton, Tooltip } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
@@ -125,6 +125,22 @@ const Screen375: React.FC<Screen375Props> = ({ onGoToScreen, ficha, onUpdateFich
   const playClick = useClickSound(0.2);
   const [hoverImage, setHoverImage] = useState<{ x: number; y: number } | null>(null);
 
+  const hasFoguete = useMemo(() => {
+    try {
+      return Array.isArray(ficha?.bolsa) && ficha.bolsa.some((item: any) => item?.nome?.toLowerCase().includes('foguete'));
+    } catch {
+      return false;
+    }
+  }, [ficha]);
+
+  const hasCandeia = useMemo(() => {
+    try {
+      return Array.isArray(ficha?.bolsa) && ficha.bolsa.some((item: any) => item?.id === 'candeia-azeite' || item?.nome?.toLowerCase().includes('candeia'));
+    } catch {
+      return false;
+    }
+  }, [ficha]);
+
   const handleSlygoreHover = (event: React.MouseEvent) => {
     setHoverImage({
       x: event.clientX + 20,
@@ -214,24 +230,26 @@ const Screen375: React.FC<Screen375Props> = ({ onGoToScreen, ficha, onUpdateFich
           </NarrativeText>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
-            <ChoiceButton onClick={() => {
-              playClick();
-              onGoToScreen(70);
-            }}>
+            {/* Ações padrão (Atacar primeiro) */}
+            <ChoiceButton onClick={() => { playClick(); onGoToScreen(70); }}>
               Atacar a criatura
             </ChoiceButton>
 
-            <ChoiceButton onClick={() => {
-              playClick();
-              onGoToScreen(230);
-            }}>
-              Procurar algo na mochila para derrotá-lo
-            </ChoiceButton>
+            {/* Ações especiais condicionais */}
+            {hasFoguete && (
+              <ChoiceButton onClick={() => { playClick(); onGoToScreen(317); }}>
+                Usar o foguete
+              </ChoiceButton>
+            )}
 
-            <ChoiceButton onClick={() => {
-              playClick();
-              onGoToScreen(356);
-            }}>
+            {hasCandeia && (
+              <ChoiceButton onClick={() => { playClick(); onGoToScreen(170); }}>
+                Usar a candeia com azeite
+              </ChoiceButton>
+            )}
+
+            {/* Ação padrão de fuga */}
+            <ChoiceButton onClick={() => { playClick(); onGoToScreen(356); }}>
               Fugir
             </ChoiceButton>
           </Box>

@@ -179,6 +179,9 @@ const Screen82: React.FC<Screen82Props> = ({ onGoToScreen, ficha, onUpdateFicha 
   // Usa o sistema de grupos de áudio - automaticamente gerencia música do grupo 'royal-lendle'
   const { currentGroup, isPlaying, togglePlay } = useAudioGroup(30);
   
+  // Restrições quando veio dos esgotos (apenas navegação, mercado segue normal)
+  const fromSewers = Boolean((ficha as any)?.flags?.visitedMarketFromSewers);
+
   // Hook para gerenciar efeitos dos itens
   const { applyModifiersToAttributes } = useItemEffects();
   
@@ -714,20 +717,35 @@ const Screen82: React.FC<Screen82Props> = ({ onGoToScreen, ficha, onUpdateFicha 
 
           {/* Botões de navegação */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <ChoiceButton onClick={() => {
-              const aceitouBartolph = localStorage.getItem('cavaleiro:aceitouBartolph') === 'true';
-              if (aceitouBartolph) {
-                onGoToScreen(321); // Quem aceitou o desafio vai para 321
-              } else {
-                onGoToScreen(66); // Quem não aceitou vai para o mercado oeste
-              }
-            }}>
-              Visitar a parte Oeste
-            </ChoiceButton>
-            
-            <ChoiceButton onClick={() => onGoToScreen(321)}>
-              Ir embora
-            </ChoiceButton>
+            {fromSewers ? (
+              <>
+                <ChoiceButton onClick={() => { onGoToScreen(66); }}>
+                  Visitar a parte Oeste
+                </ChoiceButton>
+                <ChoiceButton onClick={() => { onGoToScreen(272); }}>
+                  Sair pela Porta Sul
+                </ChoiceButton>
+                <ChoiceButton onClick={() => { onGoToScreen(60); }}>
+                  Sair pela Porta Leste
+                </ChoiceButton>
+              </>
+            ) : (
+              <>
+                <ChoiceButton onClick={() => {
+                  const aceitouBartolph = localStorage.getItem('cavaleiro:aceitouBartolph') === 'true';
+                  if (aceitouBartolph) {
+                    onGoToScreen(321); // Quem aceitou o desafio vai para 321
+                  } else {
+                    onGoToScreen(66); // Quem não aceitou vai para o mercado oeste
+                  }
+                }}>
+                  Visitar a parte Oeste
+                </ChoiceButton>
+                <ChoiceButton onClick={() => onGoToScreen(321)}>
+                  Ir embora
+                </ChoiceButton>
+              </>
+            )}
           </Box>
         </CardContent>
       </CardWrap>

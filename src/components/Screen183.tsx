@@ -21,9 +21,9 @@ const Container = styled(Box)({
     width: '100%',
     minHeight: '100vh',
     background: `
-    linear-gradient(135deg, #2c1810 0%, #4a2c1a 25%, #3d1f12 50%, #2c1810 75%, #1a0f08 100%),
-    radial-gradient(circle at 30% 30%, rgba(139,69,19,0.2) 0%, transparent 50%),
-    radial-gradient(circle at 70% 70%, rgba(160,82,45,0.1) 0%, transparent 50%)
+    linear-gradient(135deg, #0b0614 0%, #120a1f 25%, #0e0a18 50%, #070512 75%, #000000 100%),
+    radial-gradient(circle at 30% 30%, rgba(96,54,160,0.15) 0%, transparent 50%),
+    radial-gradient(circle at 70% 70%, rgba(58,34,94,0.12) 0%, transparent 50%)
   `,
     display: 'flex',
     flexDirection: 'column',
