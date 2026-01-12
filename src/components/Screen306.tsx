@@ -140,7 +140,6 @@ const Screen306: React.FC<Screen306Props> = ({ onGoToScreen, ficha, onUpdateFich
 
       <DiceRollModal3D
         open={showDiceModal}
-        onClose={() => setShowDiceModal(false)}
         onComplete={handleDiceRoll}
         numDice={2}
         bonus={0}

@@ -114,8 +114,7 @@ const Screen126: React.FC<Screen126Props> = ({ onGoToScreen, ficha, onUpdateFich
       item.tipo === 'provisao' || item.nome?.toLowerCase().includes('provisão')
     );
     
-    if (provisoesExistentes && provisoesExistentes.quantidade > 0) {
-      const quantidadeAnterior = provisoesExistentes.quantidade;
+    if (provisoesExistentes && provisoesExistentes.quantidade && provisoesExistentes.quantidade > 0) {
       provisoesExistentes.quantidade = Math.max(0, provisoesExistentes.quantidade - 2);
       
       

@@ -279,7 +279,6 @@ const Screen243: React.FC<Screen243Props> = ({ onGoToScreen, ficha, onUpdateFich
 
           <DiceRollModal3D
             open={diceModalOpen}
-            onClose={() => setDiceModalOpen(false)}
             numDice={2}
             onComplete={handleDiceComplete}
             bonus={0}

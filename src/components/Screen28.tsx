@@ -138,7 +138,6 @@ const Screen28: React.FC<Screen28Props> = ({ onGoToScreen, ficha, onUpdateFicha 
       {/* Modal de Dados */}
       <DiceRollModal3D
         open={showDiceModal}
-        onClose={() => setShowDiceModal(false)}
         onComplete={handleDiceRoll}
         numDice={1}
       />

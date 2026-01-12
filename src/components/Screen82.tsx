@@ -502,7 +502,7 @@ const Screen82: React.FC<Screen82Props> = ({ onGoToScreen, ficha, onUpdateFicha 
       
       if (currentGold >= totalCost) {
         // Remove o equipamento atual
-        const newBolsa = ficha.bolsa.filter(item => item.id !== replaceInfo.currentItem.id);
+        const newBolsa = ficha.bolsa.filter(item => item.id !== replaceInfo.currentItem!.id);
         
         // Atualiza o ouro
         const updatedBolsa = newBolsa.map(item => 

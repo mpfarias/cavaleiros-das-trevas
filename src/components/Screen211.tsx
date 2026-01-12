@@ -260,7 +260,6 @@ const Screen211: React.FC<Screen211Props> = ({ onGoToScreen, ficha, onUpdateFich
       {/* Modal de teste de sorte */}
       <DiceRollModal3D
         open={showLuckDiceModal}
-        onClose={() => setShowLuckDiceModal(false)}
         onComplete={handleLuckDiceComplete}
         numDice={2}
         bonus={0}
@@ -269,7 +268,6 @@ const Screen211: React.FC<Screen211Props> = ({ onGoToScreen, ficha, onUpdateFich
       {/* Modal para quantidade de ferimentos */}
       <DiceRollModal3D
         open={showDamageCountModal}
-        onClose={() => setShowDamageCountModal(false)}
         onComplete={handleDamageCountComplete}
         numDice={1}
         bonus={0}
@@ -278,7 +276,6 @@ const Screen211: React.FC<Screen211Props> = ({ onGoToScreen, ficha, onUpdateFich
       {/* Modal para cada ferimento */}
       <DiceRollModal3D
         open={showDamageRollModal}
-        onClose={() => setShowDamageRollModal(false)}
         onComplete={handleDamageRollComplete}
         numDice={1}
         bonus={0}
