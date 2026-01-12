@@ -222,6 +222,7 @@ const Screen66: React.FC<Screen66Props> = ({ onGoToScreen, ficha, onUpdateFicha 
       y: event.clientY - 20
     } : null);
   }, []);
+
   
   const marketItems: MarketItem[] = [
     {

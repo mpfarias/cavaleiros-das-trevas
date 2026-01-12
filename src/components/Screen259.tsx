@@ -1,8 +1,10 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Box, Card, CardContent, Typography, IconButton, Tooltip, Button, Dialog, DialogTitle, DialogContent } from '@mui/material';
-import { styled, keyframes } from '@mui/material/styles';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { Box, CardContent, Typography, IconButton, Tooltip, Button, Dialog, DialogTitle, DialogContent } from '@mui/material';
+import { keyframes } from '@mui/material/styles';
 import { useAudio } from '../hooks/useAudio';
 import { useClickSound } from '../hooks/useClickSound';
+import { useScreenTheme } from '../hooks/useScreenTheme';
+import { createThemedComponents } from './common/ScreenThemedComponents';
 import VolumeControl from './ui/VolumeControl';
 import BattleSystem from './BattleSystem';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -14,83 +16,6 @@ const fadeIn = keyframes`
   to { opacity: 1; transform: translateY(0); }
 `;
 
-const Container = styled(Box)({
-  position: 'relative',
-  width: '100%',
-  minHeight: '100vh',
-  background: `
-    linear-gradient(135deg, #0b0614 0%, #120a1f 25%, #0e0a18 50%, #070512 75%, #000000 100%),
-    radial-gradient(circle at 30% 30%, rgba(96,54,160,0.15) 0%, transparent 50%),
-    radial-gradient(circle at 70% 70%, rgba(58,34,94,0.12) 0%, transparent 50%)
-  `,
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  justifyContent: 'flex-start',
-  padding: '20px',
-  overflow: 'visible'
-});
-
-const CardWrap = styled(Card)({
-  maxWidth: '900px',
-  width: '100%',
-  background: `
-    linear-gradient(135deg, rgba(245,222,179,0.95) 0%, rgba(222,184,135,0.9) 50%, rgba(205,133,63,0.95) 100%)
-  `,
-  border: '3px solid #8B4513',
-  borderRadius: '16px',
-  boxShadow: `
-    0 12px 40px rgba(0,0,0,0.6),
-    inset 0 1px 0 rgba(255,255,255,0.3),
-    0 0 0 1px rgba(139,69,19,0.4)
-  `,
-  position: 'relative',
-  animation: `${fadeIn} 1s ease-out`,
-  overflow: 'visible'
-});
-
-const NarrativeText = styled(Typography)({
-  fontFamily: '"Spectral", serif',
-  fontSize: 'clamp(16px, 2vw, 18px)',
-  lineHeight: 1.8,
-  color: '#3d2817',
-  textAlign: 'justify',
-  marginBottom: '32px',
-  textShadow: '0 1px 2px rgba(245,222,179,0.8)'
-});
-
-const ChoiceButton = styled('button')({
-  padding: '16px 24px',
-  background: 'linear-gradient(135deg, rgba(139,69,19,0.9) 0%, rgba(160,82,45,0.8) 100%)',
-  color: '#F5DEB3',
-  border: '2px solid #D2B48C',
-  borderRadius: '12px',
-  fontSize: '16px',
-  fontFamily: '"Cinzel", serif',
-  fontWeight: 600,
-  textAlign: 'left',
-  cursor: 'pointer',
-  transition: 'all 0.3s ease',
-  outline: 'none',
-  textShadow: '0 1px 2px rgba(0,0,0,0.8)',
-  boxShadow: '0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
-  width: '100%',
-  '&:focus-visible': {
-    outline: '2px solid #FFD700',
-    outlineOffset: '2px'
-  },
-  '&:hover': {
-    background: 'linear-gradient(135deg, rgba(179,18,18,0.9) 0%, rgba(139,0,0,0.8) 100%)',
-    borderColor: '#FFD700',
-    color: '#FFFFFF',
-    transform: 'translateY(-2px) scale(1.02)',
-    boxShadow: '0 8px 25px rgba(179,18,18,0.4), inset 0 1px 0 rgba(255,255,255,0.2)'
-  },
-  '&:active': {
-    transform: 'translateY(0) scale(0.98)'
-  }
-});
-
 interface Screen259Props {
   onGoToScreen: (screenId: number) => void;
   ficha: any;
@@ -101,6 +26,11 @@ const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFich
   const { isPlaying, togglePlay, changeTrack, tryStartMusic } = useAudio();
   const currentGroup = 'battle';
   const playClick = useClickSound(0.2);
+  const theme = useScreenTheme(259);
+  const { Container, CardWrap, NarrativeText, ChoiceButton } = useMemo(
+    () => createThemedComponents(theme),
+    [theme]
+  );
   
   const [battleState, setBattleState] = useState<'intro' | 'battle' | 'victory'>('intro');
   const battleSystemRef = useRef<any>(null);
@@ -243,7 +173,8 @@ const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFich
                     maxWidth: '300px',
                     height: 'auto',
                     borderRadius: '8px',
-                    border: '2px solid #8B4513'
+                    border: theme.hoverImage.border,
+                    boxShadow: theme.hoverImage.boxShadow
                   }}
                 />
               </Box>
@@ -254,8 +185,8 @@ const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFich
                   variant="outlined"
                   sx={{
                     padding: '12px 24px',
-                    border: '2px solid #8B4513',
-                    color: '#8B4513',
+                    border: `2px solid ${theme.cardWrap.border.split(' ')[2]}`,
+                    color: theme.cardWrap.border.split(' ')[2],
                     borderRadius: '8px',
                     fontSize: '16px',
                     fontFamily: '"Cinzel", serif',
@@ -266,8 +197,8 @@ const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFich
                     outline: 'none',
                     marginBottom: '16px',
                     '&:hover': {
-                      background: 'rgba(139,69,19,0.1)',
-                      borderColor: '#654321',
+                      background: `${theme.cardWrap.border.split(' ')[2]}15`,
+                      borderColor: theme.choiceButton.hoverBorderColor,
                       transform: 'translateY(-2px)'
                     }
                   }}
@@ -387,13 +318,18 @@ const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFich
               onClick={handleCloseBattleInfo}
               variant="contained"
               sx={{
-                background: 'linear-gradient(135deg, rgba(139,69,19,0.9) 0%, rgba(160,82,45,0.8) 100%)',
-                color: '#F5DEB3',
+                background: theme.choiceButton.background,
+                color: theme.choiceButton.color,
+                border: theme.choiceButton.border,
                 fontFamily: '"Cinzel", serif',
                 fontWeight: 600,
                 padding: '12px 32px',
+                textShadow: theme.choiceButton.textShadow,
+                boxShadow: theme.choiceButton.boxShadow,
                 '&:hover': {
-                  background: 'linear-gradient(135deg, rgba(179,18,18,0.9) 0%, rgba(139,0,0,0.8) 100%)',
+                  background: theme.choiceButton.hoverBackground,
+                  borderColor: theme.choiceButton.hoverBorderColor,
+                  boxShadow: theme.choiceButton.hoverBoxShadow
                 }
               }}
             >

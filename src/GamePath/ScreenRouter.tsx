@@ -9,6 +9,7 @@ import Screen151 from '../components/Screen151';
 import Screen94 from '../components/Screen94';
 import Screen162 from '../components/Screen162';
 import Screen30 from '../components/Screen30';
+import Screen33 from '../components/Screen33';
 import Screen66 from '../components/Screen66';
 import Screen82 from '../components/Screen82';
 import Screen222 from '../components/Screen222';
@@ -60,6 +61,17 @@ import Screen375 from '../components/Screen375';
 import Screen317 from '../components/Screen317';
 import Screen70 from '../components/Screen70';
 import Screen2 from '../components/Screen2';
+import Screen22 from '../components/Screen22';
+import Screen24 from '../components/Screen24';
+import Screen102 from '../components/Screen102';
+import Screen105 from '../components/Screen105';
+import Screen211 from '../components/Screen211';
+import Screen170 from '../components/Screen170';
+import Screen180 from '../components/Screen180';
+import Screen18 from '../components/Screen18';
+import Screen225 from '../components/Screen225';
+import Screen57 from '../components/Screen57';
+import Screen164 from '../components/Screen164';
 import GameOverScreen from '../components/GameOverScreen';
 import type { Ficha } from '../types';
 
@@ -72,9 +84,17 @@ type ScreenRouterProps = {
 
 // Mapeamento de mensagens de Game Over customizadas por tela de morte
 const DEATH_MESSAGES: Record<number, { reason: string; location: string }> = {
+  131: {
+    reason: 'Você tenta se segurar, mas… é inútil. Horrorizado, percebe que vai cair no precipício. O solo rochoso aguarda por você.\nÉ o fim da sua missão.',
+    location: 'Precipício - Queda fatal'
+  },
   346: {
     reason: 'Não importa o que você faça — nada pode salvá-lo agora. Em breve, seu corpo sem vida se juntará ao de Mendokan e ao de todas as vítimas do massacre do Estreito de Magyár.',
     location: 'Estrada próxima a Royal Lendle - Massacre do Estreito de Magyár'
+  },
+  365: {
+    reason: 'Ninguém ouve os gritos lancinantes que ecoam pelos esgotos quando o Slygore cai sobre você.',
+    location: 'Esgotos de Royal Lendle'
   },
   999: {
     reason: 'Sua aventura chegou ao fim',
@@ -187,6 +207,12 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({ ficha: fichaFromProps, onGa
   if (screenId === 30) {
     return (
       <Screen30 onGoToScreen={goToScreen} />
+    );
+  }
+
+  if (screenId === 33) {
+    return (
+      <Screen33 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
     );
   }
 
@@ -487,10 +513,75 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({ ficha: fichaFromProps, onGa
     );
   }
 
+  if (screenId === 24) {
+    return (
+      <Screen24 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 102) {
+    return (
+      <Screen102 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} onAdjustSorte={onAdjustSorte} />
+    );
+  }
+
+  if (screenId === 105) {
+    return (
+      <Screen105 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 22) {
+    return (
+      <Screen22 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 211) {
+    return (
+      <Screen211 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} onAdjustSorte={onAdjustSorte} />
+    );
+  }
 
   if (screenId === 70) {
     return (
       <Screen70 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 170) {
+    return (
+      <Screen170 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 180) {
+    return (
+      <Screen180 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 18) {
+    return (
+      <Screen18 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 225) {
+    return (
+      <Screen225 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 57) {
+    return (
+      <Screen57 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 164) {
+    return (
+      <Screen164 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
     );
   }
 

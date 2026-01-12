@@ -16,6 +16,10 @@ import bgmBattle from '../assets/sounds/bgm-battle.mp3';
 import bgmCreepy from '../assets/sounds/bgm-creepy.mp3';
 import bgmDramatic from '../assets/sounds/bgm-dramatic.mp3';
 import bgmSewers from '../assets/sounds/bgm-sewers.mp3';
+import bgmArabic from '../assets/sounds/bgm-arabic.mp3';
+import bgmTemple from '../assets/sounds/bgm-temple.mp3';
+import bgmTatoo from '../assets/sounds/bgm-tatoo.mp3';
+import bgmWizardRoom from '../assets/sounds/bgm-wizard-room.mp3';
 
 // Definição dos grupos de áudio
 export type AudioGroup = 
@@ -32,6 +36,10 @@ export type AudioGroup =
   | 'creepy'          // bgm-creepy.mp3 - Cavaleiros das Trevas, terror
   | 'dramatic'        // bgm-dramatic.mp3 - Momentos dramáticos, tensão
   | 'sewers'          // bgm-sewers.mp3 - Esgotos, Slygore
+  | 'arabic'          // bgm-arabic.mp3 - Árabe/oriental
+  | 'temple'          // bgm-temple.mp3 - Templo
+  | 'tattoo'          // bgm-tatoo.mp3 - Loja de tatuagens
+  | 'wizard-room'     // bgm-wizard-room.mp3 - Sala do mago
   | 'cinematic';      // bgm-intro.mp3, rainning.mp3 - Cinemática
 
 // Mapeamento de grupos para arquivos de áudio
@@ -49,6 +57,10 @@ const AUDIO_GROUP_MAP: Record<AudioGroup, string> = {
   'creepy': bgmCreepy,
   'dramatic': bgmDramatic,
   'sewers': bgmSewers,
+  'arabic': bgmArabic,
+  'temple': bgmTemple,
+  'tattoo': bgmTatoo,
+  'wizard-room': bgmWizardRoom,
   'cinematic': bgmIntro
 };
 
@@ -93,6 +105,8 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   338: 'chase',                 // Chase (rota /game/338) - bgm-running.mp3
   384: 'chase',                 // Chase continuation (rota /game/384) - bgm-running.mp3
   78: 'chase',                  // Continuar fugindo (rota /game/78) - bgm-running.mp3
+  22: 'chase',                  // Continuar pela rua - loja de tatuagens (rota /game/22) - bgm-running.mp3
+  211: 'chase',                 // Pegar esfera metálica (rota /game/211) - bgm-running.mp3
   110: 'chase',                 // Derrubar barracas (rota /game/110) - bgm-running.mp3
   60: 'chase',                  // Carrinho de lixo (rota /game/60) - bgm-running.mp3
   126: 'chase',                 // Entrar no carro de lixo (rota /game/126) - bgm-running.mp3
@@ -108,12 +122,17 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   183: 'battle',                // Batalha com Quarto Cavaleiro das Trevas (rota /game/183) - bgm-battle.mp3
   245: 'battle',                // Batalha com Quinto Cavaleiro das Trevas (rota /game/245) - bgm-battle.mp3
   301: 'royal-lendle',          // Porta Leste (rota /game/301) - people.mp3
+  18: 'arabic',                 // Saída dos esgotos - rua/praça (rota /game/18) - bgm-arabic.mp3
+  225: 'arabic',                // Praça Masonic (rota /game/225) - bgm-arabic.mp3
+  57: 'arabic',                 // Multidão na Praça Masonic (rota /game/57) - bgm-arabic.mp3
+  164: 'temple',                // Templo dos Geomagos (rota /game/164) - bgm-temple.mp3
   351: 'chase',                 // Rua estreita à esquerda (rota /game/351) - bgm-running.mp3
   145: 'creepy',                // Cavaleiros das Trevas (rota /game/145) - bgm-creepy.mp3
   190: 'creepy',                // Enfrentar Cavaleiros das Trevas (rota /game/190) - bgm-creepy.mp3
   28: 'creepy',                 // Fugir dos Cavaleiros das Trevas (rota /game/28) - bgm-creepy.mp3
   306: 'creepy',                // Fingir-se de morto (rota /game/306) - bgm-creepy.mp3
   279: 'creepy',                // Sucesso ao fingir-se de morto (rota /game/279) - bgm-creepy.mp3
+  102: 'map',                   // Saída sul do estreito - reflexão (rota /game/102) - nature-sound-map.mp3
   335: 'creepy',                // Vitória sobre Cavaleiro das Trevas (rota /game/335) - bgm-creepy.mp3
   72: 'hiding',                 // Perseguição reiniciada pelos Cavaleiros (rota /game/72) - bgm-hiding.mp3
   166: 'chase',                 // Casa da velhinha - Fuga dos guardas (rota /game/166) - bgm-running.mp3
@@ -124,7 +143,12 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   375: 'sewers',                // Esgotos - Encontro com Slygore (rota /game/375) - bgm-sewers.mp3
   70: 'battle',                 // Slygore - áudio de batalha (rota /game/70) - bgm-battle.mp3
   2: 'hiding',                  // Salto na ravina (rota /game/2) - usa o mesmo da tela 72
+  24: 'hiding',                 // Alcançar o trilho após salto (rota /game/24) - bgm-hiding.mp3
   317: 'battle',                // Após usar foguete contra Slygore (rota /game/317) - bgm-battle.mp3
+  170: 'battle',                // Após usar candeia contra Slygore (rota /game/170) - bgm-battle.mp3
+  180: 'battle',                // Escolha: subir ou lutar (rota /game/180) - bgm-battle.mp3
+  33: 'tattoo',                 // Loja de tatuagens - Rogmondo (rota /game/33) - bgm-tatoo.mp3
+  105: 'wizard-room',           // Santuário de Hegmar (rota /game/105) - bgm-wizard-room.mp3
 };
 
 export const useAudioGroup = (screenId: number | string) => {

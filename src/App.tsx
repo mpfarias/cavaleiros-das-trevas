@@ -17,6 +17,7 @@ import InventoryModal from './components/InventoryModal';
 import { styled } from '@mui/material/styles';
 import { totalOuro, validarBolsa } from './utils/inventory';
 import { useItemEffects } from './hooks/useItemEffects';
+import { useBagSound } from './hooks/useBagSound';
 import SaveGameButton from './components/SaveGameButton';
 
 const darkTheme = createTheme({
@@ -145,6 +146,7 @@ function AppContent() {
   
   // Hook para gerenciar efeitos dos itens - deve estar no nível superior
   const { applyModifiersToAttributes } = useItemEffects();
+  const playBag = useBagSound(3.0);
   
   // Função helper para criar ficha vazia sem moedas
   const createEmptyFichaWithoutGold = (): Ficha => ({
@@ -400,7 +402,10 @@ function AppContent() {
         {/* Bolsa global visível apenas após início da aventura */}
         {showGlobalStatus && (
           <>
-            <GlobalPlayerStatus onClick={() => setGlobalInventoryOpen(true)}>
+            <GlobalPlayerStatus onClick={() => {
+              playBag();
+              setGlobalInventoryOpen(true);
+            }}>
               {ficha.nome || 'Herói'} | 💰 {totalOuro(ficha)} Moedas de Ouro
             </GlobalPlayerStatus>
             <InventoryModal

@@ -4,6 +4,7 @@ import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
 import VolumeControl from './ui/VolumeControl';
+import ImageModal from './ui/ImageModal';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import type { Ficha } from '../types';
@@ -35,14 +36,15 @@ const CardWrap = styled(Card)({
   maxWidth: '900px',
   width: '100%',
   background: `
-    linear-gradient(135deg, rgba(245,222,179,0.95) 0%, rgba(222,184,135,0.9) 50%, rgba(205,133,63,0.95) 100%)
+    linear-gradient(135deg, rgba(240,255,240,0.98) 0%, rgba(230,250,230,0.95) 25%, rgba(240,255,240,0.98) 50%, rgba(235,252,235,0.95) 75%, rgba(240,255,240,0.98) 100%)
   `,
-  border: '3px solid #8B4513',
+  border: '3px solid #228B22',
   borderRadius: '16px',
   boxShadow: `
     0 12px 40px rgba(0,0,0,0.6),
-    inset 0 1px 0 rgba(255,255,255,0.3),
-    0 0 0 1px rgba(139,69,19,0.4)
+    inset 0 1px 0 rgba(255,255,255,0.5),
+    0 0 0 1px rgba(34,139,34,0.4),
+    0 0 20px rgba(34,139,34,0.1)
   `,
   position: 'relative',
   animation: `${fadeIn} 1s ease-out`,
@@ -53,17 +55,17 @@ const NarrativeText = styled(Typography)({
   fontFamily: '"Spectral", serif',
   fontSize: 'clamp(16px, 2vw, 18px)',
   lineHeight: 1.8,
-  color: '#3d2817',
+  color: '#1a3d1a',
   textAlign: 'justify',
   marginBottom: '32px',
-  textShadow: '0 1px 2px rgba(245,222,179,0.8)'
+  textShadow: '0 1px 2px rgba(255,255,255,0.7)'
 });
 
 const ChoiceButton = styled('button')({
   padding: '16px 24px',
-  background: 'linear-gradient(135deg, rgba(139,69,19,0.9) 0%, rgba(160,82,45,0.8) 100%)',
-  color: '#F5DEB3',
-  border: '2px solid #D2B48C',
+  background: 'linear-gradient(135deg, rgba(34,139,34,0.85) 0%, rgba(0,100,0,0.75) 50%, rgba(34,139,34,0.85) 100%)',
+  color: '#F0FFF0',
+  border: '2px solid #228B22',
   borderRadius: '12px',
   fontSize: '16px',
   fontFamily: '"Cinzel", serif',
@@ -72,19 +74,20 @@ const ChoiceButton = styled('button')({
   cursor: 'pointer',
   transition: 'all 0.3s ease',
   outline: 'none',
-  textShadow: '0 1px 2px rgba(0,0,0,0.8)',
-  boxShadow: '0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
+  textShadow: '0 1px 2px rgba(0,0,0,0.8), 0 0 8px rgba(144,238,144,0.3)',
+  boxShadow: '0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2), 0 0 10px rgba(34,139,34,0.3)',
   width: '100%',
   '&:focus-visible': {
-    outline: '2px solid #FFD700',
+    outline: '2px solid #32CD32',
     outlineOffset: '2px'
   },
   '&:hover': {
-    background: 'linear-gradient(135deg, rgba(179,18,18,0.9) 0%, rgba(139,0,0,0.8) 100%)',
-    borderColor: '#FFD700',
+    background: 'linear-gradient(135deg, rgba(50,205,50,0.95) 0%, rgba(144,238,144,0.85) 50%, rgba(50,205,50,0.95) 100%)',
+    borderColor: '#32CD32',
     color: '#FFFFFF',
     transform: 'translateY(-2px) scale(1.02)',
-    boxShadow: '0 8px 25px rgba(179,18,18,0.4), inset 0 1px 0 rgba(255,255,255,0.2)'
+    boxShadow: '0 8px 25px rgba(34,139,34,0.5), inset 0 1px 0 rgba(255,255,255,0.3), 0 0 20px rgba(144,238,144,0.4)',
+    textShadow: '0 1px 3px rgba(0,0,0,0.8), 0 0 12px rgba(144,238,144,0.5)'
   },
   '&:active': {
     transform: 'translateY(0) scale(0.98)'
@@ -96,7 +99,7 @@ const HoverImage = styled('img')({
   maxWidth: '400px',
   maxHeight: '400px',
   borderRadius: '8px',
-  border: '3px solid #8B4513',
+  border: '3px solid #228B22',
   boxShadow: '0 8px 32px rgba(0,0,0,0.8)',
   zIndex: 9999,
   pointerEvents: 'none',
@@ -124,6 +127,7 @@ const Screen375: React.FC<Screen375Props> = ({ onGoToScreen, ficha, onUpdateFich
   const { currentGroup, isPlaying, togglePlay } = useAudioGroup(375);
   const playClick = useClickSound(0.2);
   const [hoverImage, setHoverImage] = useState<{ x: number; y: number } | null>(null);
+  const [showImageModal, setShowImageModal] = useState(false);
 
   const hasFoguete = useMemo(() => {
     try {
@@ -159,6 +163,11 @@ const Screen375: React.FC<Screen375Props> = ({ onGoToScreen, ficha, onUpdateFich
 
   const handleSlygoreLeave = () => {
     setHoverImage(null);
+  };
+
+  const handleSlygoreClick = () => {
+    playClick();
+    setShowImageModal(true);
   };
 
   return (
@@ -219,6 +228,7 @@ const Screen375: React.FC<Screen375Props> = ({ onGoToScreen, ficha, onUpdateFich
               onMouseEnter={handleSlygoreHover}
               onMouseMove={handleSlygoreMove}
               onMouseLeave={handleSlygoreLeave}
+              onClick={handleSlygoreClick}
             >
               Slygore
             </MonsterName>{' '}
@@ -267,6 +277,14 @@ const Screen375: React.FC<Screen375Props> = ({ onGoToScreen, ficha, onUpdateFich
           }}
         />
       )}
+
+      {/* Image Modal */}
+      <ImageModal
+        open={showImageModal}
+        onClose={() => setShowImageModal(false)}
+        imageSrc={slygoreImg}
+        imageAlt="Slygore"
+      />
     </Container>
   );
 };

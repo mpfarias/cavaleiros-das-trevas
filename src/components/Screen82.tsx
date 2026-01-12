@@ -9,7 +9,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import { useState, useCallback } from 'react';
 import { GameAlert } from './ui/GameAlert';
-import type { Ficha } from '../types';
+import type { Ficha, Item } from '../types';
 
 // Imports das imagens dos itens
 import machadoGuerraImg from '../assets/images/machado-de-guerra.png';
@@ -196,19 +196,18 @@ const Screen82: React.FC<Screen82Props> = ({ onGoToScreen, ficha, onUpdateFicha 
   
   // Estados para confirmação de substituição de equipamento
   const [showReplaceDialog, setShowReplaceDialog] = useState(false);
-  const [replaceInfo, setReplaceInfo] = useState({ 
-    newItem: null as MarketItem | null, 
-    currentItem: null as any, 
+  const [replaceInfo, setReplaceInfo] = useState<{ 
+    newItem: MarketItem | null;
+    currentItem: Item | null;
+    quantity: number;
+  }>({ 
+    newItem: null, 
+    currentItem: null, 
     quantity: 1 
   });
 
   // Estados para hover da imagem
   const [hoverImage, setHoverImage] = useState<{ src: string; x: number; y: number } | null>(null);
-  
-  // Função para aplicar os efeitos dos itens aos atributos
-  const applyItemEffects = (ficha: Ficha) => {
-    return applyModifiersToAttributes(ficha);
-  };
 
   // Função para obter a imagem do item
   const getItemImage = (itemId: string): string | undefined => {
@@ -468,7 +467,7 @@ const Screen82: React.FC<Screen82Props> = ({ onGoToScreen, ficha, onUpdateFicha 
     };
     
     // Aplica os modificadores dos itens aos atributos
-    const updatedFicha = applyItemEffects(newFicha);
+    const updatedFicha = applyModifiersToAttributes(newFicha);
     
     onUpdateFicha(updatedFicha);
     setShowPurchaseDialog(false);
@@ -536,7 +535,7 @@ const Screen82: React.FC<Screen82Props> = ({ onGoToScreen, ficha, onUpdateFicha 
         };
         
         // Aplica os modificadores dos itens aos atributos
-        const updatedFichaWithEffects = applyItemEffects(newFicha);
+        const updatedFichaWithEffects = applyModifiersToAttributes(newFicha);
         
         onUpdateFicha(updatedFichaWithEffects);
         setShowReplaceDialog(false);
