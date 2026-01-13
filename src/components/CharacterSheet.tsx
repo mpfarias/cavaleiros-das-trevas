@@ -167,29 +167,14 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
     const loadMusic = async () => {
       try {
         await changeTrack(bgmFicha);
-
+        tryStartMusic();
       } catch (error) {
-
+        console.warn('🎵 [CharacterSheet] Erro ao carregar música:', error);
       }
     };
 
     loadMusic();
-  }, []); // Executa apenas uma vez quando monta
-
-  // Tenta iniciar música na primeira interação
-  useEffect(() => {
-    const handleFirstInteraction = () => {
-      if (autoplayBlocked) {
-        tryStartMusic();
-      }
-    };
-
-    document.addEventListener('click', handleFirstInteraction, { once: true });
-
-    return () => {
-      document.removeEventListener('click', handleFirstInteraction);
-    };
-  }, []); // Sem dependências para evitar loop
+  }, [changeTrack, tryStartMusic]); // Executa quando muda a track ou tryStartMusic
 
   const updateFicha = useCallback((updates: Partial<Ficha>) => {
     const newFicha = { ...ficha, ...updates };

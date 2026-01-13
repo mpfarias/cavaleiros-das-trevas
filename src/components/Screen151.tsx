@@ -1,15 +1,28 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { Box, Card, CardContent, Typography, IconButton, Tooltip } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
 import VolumeControl from './ui/VolumeControl';
+import ImageModal from './ui/ImageModal';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
+import bartolphImg from '../assets/images/personagens/bartolph.png';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
+`;
+
+const fadeInImage = keyframes`
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 `;
 
 const Container = styled(Box)({
@@ -89,6 +102,32 @@ const ChoiceButton = styled('button')({
   }
 });
 
+const HoverImage = styled(Box)({
+  position: 'fixed',
+  zIndex: 1500,
+  pointerEvents: 'none',
+  animation: `${fadeInImage} 0.3s ease-out`,
+  '& img': {
+    maxWidth: '400px',
+    maxHeight: '400px',
+    borderRadius: '12px',
+    border: '3px solid #8B4513',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+    backgroundColor: 'transparent'
+  }
+});
+
+const LocationLink = styled('span')({
+  color: '#8B4513',
+  textDecoration: 'underline',
+  cursor: 'pointer',
+  fontWeight: 600,
+  transition: 'color 0.2s ease',
+  '&:hover': {
+    color: '#A0522D'
+  }
+});
+
 interface Screen151Props {
   onGoToScreen: (id: number) => void;
 }
@@ -96,6 +135,35 @@ interface Screen151Props {
 const Screen151: React.FC<Screen151Props> = ({ onGoToScreen }) => {
   // Usa o sistema de grupos de áudio - automaticamente gerencia música do grupo 'bartolph-game'
   const { isPlaying, togglePlay, currentTrack } = useAudioGroup(151);
+  const playClick = useClickSound(0.2);
+  const [hoverImage, setHoverImage] = useState<{ src: string; x: number; y: number } | null>(null);
+  const [showImageModal, setShowImageModal] = useState(false);
+
+  // Handlers para Bartolph
+  const handleBartolphHover = useCallback((event: React.MouseEvent) => {
+    setHoverImage({
+      src: bartolphImg,
+      x: event.clientX + 20,
+      y: event.clientY - 20
+    });
+  }, []);
+
+  const handleBartolphLeave = useCallback(() => {
+    setHoverImage(null);
+  }, []);
+
+  const handleBartolphMove = useCallback((event: React.MouseEvent) => {
+    setHoverImage(prev => prev ? {
+      ...prev,
+      x: event.clientX + 20,
+      y: event.clientY - 20
+    } : null);
+  }, []);
+
+  const handleBartolphClick = useCallback(() => {
+    playClick();
+    setShowImageModal(true);
+  }, [playClick]);
 
   return (
     <Container data-screen="screen-151">
@@ -136,11 +204,21 @@ const Screen151: React.FC<Screen151Props> = ({ onGoToScreen }) => {
       <CardWrap>
         <CardContent sx={{ padding: '40px' }}>
           <NarrativeText>
-            A mão de Bartolph, rápida como a garra de um abutre, se apodera do seu ouro em um piscar de olhos. Ele exulta:
+            A mão de <LocationLink
+              onMouseEnter={handleBartolphHover}
+              onMouseLeave={handleBartolphLeave}
+              onMouseMove={handleBartolphMove}
+              onClick={handleBartolphClick}
+            >Bartolph</LocationLink>, rápida como a garra de um abutre, se apodera do seu ouro em um piscar de olhos. Ele exulta:
             <br /><br />
             — Jogou bem — admite com um sorriso cínico —, mas Sindla não estava do seu lado hoje.
             <br /><br />
-            Mesmo assim, o sempre "generoso" Bartolph lhe oferece uma nova chance:
+            Mesmo assim, o sempre "generoso" <LocationLink
+              onMouseEnter={handleBartolphHover}
+              onMouseLeave={handleBartolphLeave}
+              onMouseMove={handleBartolphMove}
+              onClick={handleBartolphClick}
+            >Bartolph</LocationLink> lhe oferece uma nova chance:
             <br /><br />
             — Vou ser bom com você. Pode tentar recuperar o que perdeu... e até ganhar um pouco mais. Claro, desde que tenha ouro suficiente para cobrir a aposta.
             <br /><br />
@@ -158,6 +236,26 @@ const Screen151: React.FC<Screen151Props> = ({ onGoToScreen }) => {
           </Box>
         </CardContent>
       </CardWrap>
+
+      {/* Hover Image */}
+      {hoverImage && (
+        <HoverImage
+          sx={{
+            left: hoverImage.x,
+            top: hoverImage.y
+          }}
+        >
+          <img src={hoverImage.src} alt="" />
+        </HoverImage>
+      )}
+
+      {/* Image Modal */}
+      <ImageModal
+        open={showImageModal}
+        onClose={() => setShowImageModal(false)}
+        imageSrc={bartolphImg}
+        imageAlt="Bartolph"
+      />
     </Container>
   );
 };

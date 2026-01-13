@@ -5,15 +5,28 @@ import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
 import VolumeControl from './ui/VolumeControl';
+import ImageModal from './ui/ImageModal';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { GameAlert } from './ui/GameAlert';
 import type { Ficha } from '../types';
+import bartolphImg from '../assets/images/personagens/bartolph.png';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
+`;
+
+const fadeInImage = keyframes`
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 `;
 
 const Container = styled(Box)({
@@ -93,6 +106,32 @@ const ChoiceButton = styled('button')({
   }
 });
 
+const HoverImage = styled(Box)({
+  position: 'fixed',
+  zIndex: 1500,
+  pointerEvents: 'none',
+  animation: `${fadeInImage} 0.3s ease-out`,
+  '& img': {
+    maxWidth: '400px',
+    maxHeight: '400px',
+    borderRadius: '12px',
+    border: '3px solid #8B4513',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+    backgroundColor: 'transparent'
+  }
+});
+
+const LocationLink = styled('span')({
+  color: '#8B4513',
+  textDecoration: 'underline',
+  cursor: 'pointer',
+  fontWeight: 600,
+  transition: 'color 0.2s ease',
+  '&:hover': {
+    color: '#A0522D'
+  }
+});
+
 interface Screen54Props {
   onGoToScreen: (id: number) => void;
   ficha: Ficha;
@@ -102,19 +141,48 @@ interface Screen54Props {
 const Screen54: React.FC<Screen54Props> = ({ onGoToScreen, ficha, onUpdateFicha }) => {
   // Usa o sistema de grupos de áudio - automaticamente gerencia música do grupo 'bartolph-game'
   const { isPlaying, togglePlay, currentTrack } = useAudioGroup(54);
+  const playClick = useClickSound(0.2);
   
   // Estado para controlar se as moedas já foram perdidas
   const [moedasPerdidas, setMoedasPerdidas] = useState(false);
   
   // Estado para controlar o modal de confirmação
   const [modalConfirmacao, setModalConfirmacao] = useState(false);
-  
+
   // Estado para controlar o alert de moedas ganhas
   const [showMoneyAlert, setShowMoneyAlert] = useState(false);
   const [moedasGanhas, setMoedasGanhas] = useState(0);
-  
+  const [hoverImage, setHoverImage] = useState<{ src: string; x: number; y: number } | null>(null);
+  const [showImageModal, setShowImageModal] = useState(false);
+
   // Ref para garantir que o alerta seja mostrado apenas uma vez
   const alertShownRef = useRef(false);
+
+  // Handlers para Bartolph
+  const handleBartolphHover = useCallback((event: React.MouseEvent) => {
+    setHoverImage({
+      src: bartolphImg,
+      x: event.clientX + 20,
+      y: event.clientY - 20
+    });
+  }, []);
+
+  const handleBartolphLeave = useCallback(() => {
+    setHoverImage(null);
+  }, []);
+
+  const handleBartolphMove = useCallback((event: React.MouseEvent) => {
+    setHoverImage(prev => prev ? {
+      ...prev,
+      x: event.clientX + 20,
+      y: event.clientY - 20
+    } : null);
+  }, []);
+
+  const handleBartolphClick = useCallback(() => {
+    playClick();
+    setShowImageModal(true);
+  }, [playClick]);
   
   // Calcular moedas atuais
   const currentGold = ficha.bolsa
@@ -249,10 +317,20 @@ const Screen54: React.FC<Screen54Props> = ({ onGoToScreen, ficha, onUpdateFicha 
           <NarrativeText>
             Seu sorriso se transforma em um olhar surpreso ao ver o dado girar inesperadamente e marcar 1.
             <br /><br />
-            — Lamento — diz Bartolph, agarrando seu ouro. É óbvio que o dado está viciado e que ele é um trapaceiro!
+            — Lamento — diz <LocationLink
+              onMouseEnter={handleBartolphHover}
+              onMouseLeave={handleBartolphLeave}
+              onMouseMove={handleBartolphMove}
+              onClick={handleBartolphClick}
+            >Bartolph</LocationLink>, agarrando seu ouro. É óbvio que o dado está viciado e que ele é um trapaceiro!
           </NarrativeText>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
-            <ChoiceButton onClick={handleAcusar}>Acusar Bartolph de trapaça</ChoiceButton>
+            <ChoiceButton onClick={handleAcusar}>Acusar <LocationLink
+              onMouseEnter={handleBartolphHover}
+              onMouseLeave={handleBartolphLeave}
+              onMouseMove={handleBartolphMove}
+              onClick={handleBartolphClick}
+            >Bartolph</LocationLink> de trapaça</ChoiceButton>
             <ChoiceButton onClick={handleIrEmbora}>Evitar confusão e ir embora</ChoiceButton>
           </Box>
         </CardContent>
@@ -393,6 +471,26 @@ const Screen54: React.FC<Screen54Props> = ({ onGoToScreen, ficha, onUpdateFicha 
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Hover Image */}
+      {hoverImage && (
+        <HoverImage
+          sx={{
+            left: hoverImage.x,
+            top: hoverImage.y
+          }}
+        >
+          <img src={hoverImage.src} alt="" />
+        </HoverImage>
+      )}
+
+      {/* Image Modal */}
+      <ImageModal
+        open={showImageModal}
+        onClose={() => setShowImageModal(false)}
+        imageSrc={bartolphImg}
+        imageAlt="Bartolph"
+      />
     </Container>
   );
 };

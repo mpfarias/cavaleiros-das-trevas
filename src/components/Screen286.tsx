@@ -4,6 +4,7 @@ import { styled, keyframes } from '@mui/material/styles';
 import { useAudio } from '../hooks/useAudio';
 import { useClickSound } from '../hooks/useClickSound';
 import VolumeControl from './ui/VolumeControl';
+import ImageModal from './ui/ImageModal';
 import BattleSystem from './BattleSystem';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
@@ -138,6 +139,17 @@ const HoverImage = styled(Box)({
   }
 });
 
+const LocationLink = styled('span')({
+  color: '#8B4513',
+  textDecoration: 'underline',
+  cursor: 'pointer',
+  fontWeight: 600,
+  transition: 'color 0.2s ease',
+  '&:hover': {
+    color: '#A0522D'
+  }
+});
+
 interface Enemy {
   id: string;
   nome: string;
@@ -161,6 +173,7 @@ const Screen286: React.FC<Screen286Props> = ({ onGoToScreen, ficha, onUpdateFich
   const [currentEnemy, setCurrentEnemy] = useState<Enemy | null>(null);
   const battleSystemRef = useRef<any>(null);
   const [hoverImage, setHoverImage] = useState<{ src: string; x: number; y: number } | null>(null);
+  const [showImageModal, setShowImageModal] = useState(false);
 
   const [enemies, setEnemies] = useState<Enemy[]>([
     { id: 'bartolph', nome: 'Bartolph', pericia: 6, forca: 7, defeated: false, imagem: bartolphImg },
@@ -218,6 +231,32 @@ const Screen286: React.FC<Screen286Props> = ({ onGoToScreen, ficha, onUpdateFich
   const handleEnemyLeave = useCallback(() => {
     setHoverImage(null);
   }, []);
+
+  // Handlers específicos para Bartolph no texto narrativo
+  const handleBartolphTextHover = useCallback((event: React.MouseEvent) => {
+    setHoverImage({
+      src: bartolphImg,
+      x: event.clientX + 20,
+      y: event.clientY - 20
+    });
+  }, []);
+
+  const handleBartolphTextLeave = useCallback(() => {
+    setHoverImage(null);
+  }, []);
+
+  const handleBartolphTextMove = useCallback((event: React.MouseEvent) => {
+    setHoverImage(prev => prev ? {
+      ...prev,
+      x: event.clientX + 20,
+      y: event.clientY - 20
+    } : null);
+  }, []);
+
+  const handleBartolphTextClick = useCallback(() => {
+    playClick();
+    setShowImageModal(true);
+  }, [playClick]);
 
   // Inicializar áudio de batalha
   useEffect(() => {
@@ -323,9 +362,19 @@ const Screen286: React.FC<Screen286Props> = ({ onGoToScreen, ficha, onUpdateFich
                 <NarrativeText>
                   De repente, uma mão cruel agarra você e o puxa para dentro de um beco estreito e sombrio.
                   <br/><br/>
-                  À sua frente está Bartolph, o jogador, acompanhado por dois capangas. Um deles bloqueia a saída, impedindo qualquer fuga.
+                  À sua frente está <LocationLink
+                    onMouseEnter={handleBartolphTextHover}
+                    onMouseLeave={handleBartolphTextLeave}
+                    onMouseMove={handleBartolphTextMove}
+                    onClick={handleBartolphTextClick}
+                  >Bartolph</LocationLink>, o jogador, acompanhado por dois capangas. Um deles bloqueia a saída, impedindo qualquer fuga.
                   <br/><br/>
-                  Bartolph exibe hematomas e cortes evidentes — marcas deixadas, sem dúvida, pelo dono do Primeiro Passo.
+                  <LocationLink
+                    onMouseEnter={handleBartolphTextHover}
+                    onMouseLeave={handleBartolphTextLeave}
+                    onMouseMove={handleBartolphTextMove}
+                    onClick={handleBartolphTextClick}
+                  >Bartolph</LocationLink> exibe hematomas e cortes evidentes — marcas deixadas, sem dúvida, pelo dono do Primeiro Passo.
                   <br/><br/>
                   Ele sorri com desdém e diz:
                   <br/><br/>
@@ -433,7 +482,12 @@ const Screen286: React.FC<Screen286Props> = ({ onGoToScreen, ficha, onUpdateFich
             {battlePhase === 'victory' && (
               <>
                 <NarrativeText>
-                  Você derrotou todos os três bandidos! Os corpos de Bartolph e seus capangas jazem no chão do beco. 
+                  Você derrotou todos os três bandidos! Os corpos de <LocationLink
+                    onMouseEnter={handleBartolphTextHover}
+                    onMouseLeave={handleBartolphTextLeave}
+                    onMouseMove={handleBartolphTextMove}
+                    onClick={handleBartolphTextClick}
+                  >Bartolph</LocationLink> e seus capangas jazem no chão do beco. 
                   <br/><br/>
                   O que você deseja fazer agora?
                 </NarrativeText>
@@ -476,6 +530,14 @@ const Screen286: React.FC<Screen286Props> = ({ onGoToScreen, ficha, onUpdateFich
             <img src={hoverImage.src} alt="Inimigo" />
           </HoverImage>
         )}
+
+        {/* Image Modal para Bartolph */}
+        <ImageModal
+          open={showImageModal}
+          onClose={() => setShowImageModal(false)}
+          imageSrc={bartolphImg}
+          imageAlt="Bartolph"
+        />
       </Container>
     </>
   );

@@ -1,18 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Box, Card, CardContent, Typography, IconButton, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
 import VolumeControl from './ui/VolumeControl';
+import ImageModal from './ui/ImageModal';
 import DiceRollModal3D from './ui/DiceRollModal3D';
 import { GameAlert } from './ui/GameAlert';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import type { Ficha } from '../types';
+import quinsberryImg from '../assets/images/personagens/quinsberry.png';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
+`;
+
+const fadeInImage = keyframes`
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 `;
 
 const Container = styled(Box)({
@@ -137,6 +150,32 @@ const StyledButton = styled(Button)({
   }
 });
 
+const HoverImage = styled(Box)({
+  position: 'fixed',
+  zIndex: 1500,
+  pointerEvents: 'none',
+  animation: `${fadeInImage} 0.3s ease-out`,
+  '& img': {
+    maxWidth: '400px',
+    maxHeight: '400px',
+    borderRadius: '12px',
+    border: '3px solid #8B4513',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+    backgroundColor: 'transparent'
+  }
+});
+
+const LocationLink = styled('span')({
+  color: '#8B4513',
+  textDecoration: 'underline',
+  cursor: 'pointer',
+  fontWeight: 600,
+  transition: 'color 0.2s ease',
+  '&:hover': {
+    color: '#A0522D'
+  }
+});
+
 interface Screen301Props {
   onGoToScreen: (screenId: number) => void;
   ficha: Ficha;
@@ -155,6 +194,34 @@ const Screen301: React.FC<Screen301Props> = ({ onGoToScreen, ficha, onUpdateFich
   const [showResultDialog, setShowResultDialog] = useState(false);
   const [teveSorte, setTeveSorte] = useState(false);
   const [diceResult, setDiceResult] = useState<{ dice: number[], total: number } | null>(null);
+  const [hoverImage, setHoverImage] = useState<{ src: string; x: number; y: number } | null>(null);
+  const [showImageModal, setShowImageModal] = useState(false);
+
+  // Handlers para Quinsberry
+  const handleQuinsberryHover = useCallback((event: React.MouseEvent) => {
+    setHoverImage({
+      src: quinsberryImg,
+      x: event.clientX + 20,
+      y: event.clientY - 20
+    });
+  }, []);
+
+  const handleQuinsberryLeave = useCallback(() => {
+    setHoverImage(null);
+  }, []);
+
+  const handleQuinsberryMove = useCallback((event: React.MouseEvent) => {
+    setHoverImage(prev => prev ? {
+      ...prev,
+      x: event.clientX + 20,
+      y: event.clientY - 20
+    } : null);
+  }, []);
+
+  const handleQuinsberryClick = useCallback(() => {
+    playClick();
+    setShowImageModal(true);
+  }, [playClick]);
 
   // Verificar se tem Documento de Perdão Cívico
   const temDocumentoPerdao = ficha.bolsa.some(item => 
@@ -170,10 +237,10 @@ const Screen301: React.FC<Screen301Props> = ({ onGoToScreen, ficha, onUpdateFich
     item.nome.toLowerCase().includes('foguete')
   );
 
-  // Contar quantos foguetes tem
-  const quantidadeFoguetes = ficha.bolsa.filter(item => 
-    item.nome.toLowerCase().includes('foguete')
-  ).length;
+  // Contar quantos foguetes tem (soma as quantidades de todos os itens que contêm "foguete")
+  const quantidadeFoguetes = ficha.bolsa
+    .filter(item => item.nome.toLowerCase().includes('foguete'))
+    .reduce((total, item) => total + (item.quantidade || 1), 0);
 
   const handleNaoUsarFoguetes = () => {
     playClick();
@@ -315,7 +382,12 @@ const Screen301: React.FC<Screen301Props> = ({ onGoToScreen, ficha, onUpdateFich
             <br/><br/>
             É formada por duas enormes portas de aço reforçado. A muralha da qual faz parte é tão larga que abriga túneis e vigias em seu interior.
             <br/><br/>
-            Para sua surpresa, Quinsberry e cinco de seus lacaios montam guarda, à espreita.
+            Para sua surpresa, <LocationLink
+              onMouseEnter={handleQuinsberryHover}
+              onMouseLeave={handleQuinsberryLeave}
+              onMouseMove={handleQuinsberryMove}
+              onClick={handleQuinsberryClick}
+            >Quinsberry</LocationLink> e cinco de seus lacaios montam guarda, à espreita.
           </NarrativeText>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
@@ -504,6 +576,26 @@ const Screen301: React.FC<Screen301Props> = ({ onGoToScreen, ficha, onUpdateFich
           </StyledButton>
         </DialogActions>
       </StyledDialog>
+
+      {/* Hover Image */}
+      {hoverImage && (
+        <HoverImage
+          sx={{
+            left: hoverImage.x,
+            top: hoverImage.y
+          }}
+        >
+          <img src={hoverImage.src} alt="" />
+        </HoverImage>
+      )}
+
+      {/* Image Modal */}
+      <ImageModal
+        open={showImageModal}
+        onClose={() => setShowImageModal(false)}
+        imageSrc={quinsberryImg}
+        imageAlt="Quinsberry Woad"
+      />
     </Container>
   );
 };

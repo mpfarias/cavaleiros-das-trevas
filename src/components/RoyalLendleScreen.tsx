@@ -1,10 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { Box, Typography, Card, CardContent, IconButton, Tooltip } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import InventoryModal from './InventoryModal';
+import ImageModal from './ui/ImageModal';
 import type { Ficha } from '../types';
 import { useClickSound } from '../hooks/useClickSound';
+import bartolphImg from '../assets/images/personagens/bartolph.png';
+import mendokanImg from '../assets/images/personagens/mendokan.png';
 
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
@@ -18,6 +21,17 @@ const fadeIn = keyframes`
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+`;
+
+const fadeInImage = keyframes`
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 `;
 
@@ -173,6 +187,32 @@ const ChoiceButton = styled('button')({
   }
 });
 
+const HoverImage = styled(Box)({
+  position: 'fixed',
+  zIndex: 1500,
+  pointerEvents: 'none',
+  animation: `${fadeInImage} 0.3s ease-out`,
+  '& img': {
+    maxWidth: '400px',
+    maxHeight: '400px',
+    borderRadius: '12px',
+    border: '3px solid #8B4513',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+    backgroundColor: 'transparent'
+  }
+});
+
+const LocationLink = styled('span')({
+  color: '#8B4513',
+  textDecoration: 'underline',
+  cursor: 'pointer',
+  fontWeight: 600,
+  transition: 'color 0.2s ease',
+  '&:hover': {
+    color: '#A0522D'
+  }
+});
+
 interface RoyalLendleScreenProps {
   onChoice: (choice: string) => void;
   onBackToMap: () => void;
@@ -187,6 +227,9 @@ const RoyalLendleScreen: React.FC<RoyalLendleScreenProps> = ({
   const [textVisible, setTextVisible] = useState(false);
   const [inventoryOpen, setInventoryOpen] = useState(false);
   const { currentGroup, isPlaying, togglePlay } = useAudioGroup('royal');
+  const [hoverImage, setHoverImage] = useState<{ src: string; x: number; y: number } | null>(null);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [modalImage, setModalImage] = useState<{ src: string; alt: string } | null>(null);
 
   // Total de ouro é exibido globalmente pelo App
 
@@ -208,14 +251,66 @@ const RoyalLendleScreen: React.FC<RoyalLendleScreenProps> = ({
     };
   }, []);
 
-  const handleChoice = (choice: string) => {
+  const playClick = useClickSound(0.2);
 
+  const handleChoice = (choice: string) => {
+    playClick();
     onChoice(choice);
   };
 
-  // Usa o sistema global de áudio
+  // Handlers para Mendokan
+  const handleMendokanHover = useCallback((event: React.MouseEvent) => {
+    setHoverImage({
+      src: mendokanImg,
+      x: event.clientX + 20,
+      y: event.clientY - 20
+    });
+  }, []);
 
-const playClick = useClickSound(0.2);
+  const handleMendokanLeave = useCallback(() => {
+    setHoverImage(null);
+  }, []);
+
+  const handleMendokanMove = useCallback((event: React.MouseEvent) => {
+    setHoverImage(prev => prev ? {
+      ...prev,
+      x: event.clientX + 20,
+      y: event.clientY - 20
+    } : null);
+  }, []);
+
+  const handleMendokanClick = useCallback(() => {
+    playClick();
+    setModalImage({ src: mendokanImg, alt: 'Mendokan' });
+    setShowImageModal(true);
+  }, [playClick]);
+
+  // Handlers para Bartolph
+  const handleBartolphHover = useCallback((event: React.MouseEvent) => {
+    setHoverImage({
+      src: bartolphImg,
+      x: event.clientX + 20,
+      y: event.clientY - 20
+    });
+  }, []);
+
+  const handleBartolphLeave = useCallback(() => {
+    setHoverImage(null);
+  }, []);
+
+  const handleBartolphMove = useCallback((event: React.MouseEvent) => {
+    setHoverImage(prev => prev ? {
+      ...prev,
+      x: event.clientX + 20,
+      y: event.clientY - 20
+    } : null);
+  }, []);
+
+  const handleBartolphClick = useCallback(() => {
+    playClick();
+    setModalImage({ src: bartolphImg, alt: 'Bartolph' });
+    setShowImageModal(true);
+  }, [playClick]);
 
   return (
     <GameContainer>
@@ -238,7 +333,10 @@ const playClick = useClickSound(0.2);
       >
         <Tooltip title={currentGroup ? (isPlaying ? 'Pausar música' : 'Tocar música') : 'Nenhuma música carregada'}>
           <IconButton
-            onClick={togglePlay}
+            onClick={() => {
+              playClick();
+              togglePlay();
+            }}
             disabled={!currentGroup}
             sx={{
               color: currentGroup ? (isPlaying ? '#B31212' : '#E0DFDB') : '#666',
@@ -276,13 +374,33 @@ const playClick = useClickSound(0.2);
               transition: 'opacity 1s ease-out'
             }}
           >
-            Embora aliviado por você ter concordado em ir com ele, <strong>Mendokan</strong> fica um tanto envergonhado e diz:
+            Embora aliviado por você ter concordado em ir com ele, <strong><LocationLink
+              onMouseEnter={handleMendokanHover}
+              onMouseLeave={handleMendokanLeave}
+              onMouseMove={handleMendokanMove}
+              onClick={handleMendokanClick}
+            >Mendokan</LocationLink></strong> fica um tanto envergonhado e diz:
             <br /><br />
             — Nós somos muito pobres. Não podemos pagar mais do que <strong>duzentas Moedas de Ouro</strong> e, além disso, os anciãos da aldeia decretaram que só te pagaríamos depois que o serviço fosse concluído.
             <br /><br />
-            Como você sabe que os tempos estão difíceis para todos, não volta atrás e concorda com os termos do contrato. <strong>Mendokan</strong> sorri, aliviado, e vai se encontrar com os amigos para preparar a partida para <strong>Karnstein</strong>. Enquanto isso, você terá que comprar <strong>Provisões</strong> e outro equipamento para a sua expedição.
+            Como você sabe que os tempos estão difíceis para todos, não volta atrás e concorda com os termos do contrato. <strong><LocationLink
+              onMouseEnter={handleMendokanHover}
+              onMouseLeave={handleMendokanLeave}
+              onMouseMove={handleMendokanMove}
+              onClick={handleMendokanClick}
+            >Mendokan</LocationLink></strong> sorri, aliviado, e vai se encontrar com os amigos para preparar a partida para <strong>Karnstein</strong>. Enquanto isso, você terá que comprar <strong>Provisões</strong> e outro equipamento para a sua expedição.
             <br /><br />
-            Você se despede de <strong>Mendokan</strong> e combinam de se encontrar dali a duas horas, na estrada principal ao sul da cidade. Assim que ele sai, chega um sujeito vestido de forma extravagante, abrindo caminho com cotoveladas para chegar até você. Ele se chama <strong>Bartolph</strong> e é um jogador pouco confiável. Frequentador das áreas mais perigosas da cidade, vive usando roupas caras de seda, como se quisesse mostrar o dinheiro que ganha no jogo.
+            Você se despede de <strong><LocationLink
+              onMouseEnter={handleMendokanHover}
+              onMouseLeave={handleMendokanLeave}
+              onMouseMove={handleMendokanMove}
+              onClick={handleMendokanClick}
+            >Mendokan</LocationLink></strong> e combinam de se encontrar dali a duas horas, na estrada principal ao sul da cidade. Assim que ele sai, chega um sujeito vestido de forma extravagante, abrindo caminho com cotoveladas para chegar até você. Ele se chama <strong><LocationLink
+              onMouseEnter={handleBartolphHover}
+              onMouseLeave={handleBartolphLeave}
+              onMouseMove={handleBartolphMove}
+              onClick={handleBartolphClick}
+            >Bartolph</LocationLink></strong> e é um jogador pouco confiável. Frequentador das áreas mais perigosas da cidade, vive usando roupas caras de seda, como se quisesse mostrar o dinheiro que ganha no jogo.
             <br /><br />
             — Há muito tempo que não te vejo por aqui — diz com um ar astuto. — <strong>Quer tentar a sorte?</strong>
             <br /><br />
@@ -329,6 +447,31 @@ const playClick = useClickSound(0.2);
           </Box>
         </CardContent>
       </StoryCard>
+
+      {/* Hover Image */}
+      {hoverImage && (
+        <HoverImage
+          sx={{
+            left: hoverImage.x,
+            top: hoverImage.y
+          }}
+        >
+          <img src={hoverImage.src} alt="" />
+        </HoverImage>
+      )}
+
+      {/* Image Modal */}
+      {modalImage && (
+        <ImageModal
+          open={showImageModal}
+          onClose={() => {
+            setShowImageModal(false);
+            setModalImage(null);
+          }}
+          imageSrc={modalImage.src}
+          imageAlt={modalImage.alt}
+        />
+      )}
 
       {/* Modal da Bolsa */}
       <InventoryModal

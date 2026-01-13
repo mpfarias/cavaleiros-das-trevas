@@ -7,7 +7,8 @@ import VolumeControl from './ui/VolumeControl';
 import ImageModal from './ui/ImageModal';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
-import quinsberryImg from '../assets/images/personagens/quinsberry.png';
+import type { Ficha } from '../types';
+import patioOradoresImg from '../assets/images/locais/patio-oradores.png';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -15,14 +16,8 @@ const fadeIn = keyframes`
 `;
 
 const fadeInImage = keyframes`
-  from {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
 `;
 
 const Container = styled(Box)({
@@ -128,32 +123,33 @@ const LocationLink = styled('span')({
   }
 });
 
-interface Screen299Props {
+interface Screen118Props {
   onGoToScreen: (screenId: number) => void;
-  ficha: any;
-  onUpdateFicha: (ficha: any) => void;
+  ficha: Ficha;
+  onUpdateFicha: (ficha: Ficha) => void;
 }
 
-const Screen299: React.FC<Screen299Props> = ({ onGoToScreen, ficha: _ficha, onUpdateFicha: _onUpdateFicha }) => {
-  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(299);
+const Screen118: React.FC<Screen118Props> = ({ onGoToScreen, ficha: _ficha, onUpdateFicha: _onUpdateFicha }) => {
+  // Usa o sistema de grupos de áudio - automaticamente gerencia música do grupo 'royal-lendle' (people.mp3)
+  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(118);
   const playClick = useClickSound(0.2);
+  
   const [hoverImage, setHoverImage] = useState<{ src: string; x: number; y: number } | null>(null);
   const [showImageModal, setShowImageModal] = useState(false);
 
-  // Handlers para Quinsberry
-  const handleQuinsberryHover = useCallback((event: React.MouseEvent) => {
+  const handleLocationHover = useCallback((event: React.MouseEvent) => {
     setHoverImage({
-      src: quinsberryImg,
+      src: patioOradoresImg,
       x: event.clientX + 20,
       y: event.clientY - 20
     });
   }, []);
 
-  const handleQuinsberryLeave = useCallback(() => {
+  const handleLocationLeave = useCallback(() => {
     setHoverImage(null);
   }, []);
 
-  const handleQuinsberryMove = useCallback((event: React.MouseEvent) => {
+  const handleLocationMove = useCallback((event: React.MouseEvent) => {
     setHoverImage(prev => prev ? {
       ...prev,
       x: event.clientX + 20,
@@ -161,15 +157,17 @@ const Screen299: React.FC<Screen299Props> = ({ onGoToScreen, ficha: _ficha, onUp
     } : null);
   }, []);
 
-  const handleQuinsberryClick = useCallback(() => {
+  const handleLocationClick = useCallback(() => {
     playClick();
     setShowImageModal(true);
   }, [playClick]);
 
   return (
-    <Container data-screen="screen-299">
+    <Container data-screen="screen-118">
       {/* Controle de Volume */}
       <VolumeControl />
+      
+      {/* Controle de música do grupo */}
       <Box
         sx={{
           position: 'fixed',
@@ -207,38 +205,42 @@ const Screen299: React.FC<Screen299Props> = ({ onGoToScreen, ficha: _ficha, onUp
       <CardWrap>
         <CardContent sx={{ padding: '40px' }}>
           <NarrativeText>
-            Você puxa <LocationLink
-              onMouseEnter={handleQuinsberryHover}
-              onMouseLeave={handleQuinsberryLeave}
-              onMouseMove={handleQuinsberryMove}
-              onClick={handleQuinsberryClick}
-            >Quinsberry</LocationLink> para o lado e sugere que seria vantajoso para ele negociar diretamente com você. Sensível ao suborno, ele responde em voz baixa:
+            A rua dá em um pátio redondo — é o famoso{' '}
+            <LocationLink
+              onMouseEnter={handleLocationHover}
+              onMouseLeave={handleLocationLeave}
+              onMouseMove={handleLocationMove}
+              onClick={handleLocationClick}
+            >
+              Pátio dos Oradores
+            </LocationLink>
+            , onde as pessoas sobem em caixotes e fazem discursos sobre o que quiserem. Por sua vez, os ouvintes adoram massacrá-los com piadas e comentários.
             <br/><br/>
-            — Os termos são estes: você me entrega todo o ouro e o equipamento que possui. A arma, pode ficar com ela. Em troca, lhe dou uma semana — sete dias — para conseguir dinheiro ou desaparecer. É claro... se optar pela última alternativa, não me restará outra escolha senão declará-lo proscrito! Esta proposta não está aberta a discussão.
+            Você aproveita a confusão para despistar seus perseguidores. No entanto, há guardas de serviço no pátio para evitar tumultos, e seu superior está atento ao comportamento da multidão — o que pode levar seus perseguidores até você.
             <br/><br/>
-            Agora, a escolha é sua:
+            Mesmo consciente do perigo, você decide ficar um pouco para ouvir os oradores. Quem chama a sua atenção?
           </NarrativeText>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
             <ChoiceButton onClick={() => {
               playClick();
-              onGoToScreen(233);
+              onGoToScreen(289);
             }}>
-              Aceita o negócio
+              Uma jovem séria
             </ChoiceButton>
 
             <ChoiceButton onClick={() => {
               playClick();
-              onGoToScreen(199);
+              onGoToScreen(219);
             }}>
-              Recusa a oferta e se submete à lei de Gallantaria
+              Um velho todo sujo e esfarrapado
             </ChoiceButton>
 
             <ChoiceButton onClick={() => {
               playClick();
-              onGoToScreen(338);
+              onGoToScreen(137);
             }}>
-              Vira as costas e foge
+              Um homem vestido de negro, que não para de gesticular e gritar
             </ChoiceButton>
           </Box>
         </CardContent>
@@ -252,7 +254,7 @@ const Screen299: React.FC<Screen299Props> = ({ onGoToScreen, ficha: _ficha, onUp
             top: hoverImage.y
           }}
         >
-          <img src={hoverImage.src} alt="" />
+          <img src={hoverImage.src} alt="Pátio dos Oradores" />
         </HoverImage>
       )}
 
@@ -260,11 +262,11 @@ const Screen299: React.FC<Screen299Props> = ({ onGoToScreen, ficha: _ficha, onUp
       <ImageModal
         open={showImageModal}
         onClose={() => setShowImageModal(false)}
-        imageSrc={quinsberryImg}
-        imageAlt="Quinsberry Woad"
+        imageSrc={patioOradoresImg}
+        imageAlt="Pátio dos Oradores"
       />
     </Container>
   );
 };
 
-export default Screen299;
+export default Screen118;

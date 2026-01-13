@@ -156,16 +156,24 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({
 }) => {
   const playClick = useClickSound(0.3);
   const [showStats, setShowStats] = useState(false);
-  const { isPlaying, togglePlay, changeTrack } = useAudio();
+  const { isPlaying, togglePlay, changeTrack, tryStartMusic } = useAudio();
   const musicStartedRef = useRef(false);
 
   // Iniciar música assustadora quando o Game Over aparece
   useEffect(() => {
     if (!musicStartedRef.current) {
-      changeTrack('/src/assets/sounds/bgm-scary.mp3');
-      musicStartedRef.current = true;
+      const initializeAudio = async () => {
+        try {
+          await changeTrack('/src/assets/sounds/bgm-scary.mp3');
+          tryStartMusic();
+          musicStartedRef.current = true;
+        } catch (error) {
+          console.warn('🎵 [GameOverScreen] Erro ao inicializar áudio:', error);
+        }
+      };
+      initializeAudio();
     }
-  }, [changeTrack]);
+  }, [changeTrack, tryStartMusic]);
 
   // Mostrar estatísticas após um delay
   useEffect(() => {

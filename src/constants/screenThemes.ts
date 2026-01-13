@@ -418,11 +418,14 @@ export type ThemeName = 'default' | 'temple' | 'sewers' | 'prison' | 'dark-knigh
 export const SCREEN_THEMES: Record<number | string, ThemeName> = {
   // Tema Templo
   164: 'temple',
+  254: 'temple',
+  264: 'temple',
   
   // Tema Esgotos
   70: 'sewers',
   170: 'sewers',
   180: 'sewers',
+  356: 'sewers',
   375: 'sewers',
   
   // Tema Prisão

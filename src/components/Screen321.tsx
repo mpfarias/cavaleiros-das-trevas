@@ -1,15 +1,28 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { Box, Card, CardContent, Typography, IconButton, Tooltip } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
 import VolumeControl from './ui/VolumeControl';
+import ImageModal from './ui/ImageModal';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
+import quinsberryImg from '../assets/images/personagens/quinsberry.png';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
+`;
+
+const fadeInImage = keyframes`
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 `;
 
 const Container = styled(Box)({
@@ -89,6 +102,32 @@ const ChoiceButton = styled('button')({
   }
 });
 
+const HoverImage = styled(Box)({
+  position: 'fixed',
+  zIndex: 1500,
+  pointerEvents: 'none',
+  animation: `${fadeInImage} 0.3s ease-out`,
+  '& img': {
+    maxWidth: '400px',
+    maxHeight: '400px',
+    borderRadius: '12px',
+    border: '3px solid #8B4513',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+    backgroundColor: 'transparent'
+  }
+});
+
+const LocationLink = styled('span')({
+  color: '#8B4513',
+  textDecoration: 'underline',
+  cursor: 'pointer',
+  fontWeight: 600,
+  transition: 'color 0.2s ease',
+  '&:hover': {
+    color: '#A0522D'
+  }
+});
+
 interface Screen321Props {
   onGoToScreen: (screenId: number) => void;
   ficha: any;
@@ -99,9 +138,37 @@ const Screen321: React.FC<Screen321Props> = ({ onGoToScreen, ficha: _ficha, onUp
   // Usa o sistema de grupos de áudio - automaticamente gerencia música do grupo 'royal-lendle' (people.mp3)
   const { currentGroup, isPlaying, togglePlay } = useAudioGroup(321);
   const playClick = useClickSound(0.2);
+  const [hoverImage, setHoverImage] = useState<{ src: string; x: number; y: number } | null>(null);
+  const [showImageModal, setShowImageModal] = useState(false);
 
   // Verifica se o jogador aceitou o desafio do Bartolph
   const aceitouBartolph = localStorage.getItem('cavaleiro:aceitouBartolph') === 'true';
+
+  // Handlers para Quinsberry Woad
+  const handleQuinsberryHover = useCallback((event: React.MouseEvent) => {
+    setHoverImage({
+      src: quinsberryImg,
+      x: event.clientX + 20,
+      y: event.clientY - 20
+    });
+  }, []);
+
+  const handleQuinsberryLeave = useCallback(() => {
+    setHoverImage(null);
+  }, []);
+
+  const handleQuinsberryMove = useCallback((event: React.MouseEvent) => {
+    setHoverImage(prev => prev ? {
+      ...prev,
+      x: event.clientX + 20,
+      y: event.clientY - 20
+    } : null);
+  }, []);
+
+  const handleQuinsberryClick = useCallback(() => {
+    playClick();
+    setShowImageModal(true);
+  }, [playClick]);
 
   return (
     <Container data-screen="screen-321">
@@ -154,7 +221,12 @@ const Screen321: React.FC<Screen321Props> = ({ onGoToScreen, ficha: _ficha, onUp
               <>
                 V
               </>
-            )}ocê se afasta de um vendedor insistente que tenta empurrar-lhe um peso de papel em forma de mangusto, mas acaba esbarrando em um grupo de seis guardas armados. O coração aperta no peito quando reconhece quem está à frente deles: Quinsberry Woad, o temido cobrador de impostos de Gallantaria, sempre acompanhado de sua guarda pessoal.
+            )}ocê se afasta de um vendedor insistente que tenta empurrar-lhe um peso de papel em forma de mangusto, mas acaba esbarrando em um grupo de seis guardas armados. O coração aperta no peito quando reconhece quem está à frente deles: <LocationLink
+              onMouseEnter={handleQuinsberryHover}
+              onMouseLeave={handleQuinsberryLeave}
+              onMouseMove={handleQuinsberryMove}
+              onClick={handleQuinsberryClick}
+            >Quinsberry Woad</LocationLink>, o temido cobrador de impostos de Gallantaria, sempre acompanhado de sua guarda pessoal.
             <br/><br/>
             Com um ar solene, Woad retira um pergaminho de dentro de suas vestes e o abre diante de você:
             <br/><br/>
@@ -191,6 +263,26 @@ const Screen321: React.FC<Screen321Props> = ({ onGoToScreen, ficha: _ficha, onUp
           </Box>
         </CardContent>
       </CardWrap>
+
+      {/* Hover Image */}
+      {hoverImage && (
+        <HoverImage
+          sx={{
+            left: hoverImage.x,
+            top: hoverImage.y
+          }}
+        >
+          <img src={hoverImage.src} alt="" />
+        </HoverImage>
+      )}
+
+      {/* Image Modal */}
+      <ImageModal
+        open={showImageModal}
+        onClose={() => setShowImageModal(false)}
+        imageSrc={quinsberryImg}
+        imageAlt="Quinsberry Woad"
+      />
     </Container>
   );
 };

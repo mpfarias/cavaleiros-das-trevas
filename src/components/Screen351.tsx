@@ -1,15 +1,28 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { Box, Card, CardContent, Typography, IconButton, Tooltip } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
 import VolumeControl from './ui/VolumeControl';
+import ImageModal from './ui/ImageModal';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
+import quinsberryImg from '../assets/images/personagens/quinsberry.png';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
+`;
+
+const fadeInImage = keyframes`
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 `;
 
 const Container = styled(Box)({
@@ -89,6 +102,32 @@ const ChoiceButton = styled('button')({
   }
 });
 
+const HoverImage = styled(Box)({
+  position: 'fixed',
+  zIndex: 1500,
+  pointerEvents: 'none',
+  animation: `${fadeInImage} 0.3s ease-out`,
+  '& img': {
+    maxWidth: '400px',
+    maxHeight: '400px',
+    borderRadius: '12px',
+    border: '3px solid #8B4513',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+    backgroundColor: 'transparent'
+  }
+});
+
+const LocationLink = styled('span')({
+  color: '#8B4513',
+  textDecoration: 'underline',
+  cursor: 'pointer',
+  fontWeight: 600,
+  transition: 'color 0.2s ease',
+  '&:hover': {
+    color: '#A0522D'
+  }
+});
+
 interface Screen351Props {
   onGoToScreen: (screenId: number) => void;
   ficha: any;
@@ -98,11 +137,39 @@ interface Screen351Props {
 const Screen351: React.FC<Screen351Props> = ({ onGoToScreen, ficha, onUpdateFicha: _onUpdateFicha }) => {
   const { currentGroup, isPlaying, togglePlay } = useAudioGroup(351);
   const playClick = useClickSound(0.2);
+  const [hoverImage, setHoverImage] = useState<{ src: string; x: number; y: number } | null>(null);
+  const [showImageModal, setShowImageModal] = useState(false);
 
   // Verificar se tem dado viciado na bolsa
   const temDadoViciado = ficha.bolsa.some((item: any) => 
     item.id === 'dado-viciado' || item.nome === 'Dado Viciado'
   );
+
+  // Handlers para Quinsberry
+  const handleQuinsberryHover = useCallback((event: React.MouseEvent) => {
+    setHoverImage({
+      src: quinsberryImg,
+      x: event.clientX + 20,
+      y: event.clientY - 20
+    });
+  }, []);
+
+  const handleQuinsberryLeave = useCallback(() => {
+    setHoverImage(null);
+  }, []);
+
+  const handleQuinsberryMove = useCallback((event: React.MouseEvent) => {
+    setHoverImage(prev => prev ? {
+      ...prev,
+      x: event.clientX + 20,
+      y: event.clientY - 20
+    } : null);
+  }, []);
+
+  const handleQuinsberryClick = useCallback(() => {
+    playClick();
+    setShowImageModal(true);
+  }, [playClick]);
 
   return (
     <Container data-screen="screen-351">
@@ -151,7 +218,12 @@ const Screen351: React.FC<Screen351Props> = ({ onGoToScreen, ficha, onUpdateFich
           <NarrativeText>
             A estrada que você tomou leva até o bairro dos pedintes, um labirinto de ruas imundas, cheias de lixo, vagabundos e batedores de carteira. À medida que você se aproxima do centro, as vozes dos seus perseguidores vão ficando mais distantes.
             <br/><br/>
-            Mas Quinsberry certamente não desistirá de caçá-lo, então o melhor é continuar fugindo.
+            Mas <LocationLink
+              onMouseEnter={handleQuinsberryHover}
+              onMouseLeave={handleQuinsberryLeave}
+              onMouseMove={handleQuinsberryMove}
+              onClick={handleQuinsberryClick}
+            >Quinsberry</LocationLink> certamente não desistirá de caçá-lo, então o melhor é continuar fugindo.
           </NarrativeText>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
@@ -177,6 +249,26 @@ const Screen351: React.FC<Screen351Props> = ({ onGoToScreen, ficha, onUpdateFich
           </Box>
         </CardContent>
       </CardWrap>
+
+      {/* Hover Image */}
+      {hoverImage && (
+        <HoverImage
+          sx={{
+            left: hoverImage.x,
+            top: hoverImage.y
+          }}
+        >
+          <img src={hoverImage.src} alt="" />
+        </HoverImage>
+      )}
+
+      {/* Image Modal */}
+      <ImageModal
+        open={showImageModal}
+        onClose={() => setShowImageModal(false)}
+        imageSrc={quinsberryImg}
+        imageAlt="Quinsberry Woad"
+      />
     </Container>
   );
 };

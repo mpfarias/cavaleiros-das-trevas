@@ -1,18 +1,31 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import React from 'react';
 import { Box, Card, CardContent, Typography, IconButton, Tooltip } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
 import VolumeControl from './ui/VolumeControl';
+import ImageModal from './ui/ImageModal';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import { GameAlert } from './ui/GameAlert';
 import type { Ficha, Item } from '../types';
+import bartolphImg from '../assets/images/personagens/bartolph.png';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
+`;
+
+const fadeInImage = keyframes`
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 `;
 
 const Container = styled(Box)({
@@ -92,6 +105,32 @@ const ChoiceButton = styled('button')({
   }
 });
 
+const HoverImage = styled(Box)({
+  position: 'fixed',
+  zIndex: 1500,
+  pointerEvents: 'none',
+  animation: `${fadeInImage} 0.3s ease-out`,
+  '& img': {
+    maxWidth: '400px',
+    maxHeight: '400px',
+    borderRadius: '12px',
+    border: '3px solid #8B4513',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+    backgroundColor: 'transparent'
+  }
+});
+
+const LocationLink = styled('span')({
+  color: '#8B4513',
+  textDecoration: 'underline',
+  cursor: 'pointer',
+  fontWeight: 600,
+  transition: 'color 0.2s ease',
+  '&:hover': {
+    color: '#A0522D'
+  }
+});
+
 
 
 interface Screen222Props {
@@ -103,13 +142,42 @@ interface Screen222Props {
 const Screen222: React.FC<Screen222Props> = ({ onGoToScreen, ficha, onFichaChange }) => {
   // Usa o sistema de grupos de áudio - automaticamente gerencia música do grupo 'bartolph-game'
   const { currentGroup, isPlaying, togglePlay } = useAudioGroup(222);
+  const playClick = useClickSound(0.2);
   
   // Estado para controlar os alertas de recompensa
   const [showGoldAlert, setShowGoldAlert] = useState(false);
   const [showDiceAlert, setShowDiceAlert] = useState(false);
+  const [hoverImage, setHoverImage] = useState<{ src: string; x: number; y: number } | null>(null);
+  const [showImageModal, setShowImageModal] = useState(false);
   
   // Ref para garantir que as recompensas sejam aplicadas apenas uma vez
   const recompensasAplicadasRef = useRef(false);
+
+  // Handlers para Bartolph
+  const handleBartolphHover = useCallback((event: React.MouseEvent) => {
+    setHoverImage({
+      src: bartolphImg,
+      x: event.clientX + 20,
+      y: event.clientY - 20
+    });
+  }, []);
+
+  const handleBartolphLeave = useCallback(() => {
+    setHoverImage(null);
+  }, []);
+
+  const handleBartolphMove = useCallback((event: React.MouseEvent) => {
+    setHoverImage(prev => prev ? {
+      ...prev,
+      x: event.clientX + 20,
+      y: event.clientY - 20
+    } : null);
+  }, []);
+
+  const handleBartolphClick = useCallback(() => {
+    playClick();
+    setShowImageModal(true);
+  }, [playClick]);
 
   // Aplicar recompensas automaticamente quando a tela carrega
   useEffect(() => {
@@ -230,13 +298,33 @@ const Screen222: React.FC<Screen222Props> = ({ onGoToScreen, ficha, onFichaChang
       <CardWrap>
         <CardContent sx={{ padding: '40px' }}>
           <NarrativeText>
-            — O quê? Eu, trapacear? — Bartolph tenta se defender, mesmo com o aperto firme que você aplica em seu pulso. Ele finge indignação, encenando tão bem que, por um instante, os curiosos ao redor quase acreditam.
+            — O quê? Eu, trapacear? — <LocationLink
+              onMouseEnter={handleBartolphHover}
+              onMouseLeave={handleBartolphLeave}
+              onMouseMove={handleBartolphMove}
+              onClick={handleBartolphClick}
+            >Bartolph</LocationLink> tenta se defender, mesmo com o aperto firme que você aplica em seu pulso. Ele finge indignação, encenando tão bem que, por um instante, os curiosos ao redor quase acreditam.
             <br/><br/>
-            Mas a farsa não dura. Você pega os dados e os joga sete vezes seguidas. Em todas as jogadas, o resultado é o mesmo: 1. O murmúrio da multidão cresce. Fica claro para todos que Bartolph não passa de um trapaceiro barato, e não há quem suporte gente assim.
+            Mas a farsa não dura. Você pega os dados e os joga sete vezes seguidas. Em todas as jogadas, o resultado é o mesmo: 1. O murmúrio da multidão cresce. Fica claro para todos que <LocationLink
+              onMouseEnter={handleBartolphHover}
+              onMouseLeave={handleBartolphLeave}
+              onMouseMove={handleBartolphMove}
+              onClick={handleBartolphClick}
+            >Bartolph</LocationLink> não passa de um trapaceiro barato, e não há quem suporte gente assim.
             <br/><br/>
-            Alguns homens agarram Bartolph pelos ombros e o arrastam em direção ao fundo da taverna, sob vaias e xingamentos. Antes que ele desapareça, você aproveita a confusão para revirar seus bolsos: recupera o ouro que havia perdido e encontra mais 6 Moedas de Ouro escondidas.
+            Alguns homens agarram <LocationLink
+              onMouseEnter={handleBartolphHover}
+              onMouseLeave={handleBartolphLeave}
+              onMouseMove={handleBartolphMove}
+              onClick={handleBartolphClick}
+            >Bartolph</LocationLink> pelos ombros e o arrastam em direção ao fundo da taverna, sob vaias e xingamentos. Antes que ele desapareça, você aproveita a confusão para revirar seus bolsos: recupera o ouro que havia perdido e encontra mais 6 Moedas de Ouro escondidas.
             <br/><br/>
-            Satisfeito com o rumo dos acontecimentos, você sai da taverna sem dar ouvidos aos gemidos de Bartolph. Leva consigo o <b>dado viciado</b>, junto com as Moedas de Ouro.
+            Satisfeito com o rumo dos acontecimentos, você sai da taverna sem dar ouvidos aos gemidos de <LocationLink
+              onMouseEnter={handleBartolphHover}
+              onMouseLeave={handleBartolphLeave}
+              onMouseMove={handleBartolphMove}
+              onClick={handleBartolphClick}
+            >Bartolph</LocationLink>. Leva consigo o <b>dado viciado</b>, junto com as Moedas de Ouro.
           </NarrativeText>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
@@ -246,6 +334,26 @@ const Screen222: React.FC<Screen222Props> = ({ onGoToScreen, ficha, onFichaChang
           </Box>
         </CardContent>
       </CardWrap>
+
+      {/* Hover Image */}
+      {hoverImage && (
+        <HoverImage
+          sx={{
+            left: hoverImage.x,
+            top: hoverImage.y
+          }}
+        >
+          <img src={hoverImage.src} alt="" />
+        </HoverImage>
+      )}
+
+      {/* Image Modal */}
+      <ImageModal
+        open={showImageModal}
+        onClose={() => setShowImageModal(false)}
+        imageSrc={bartolphImg}
+        imageAlt="Bartolph"
+      />
     </Container>
   );
 };

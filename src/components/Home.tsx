@@ -35,20 +35,20 @@ const Home: React.FC<HomeProps> = ({ onStart }) => {
       console.warn('🏠 [Home] Erro ao limpar localStorage:', error);
     }
 
-    // Usa uma função assíncrona para carregar a música
+    // Usa uma função assíncrona para carregar e iniciar a música
     const loadMusic = async () => {
       try {
         await changeTrack(bgmModal);
+        tryStartMusic();
       } catch (error) {
         // Silenciar erro de música
       }
     };
 
     loadMusic();
-  }, [changeTrack]);
+  }, [changeTrack, tryStartMusic]);
 
   const handleIniciarAventura = () => {
-    tryStartMusic();
     setModalExplicativoOpen(true);
   };
 

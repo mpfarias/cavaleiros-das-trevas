@@ -1,28 +1,16 @@
-import React, { useState, useCallback } from 'react';
+import React from 'react';
 import { Box, Card, CardContent, Typography, IconButton, Tooltip } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
 import VolumeControl from './ui/VolumeControl';
-import ImageModal from './ui/ImageModal';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
-import quinsberryImg from '../assets/images/personagens/quinsberry.png';
+import type { Ficha } from '../types';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
-`;
-
-const fadeInImage = keyframes`
-  from {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
 `;
 
 const Container = styled(Box)({
@@ -102,74 +90,23 @@ const ChoiceButton = styled('button')({
   }
 });
 
-const HoverImage = styled(Box)({
-  position: 'fixed',
-  zIndex: 1500,
-  pointerEvents: 'none',
-  animation: `${fadeInImage} 0.3s ease-out`,
-  '& img': {
-    maxWidth: '400px',
-    maxHeight: '400px',
-    borderRadius: '12px',
-    border: '3px solid #8B4513',
-    boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
-    backgroundColor: 'transparent'
-  }
-});
-
-const LocationLink = styled('span')({
-  color: '#8B4513',
-  textDecoration: 'underline',
-  cursor: 'pointer',
-  fontWeight: 600,
-  transition: 'color 0.2s ease',
-  '&:hover': {
-    color: '#A0522D'
-  }
-});
-
-interface Screen299Props {
+interface Screen196Props {
   onGoToScreen: (screenId: number) => void;
-  ficha: any;
-  onUpdateFicha: (ficha: any) => void;
+  ficha: Ficha;
+  onUpdateFicha: (ficha: Ficha) => void;
 }
 
-const Screen299: React.FC<Screen299Props> = ({ onGoToScreen, ficha: _ficha, onUpdateFicha: _onUpdateFicha }) => {
-  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(299);
+const Screen196: React.FC<Screen196Props> = ({ onGoToScreen, ficha: _ficha, onUpdateFicha: _onUpdateFicha }) => {
+  // Usa o sistema de grupos de áudio - automaticamente gerencia música do grupo 'chase' (bgm-running.mp3)
+  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(196);
   const playClick = useClickSound(0.2);
-  const [hoverImage, setHoverImage] = useState<{ src: string; x: number; y: number } | null>(null);
-  const [showImageModal, setShowImageModal] = useState(false);
-
-  // Handlers para Quinsberry
-  const handleQuinsberryHover = useCallback((event: React.MouseEvent) => {
-    setHoverImage({
-      src: quinsberryImg,
-      x: event.clientX + 20,
-      y: event.clientY - 20
-    });
-  }, []);
-
-  const handleQuinsberryLeave = useCallback(() => {
-    setHoverImage(null);
-  }, []);
-
-  const handleQuinsberryMove = useCallback((event: React.MouseEvent) => {
-    setHoverImage(prev => prev ? {
-      ...prev,
-      x: event.clientX + 20,
-      y: event.clientY - 20
-    } : null);
-  }, []);
-
-  const handleQuinsberryClick = useCallback(() => {
-    playClick();
-    setShowImageModal(true);
-  }, [playClick]);
 
   return (
-    <Container data-screen="screen-299">
+    <Container data-screen="screen-196">
       {/* Controle de Volume */}
       <VolumeControl />
+      
+      {/* Controle de música do grupo */}
       <Box
         sx={{
           position: 'fixed',
@@ -207,64 +144,28 @@ const Screen299: React.FC<Screen299Props> = ({ onGoToScreen, ficha: _ficha, onUp
       <CardWrap>
         <CardContent sx={{ padding: '40px' }}>
           <NarrativeText>
-            Você puxa <LocationLink
-              onMouseEnter={handleQuinsberryHover}
-              onMouseLeave={handleQuinsberryLeave}
-              onMouseMove={handleQuinsberryMove}
-              onClick={handleQuinsberryClick}
-            >Quinsberry</LocationLink> para o lado e sugere que seria vantajoso para ele negociar diretamente com você. Sensível ao suborno, ele responde em voz baixa:
-            <br/><br/>
-            — Os termos são estes: você me entrega todo o ouro e o equipamento que possui. A arma, pode ficar com ela. Em troca, lhe dou uma semana — sete dias — para conseguir dinheiro ou desaparecer. É claro... se optar pela última alternativa, não me restará outra escolha senão declará-lo proscrito! Esta proposta não está aberta a discussão.
-            <br/><br/>
-            Agora, a escolha é sua:
+            Sua esperança de alcançar o Portão Leste vai por terra quando percebe que o caminho termina diante de um grande portão fechado. É uma porta forte demais para derrubar e lisa demais para escalar — a única alternativa é tentar pular por cima.
           </NarrativeText>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
             <ChoiceButton onClick={() => {
               playClick();
-              onGoToScreen(233);
+              onGoToScreen(52);
             }}>
-              Aceita o negócio
+              Arriscar escalar o portão
             </ChoiceButton>
 
             <ChoiceButton onClick={() => {
               playClick();
-              onGoToScreen(199);
+              onGoToScreen(20);
             }}>
-              Recusa a oferta e se submete à lei de Gallantaria
-            </ChoiceButton>
-
-            <ChoiceButton onClick={() => {
-              playClick();
-              onGoToScreen(338);
-            }}>
-              Vira as costas e foge
+              Voltar e enfrentar os guardas
             </ChoiceButton>
           </Box>
         </CardContent>
       </CardWrap>
-
-      {/* Hover Image */}
-      {hoverImage && (
-        <HoverImage
-          sx={{
-            left: hoverImage.x,
-            top: hoverImage.y
-          }}
-        >
-          <img src={hoverImage.src} alt="" />
-        </HoverImage>
-      )}
-
-      {/* Image Modal */}
-      <ImageModal
-        open={showImageModal}
-        onClose={() => setShowImageModal(false)}
-        imageSrc={quinsberryImg}
-        imageAlt="Quinsberry Woad"
-      />
     </Container>
   );
 };
 
-export default Screen299;
+export default Screen196;

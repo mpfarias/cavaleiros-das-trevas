@@ -1,18 +1,31 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Box, Card, CardContent, Typography, IconButton, Tooltip, TextField, Button } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useDiceSound } from '../hooks/useDiceSound';
 import { useClickSound } from '../hooks/useClickSound';
 import VolumeControl from './ui/VolumeControl';
+import ImageModal from './ui/ImageModal';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import DiceRollModal3D from './ui/DiceRollModal3D';
 import type { Ficha } from '../types';
+import bartolphImg from '../assets/images/personagens/bartolph.png';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
+`;
+
+const fadeInImage = keyframes`
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 `;
 
 const Container = styled(Box)({
@@ -84,6 +97,32 @@ const BetInput = styled(TextField)({
   marginBottom: '24px',
 });
 
+const HoverImage = styled(Box)({
+  position: 'fixed',
+  zIndex: 1500,
+  pointerEvents: 'none',
+  animation: `${fadeInImage} 0.3s ease-out`,
+  '& img': {
+    maxWidth: '400px',
+    maxHeight: '400px',
+    borderRadius: '12px',
+    border: '3px solid #8B4513',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+    backgroundColor: 'transparent'
+  }
+});
+
+const LocationLink = styled('span')({
+  color: '#8B4513',
+  textDecoration: 'underline',
+  cursor: 'pointer',
+  fontWeight: 600,
+  transition: 'color 0.2s ease',
+  '&:hover': {
+    color: '#A0522D'
+  }
+});
+
 
 
 interface Screen86Props {
@@ -99,14 +138,43 @@ const Screen86: React.FC<Screen86Props> = ({
 }) => {
   const { isPlaying, togglePlay, currentTrack } = useAudioGroup(86);
   const playDice = useDiceSound();
+  const playClick = useClickSound(0.2);
   
   const [betAmount, setBetAmount] = useState('');
   const [error, setError] = useState('');
   const [showDiceModal, setShowDiceModal] = useState(false);
   const [diceResult, setDiceResult] = useState<number | null>(null);
   const [gameResult, setGameResult] = useState<'win' | 'lose' | null>(null);
+  const [hoverImage, setHoverImage] = useState<{ src: string; x: number; y: number } | null>(null);
+  const [showImageModal, setShowImageModal] = useState(false);
   
   const availableGold = ficha?.bolsa?.find(item => item.tipo === 'ouro')?.quantidade || 0;
+
+  // Handlers para Bartolph
+  const handleBartolphHover = useCallback((event: React.MouseEvent) => {
+    setHoverImage({
+      src: bartolphImg,
+      x: event.clientX + 20,
+      y: event.clientY - 20
+    });
+  }, []);
+
+  const handleBartolphLeave = useCallback(() => {
+    setHoverImage(null);
+  }, []);
+
+  const handleBartolphMove = useCallback((event: React.MouseEvent) => {
+    setHoverImage(prev => prev ? {
+      ...prev,
+      x: event.clientX + 20,
+      y: event.clientY - 20
+    } : null);
+  }, []);
+
+  const handleBartolphClick = useCallback(() => {
+    playClick();
+    setShowImageModal(true);
+  }, [playClick]);
   
   const validateBet = (value: string) => {
     const numValue = parseInt(value);
@@ -211,11 +279,21 @@ const Screen86: React.FC<Screen86Props> = ({
       <CardWrap>
         <CardContent sx={{ padding: '40px' }}>
           <NarrativeText>
-            Bartolph se senta perto de você e lhe entrega um dado.
+            <LocationLink
+              onMouseEnter={handleBartolphHover}
+              onMouseLeave={handleBartolphLeave}
+              onMouseMove={handleBartolphMove}
+              onClick={handleBartolphClick}
+            >Bartolph</LocationLink> se senta perto de você e lhe entrega um dado.
             <br/><br/>
             — Aposte algumas Moedas de Ouro e jogue o dado — convida ele, esfregando as mãos de satisfação. — Se sair 4 ou mais, você ganha o que apostou mais uma quantia igual que eu terei que lhe dar. Se o resultado for inferior a 4, eu ganho e a aposta é minha. Fácil, não é?
             <br/><br/>
-            De fato, até parece fácil demais. Um grupo de pessoas, atraído pela voz de Bartolph, se reúne ao redor de vocês.
+            De fato, até parece fácil demais. Um grupo de pessoas, atraído pela voz de <LocationLink
+              onMouseEnter={handleBartolphHover}
+              onMouseLeave={handleBartolphLeave}
+              onMouseMove={handleBartolphMove}
+              onClick={handleBartolphClick}
+            >Bartolph</LocationLink>, se reúne ao redor de vocês.
             <br/><br/>
             Decida quantas Moedas deseja colocar em jogo e registre esse número no espaço abaixo, em seguida jogue o dado.
           </NarrativeText>
@@ -354,6 +432,26 @@ const Screen86: React.FC<Screen86Props> = ({
           />
         </CardContent>
       </CardWrap>
+
+      {/* Hover Image */}
+      {hoverImage && (
+        <HoverImage
+          sx={{
+            left: hoverImage.x,
+            top: hoverImage.y
+          }}
+        >
+          <img src={hoverImage.src} alt="" />
+        </HoverImage>
+      )}
+
+      {/* Image Modal */}
+      <ImageModal
+        open={showImageModal}
+        onClose={() => setShowImageModal(false)}
+        imageSrc={bartolphImg}
+        imageAlt="Bartolph"
+      />
     </Container>
   );
 };

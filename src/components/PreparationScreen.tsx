@@ -1,7 +1,11 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Box, Typography, Card, CardContent, Button } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
+import ImageModal from './ui/ImageModal';
+import { useClickSound } from '../hooks/useClickSound';
 import type { Ficha } from '../types';
+import bartolphImg from '../assets/images/personagens/bartolph.png';
+import mendokanImg from '../assets/images/personagens/mendokan.png';
 
 // Animações
 const fadeIn = keyframes`
@@ -12,6 +16,17 @@ const fadeIn = keyframes`
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+`;
+
+const fadeInImage = keyframes`
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 `;
 
@@ -143,6 +158,32 @@ const ActionButton = styled(Button)({
   }
 });
 
+const HoverImage = styled(Box)({
+  position: 'fixed',
+  zIndex: 1500,
+  pointerEvents: 'none',
+  animation: `${fadeInImage} 0.3s ease-out`,
+  '& img': {
+    maxWidth: '400px',
+    maxHeight: '400px',
+    borderRadius: '12px',
+    border: '3px solid #8B4513',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+    backgroundColor: 'transparent'
+  }
+});
+
+const LocationLink = styled('span')({
+  color: '#8B4513',
+  textDecoration: 'underline',
+  cursor: 'pointer',
+  fontWeight: 600,
+  transition: 'color 0.2s ease',
+  '&:hover': {
+    color: '#A0522D'
+  }
+});
+
 const BackButton = styled(Button)({
   position: 'absolute',
   top: '20px',
@@ -214,6 +255,10 @@ const PreparationScreen: React.FC<PreparationScreenProps> = ({
   onBackToRoyal 
 }) => {
   const [purchasedItems, setPurchasedItems] = useState<string[]>([]);
+  const playClick = useClickSound(0.2);
+  const [hoverImage, setHoverImage] = useState<{ src: string; x: number; y: number } | null>(null);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [modalImage, setModalImage] = useState<{ src: string; alt: string } | null>(null);
 
   const currentGold = ficha.bolsa
     .filter(item => item.tipo === 'ouro')
@@ -229,6 +274,60 @@ const PreparationScreen: React.FC<PreparationScreenProps> = ({
   const canAfford = (price: number) => currentGold >= price;
   const alreadyBought = (itemId: string) => purchasedItems.includes(itemId);
 
+  // Handlers para Bartolph
+  const handleBartolphHover = useCallback((event: React.MouseEvent) => {
+    setHoverImage({
+      src: bartolphImg,
+      x: event.clientX + 20,
+      y: event.clientY - 20
+    });
+  }, []);
+
+  const handleBartolphLeave = useCallback(() => {
+    setHoverImage(null);
+  }, []);
+
+  const handleBartolphMove = useCallback((event: React.MouseEvent) => {
+    setHoverImage(prev => prev ? {
+      ...prev,
+      x: event.clientX + 20,
+      y: event.clientY - 20
+    } : null);
+  }, []);
+
+  const handleBartolphClick = useCallback(() => {
+    playClick();
+    setModalImage({ src: bartolphImg, alt: 'Bartolph' });
+    setShowImageModal(true);
+  }, [playClick]);
+
+  // Handlers para Mendokan
+  const handleMendokanHover = useCallback((event: React.MouseEvent) => {
+    setHoverImage({
+      src: mendokanImg,
+      x: event.clientX + 20,
+      y: event.clientY - 20
+    });
+  }, []);
+
+  const handleMendokanLeave = useCallback(() => {
+    setHoverImage(null);
+  }, []);
+
+  const handleMendokanMove = useCallback((event: React.MouseEvent) => {
+    setHoverImage(prev => prev ? {
+      ...prev,
+      x: event.clientX + 20,
+      y: event.clientY - 20
+    } : null);
+  }, []);
+
+  const handleMendokanClick = useCallback(() => {
+    playClick();
+    setModalImage({ src: mendokanImg, alt: 'Mendokan' });
+    setShowImageModal(true);
+  }, [playClick]);
+
   return (
     <PrepContainer>
       <BackButton onClick={onBackToRoyal}>
@@ -240,11 +339,21 @@ const PreparationScreen: React.FC<PreparationScreenProps> = ({
           <PrepTitle>🛒 Preparação para a Expedição</PrepTitle>
           
           <NarrativeText>
-            Você decide ser prudente e se afasta de <strong>Bartolph</strong> antes que ele possa insistir mais no jogo. 
+            Você decide ser prudente e se afasta de <strong><LocationLink
+              onMouseEnter={handleBartolphHover}
+              onMouseLeave={handleBartolphLeave}
+              onMouseMove={handleBartolphMove}
+              onClick={handleBartolphClick}
+            >Bartolph</LocationLink></strong> antes que ele possa insistir mais no jogo. 
             <br/><br/>
             — Sua escolha — diz ele, dando de ombros. — Mas não diga que não te ofereci uma chance de ganhar um dinheiro fácil.
             <br/><br/>
-            Com <strong>duas horas</strong> até o encontro com <strong>Mendokan</strong>, você decide usar esse tempo sabiamente para comprar <strong>equipamentos e provisões</strong> para a expedição a <strong>Karnstein</strong>.
+            Com <strong>duas horas</strong> até o encontro com <strong><LocationLink
+              onMouseEnter={handleMendokanHover}
+              onMouseLeave={handleMendokanLeave}
+              onMouseMove={handleMendokanMove}
+              onClick={handleMendokanClick}
+            >Mendokan</LocationLink></strong>, você decide usar esse tempo sabiamente para comprar <strong>equipamentos e provisões</strong> para a expedição a <strong>Karnstein</strong>.
             <br/><br/>
             Você encontra um <strong>mercador local</strong> disposto a vender alguns itens úteis. <strong>Você tem {currentGold} moedas de ouro</strong> para gastar.
           </NarrativeText>
@@ -324,6 +433,29 @@ const PreparationScreen: React.FC<PreparationScreenProps> = ({
           </Box>
         </CardContent>
       </PrepCard>
+
+      {/* Hover Image */}
+      {hoverImage && (
+        <HoverImage
+          sx={{
+            left: hoverImage.x,
+            top: hoverImage.y
+          }}
+        >
+          <img src={hoverImage.src} alt="" />
+        </HoverImage>
+      )}
+
+      {/* Image Modal */}
+      <ImageModal
+        open={showImageModal}
+        onClose={() => {
+          setShowImageModal(false);
+          setModalImage(null);
+        }}
+        imageSrc={modalImage?.src || ''}
+        imageAlt={modalImage?.alt || ''}
+      />
     </PrepContainer>
   );
 };
