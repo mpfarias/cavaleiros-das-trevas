@@ -45,7 +45,7 @@ const Screen22: React.FC<Screen22Props> = ({ onGoToScreen, ficha: _ficha, onUpda
         }}
       >
         <Tooltip title={currentGroup ? (isPlaying ? 'Pausar música' : 'Tocar música') : 'Nenhuma música carregada'}>
-          <IconButton
+          <span><IconButton
             onClick={() => {
               playClick();
               togglePlay();
@@ -66,7 +66,7 @@ const Screen22: React.FC<Screen22Props> = ({ onGoToScreen, ficha: _ficha, onUpda
             }}
           >
             {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-          </IconButton>
+          </IconButton></span>
         </Tooltip>
       </Box>
 
@@ -100,3 +100,4 @@ const Screen22: React.FC<Screen22Props> = ({ onGoToScreen, ficha: _ficha, onUpda
 };
 
 export default Screen22;
+

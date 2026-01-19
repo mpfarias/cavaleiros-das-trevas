@@ -254,25 +254,27 @@ const Screen86: React.FC<Screen86Props> = ({
         }}
       >
         <Tooltip title={currentTrack ? (isPlaying ? 'Pausar música' : 'Tocar música') : 'Nenhuma música carregada'}>
-          <IconButton
-            onClick={togglePlay}
-            disabled={!currentTrack}
-            sx={{
-              color: currentTrack ? (isPlaying ? '#B31212' : '#E0DFDB') : '#666',
-              background: 'rgba(15,17,20,0.8)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              opacity: currentTrack ? 1 : 0.5,
-              '&:hover': currentTrack ? {
-                background: 'rgba(179,18,18,0.2)',
-                borderColor: 'rgba(255,255,255,0.3)',
-              } : {},
-              '&:disabled': {
-                cursor: 'not-allowed'
-              }
-            }}
-          >
-            {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-          </IconButton>
+          <span>
+            <IconButton
+              onClick={togglePlay}
+              disabled={!currentTrack}
+              sx={{
+                color: currentTrack ? (isPlaying ? '#B31212' : '#E0DFDB') : '#666',
+                background: 'rgba(15,17,20,0.8)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                opacity: currentTrack ? 1 : 0.5,
+                '&:hover': currentTrack ? {
+                  background: 'rgba(179,18,18,0.2)',
+                  borderColor: 'rgba(255,255,255,0.3)',
+                } : {},
+                '&:disabled': {
+                  cursor: 'not-allowed'
+                }
+              }}
+            >
+              {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
+            </IconButton>
+          </span>
         </Tooltip>
       </Box>
 

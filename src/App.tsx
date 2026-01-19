@@ -190,17 +190,8 @@ function AppContent() {
 
   // Wrapper para setFicha com logs de debug
   const setFichaWithLog = useCallback((newFicha: Ficha | ((prev: Ficha) => Ficha)) => {
-
-    if (typeof newFicha === 'function') {
-      const prevFicha = ficha;
-      const nextFicha = newFicha(prevFicha);
-
-      setFicha(nextFicha);
-    } else {
-
-      setFicha(newFicha);
-    }
-  }, [ficha]);
+    setFicha(prev => (typeof newFicha === 'function' ? newFicha(prev) : newFicha));
+  }, []);
 
   const [globalInventoryOpen, setGlobalInventoryOpen] = useState(false);
   const showGlobalStatus = !['/', '/sheet', '/intro'].includes(location.pathname);
@@ -263,10 +254,15 @@ function AppContent() {
     }
     
     // screenId salvo é usado apenas para retomar via rota /game/:id
-  }, []);
+  }, [setFichaWithLog]);
 
   const handleStartAdventure = () => {
-    navigate('/sheet');
+    try {
+      localStorage.setItem('cavaleiro:screenId', '102');
+    } catch (error) {
+      console.warn('⚠️ [App] Falha ao salvar screenId:', error);
+    }
+    navigate('/game/102');
   };
 
 
@@ -322,7 +318,9 @@ function AppContent() {
         try { 
           localStorage.setItem('cavaleiro:screenId', '86');
           localStorage.setItem('cavaleiro:aceitouBartolph', 'true');
-        } catch {}
+        } catch (error) {
+          console.warn('⚠️ [App] Falha ao salvar escolha do jogo:', error);
+        }
         navigate('/game/86');
         break;
       case 'recusar_jogo':
@@ -330,7 +328,9 @@ function AppContent() {
         try { 
           localStorage.setItem('cavaleiro:screenId', '30');
           localStorage.setItem('cavaleiro:aceitouBartolph', 'false');
-        } catch {}
+        } catch (error) {
+          console.warn('⚠️ [App] Falha ao salvar escolha do jogo:', error);
+        }
         navigate('/game/30');
         break;
       default:
@@ -357,26 +357,15 @@ function AppContent() {
       const currentGold = updatedFicha.bolsa[goldItemIndex].quantidade || 0;
       const newGold = Math.max(0, currentGold + goldChange);
       updatedFicha.bolsa[goldItemIndex].quantidade = newGold;
-      
-      
     } else {
-
+      console.warn('⚠️ [App] Item de ouro não encontrado na bolsa:', { goldChange });
     }
     
 
     
     // Verificação adicional antes de salvar
     if (updatedFicha.bolsa && Array.isArray(updatedFicha.bolsa)) {
-      setFichaWithLog(updatedFicha);
-      
-              try {
-          localStorage.setItem('cavaleiro:ficha', JSON.stringify(updatedFicha));
-  
-          
-
-        } catch (error) {
-        console.error(`🎲 [App] ERRO ao salvar no localStorage:`, error);
-      }
+      handleFichaChange(updatedFicha);
     } else {
       console.error(`🎲 [App] ERRO: Ficha inválida após atualização`);
     }
@@ -497,7 +486,8 @@ function AppContent() {
               } else {
                 fichaAtualizada = { ...ficha };
               }
-            } catch (e) {
+            } catch (error) {
+              console.warn('⚠️ [App] Falha ao ler ficha salva:', error);
               fichaAtualizada = { ...ficha };
             }
             
@@ -517,7 +507,11 @@ function AppContent() {
 export default function App() {
   const inRouter = useInRouterContext();
   const content = <AppContent />;
-  return inRouter ? content : <BrowserRouter>{content}</BrowserRouter>;
+  return inRouter ? content : (
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      {content}
+    </BrowserRouter>
+  );
 }
 
 // Componente de status global (bolsa sempre visível)

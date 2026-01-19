@@ -122,7 +122,7 @@ const Screen123: React.FC<Screen123Props> = ({ onGoToScreen, ficha, onUpdateFich
         }}
       >
         <Tooltip title={currentGroup ? (isPlaying ? 'Pausar música' : 'Tocar música') : 'Nenhuma música carregada'}>
-          <IconButton
+          <span><IconButton
             onClick={() => {
               playClick();
               togglePlay();
@@ -143,7 +143,7 @@ const Screen123: React.FC<Screen123Props> = ({ onGoToScreen, ficha, onUpdateFich
             }}
           >
             {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-          </IconButton>
+          </IconButton></span>
         </Tooltip>
       </Box>
 
@@ -175,3 +175,4 @@ const Screen123: React.FC<Screen123Props> = ({ onGoToScreen, ficha, onUpdateFich
 };
 
 export default Screen123;
+

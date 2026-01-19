@@ -77,7 +77,7 @@ const VolumeControl: React.FC<VolumeControlProps> = ({ showSlider = false }) => 
   return (
     <VolumeContainer>
       <Tooltip title="Ajustar volume">
-        <IconButton
+        <span><IconButton
           onClick={toggleSlider}
           sx={{
             color: '#E0DFDB',
@@ -89,7 +89,7 @@ const VolumeControl: React.FC<VolumeControlProps> = ({ showSlider = false }) => 
           }}
         >
           <VolumeUpIcon fontSize="small" />
-        </IconButton>
+        </IconButton></span>
       </Tooltip>
 
       <Fade in={sliderVisible}>
@@ -110,3 +110,4 @@ const VolumeControl: React.FC<VolumeControlProps> = ({ showSlider = false }) => 
 };
 
 export default VolumeControl;
+

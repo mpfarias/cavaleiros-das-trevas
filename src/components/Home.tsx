@@ -41,7 +41,7 @@ const Home: React.FC<HomeProps> = ({ onStart }) => {
         await changeTrack(bgmModal);
         tryStartMusic();
       } catch (error) {
-        // Silenciar erro de música
+        console.warn('🏠 [Home] Falha ao iniciar música:', error);
       }
     };
 

@@ -228,7 +228,7 @@ const Screen140: React.FC<Screen140Props> = ({ onGoToScreen, ficha, onUpdateFich
         }}
       >
         <Tooltip title={currentTrack ? (isPlaying ? 'Pausar música' : 'Tocar música') : 'Nenhuma música carregada'}>
-          <IconButton
+          <span><IconButton
             onClick={togglePlay}
             disabled={!currentTrack}
             sx={{
@@ -246,7 +246,7 @@ const Screen140: React.FC<Screen140Props> = ({ onGoToScreen, ficha, onUpdateFich
             }}
           >
             {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-          </IconButton>
+          </IconButton></span>
         </Tooltip>
       </Box>
 
@@ -279,3 +279,4 @@ const Screen140: React.FC<Screen140Props> = ({ onGoToScreen, ficha, onUpdateFich
 };
 
 export default Screen140;
+

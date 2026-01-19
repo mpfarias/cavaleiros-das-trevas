@@ -177,7 +177,7 @@ const Screen118: React.FC<Screen118Props> = ({ onGoToScreen, ficha: _ficha, onUp
         }}
       >
         <Tooltip title={currentGroup ? (isPlaying ? 'Pausar música' : 'Tocar música') : 'Nenhuma música carregada'}>
-          <IconButton
+          <span><IconButton
             onClick={() => {
               playClick();
               togglePlay();
@@ -198,7 +198,7 @@ const Screen118: React.FC<Screen118Props> = ({ onGoToScreen, ficha: _ficha, onUp
             }}
           >
             {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-          </IconButton>
+          </IconButton></span>
         </Tooltip>
       </Box>
 
@@ -270,3 +270,4 @@ const Screen118: React.FC<Screen118Props> = ({ onGoToScreen, ficha: _ficha, onUp
 };
 
 export default Screen118;
+

@@ -184,7 +184,7 @@ const Screen13: React.FC<Screen13Props> = ({ onGoToScreen, ficha, onUpdateFicha 
         }}
       >
         <Tooltip title={currentGroup ? (isPlaying ? 'Pausar música' : 'Tocar música') : 'Nenhuma música carregada'}>
-          <IconButton
+          <span><IconButton
             onClick={() => {
               playClick();
               togglePlay();
@@ -205,7 +205,7 @@ const Screen13: React.FC<Screen13Props> = ({ onGoToScreen, ficha, onUpdateFicha 
             }}
           >
             {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-          </IconButton>
+          </IconButton></span>
         </Tooltip>
       </Box>
 
@@ -339,3 +339,4 @@ const Screen13: React.FC<Screen13Props> = ({ onGoToScreen, ficha, onUpdateFicha 
 };
 
 export default Screen13;
+

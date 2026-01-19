@@ -110,7 +110,7 @@ const Screen115: React.FC<Screen115Props> = ({ onGoToScreen, ficha, onAdjustSort
         }}
       >
         <Tooltip title={currentTrack ? (isPlaying ? 'Pausar música' : 'Tocar música') : 'Nenhuma música carregada'}>
-          <IconButton
+          <span><IconButton
             onClick={togglePlay}
             disabled={!currentTrack}
             sx={{
@@ -128,7 +128,7 @@ const Screen115: React.FC<Screen115Props> = ({ onGoToScreen, ficha, onAdjustSort
             }}
           >
             {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-          </IconButton>
+          </IconButton></span>
         </Tooltip>
       </Box>
 
@@ -190,5 +190,6 @@ const Screen115: React.FC<Screen115Props> = ({ onGoToScreen, ficha, onAdjustSort
 };
 
 export default Screen115;
+
 
 

@@ -179,7 +179,7 @@ const Screen338: React.FC<Screen338Props> = ({ onGoToScreen, ficha: _ficha, onUp
         }}
       >
         <Tooltip title={currentGroup ? (isPlaying ? 'Pausar música' : 'Tocar música') : 'Nenhuma música carregada'}>
-          <IconButton
+          <span><IconButton
             onClick={() => {
               playClick();
               togglePlay();
@@ -200,7 +200,7 @@ const Screen338: React.FC<Screen338Props> = ({ onGoToScreen, ficha: _ficha, onUp
             }}
           >
             {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-          </IconButton>
+          </IconButton></span>
         </Tooltip>
       </Box>
 
@@ -273,3 +273,4 @@ const Screen338: React.FC<Screen338Props> = ({ onGoToScreen, ficha: _ficha, onUp
 };
 
 export default Screen338;
+

@@ -34,7 +34,7 @@ describe('useDiceRoller', () => {
       const { dice, total } = result.current.rollND6(3);
       
       expect(dice).toHaveLength(3);
-      expect(dice.every(d => d >= 1 && d <= 6)).toBe(true);
+      expect(dice.every((d: number) => d >= 1 && d <= 6)).toBe(true);
       expect(total).toBe(12); // 3 dados com valor 4 cada
     });
 

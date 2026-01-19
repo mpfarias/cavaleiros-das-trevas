@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import type { CSSProperties } from "react";
 import { Box, Card, CardContent, Dialog, Typography } from "@mui/material";
 import { styled, keyframes } from "@mui/material/styles";
 
@@ -238,7 +239,8 @@ function useAudioManager(audioSources: AudioMap | undefined) {
   // inicializa WebAudio (fallback)
   const ensureAudioContext = () => {
     if (AC.current) return;
-    const Ctx = (window as any).AudioContext || (window as any).webkitAudioContext;
+    const w = window as Window & { webkitAudioContext?: typeof AudioContext };
+    const Ctx = window.AudioContext || w.webkitAudioContext;
     if (!Ctx) return;
     const ctx = new Ctx();
     AC.current = ctx;
@@ -253,11 +255,9 @@ function useAudioManager(audioSources: AudioMap | undefined) {
     noiseBuf.current = buf;
   };
 
-  const playTag = (name: string, vol?: number, loop?: boolean) => {
-
+  const playTag = useCallback((name: string, vol?: number, loop?: boolean) => {
     const a = audioTags.current[name];
     if (!a) {
-
       return;
     }
 
@@ -267,23 +267,21 @@ function useAudioManager(audioSources: AudioMap | undefined) {
     
     // Garantir que está carregado
     if (a.readyState < 2) {
-
+      a.load();
     }
     
-    a.play().then(() => {
-
-    }).catch((_error) => {
-
+    a.play().catch((error) => {
+      console.warn('🎬 [IntroCinematic] Falha ao reproduzir áudio:', error);
     });
-  };
+  }, []);
 
-  const stopTag = (name: string) => {
+  const stopTag = useCallback((name: string) => {
     const a = audioTags.current[name];
     if (!a) return;
     a.pause();
-  };
+  }, []);
 
-  const fade = (name: string, to = 0, dur = 1200) => {
+  const fade = useCallback((name: string, to = 0, dur = 1200) => {
     const a = audioTags.current[name];
     if (!a) return;
     const from = a.volume;
@@ -298,10 +296,10 @@ function useAudioManager(audioSources: AudioMap | undefined) {
         if (to === 0) a.pause();
       }
     }, dt);
-  };
+  }, []);
 
   // SFX sintetizados (fallback)
-  const synth = {
+  const synth = useMemo(() => ({
     boom: () => {
       if (!AC.current || !master.current) return;
       const o = AC.current.createOscillator();
@@ -416,7 +414,7 @@ function useAudioManager(audioSources: AudioMap | undefined) {
         windNode.current = null;
       }
     },
-  } as const;
+  } as const), [playTag, stopTag]);
 
   const api = useMemo((): SfxAPI => ({
     playTag: (n, v, l) => playTag(n, v, l),
@@ -428,7 +426,7 @@ function useAudioManager(audioSources: AudioMap | undefined) {
     mug: synth.mug,
     steps: synth.steps,
     battle: synth.battle,
-  }), []);
+  }), [fade, playTag, synth]);
 
   return {
     ensureAudioContext,
@@ -486,7 +484,7 @@ const Vignette = styled(Box)({
 const Grain = styled(Box)({
   position: "absolute",
   inset: "-20%",
-  mixBlendMode: "soft-light" as any,
+  mixBlendMode: "soft-light" as CSSProperties["mixBlendMode"],
   pointerEvents: "none", // IMPORTANTE: Não bloquear cliques
   animation: `${grainAnim} 1.5s steps(6) infinite`,
   backgroundImage:
@@ -930,7 +928,7 @@ export default function IntroCinematic({ audioSources, onFinish }: IntroCinemati
         console.warn('⚠️ [IntroCinematic] Erro no cleanup:', error);
       }
     };
-  }, []); // ← Mantém vazio para executar apenas no unmount
+  }, [api, stopTimeline]); // ← Mantém no unmount, mas com deps estáveis
 
   return (
     <Screen 

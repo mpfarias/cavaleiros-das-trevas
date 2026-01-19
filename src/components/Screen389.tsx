@@ -67,7 +67,7 @@ const Screen389: React.FC<Screen389Props> = ({ onGoToScreen, ficha: _ficha, onUp
           }}
         >
           <Tooltip title={isPlaying ? 'Pausar música' : 'Tocar música'}>
-            <IconButton
+            <span><IconButton
               onClick={() => {
                 playClick();
                 togglePlay();
@@ -83,7 +83,7 @@ const Screen389: React.FC<Screen389Props> = ({ onGoToScreen, ficha: _ficha, onUp
               }}
             >
               {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-            </IconButton>
+            </IconButton></span>
           </Tooltip>
         </Box>
       )}
@@ -135,3 +135,4 @@ const Screen389: React.FC<Screen389Props> = ({ onGoToScreen, ficha: _ficha, onUp
 };
 
 export default Screen389;
+

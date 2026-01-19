@@ -197,7 +197,7 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({
         }}
       >
         <Tooltip title={isPlaying ? 'Pausar música' : 'Tocar música'}>
-          <IconButton
+          <span><IconButton
             onClick={() => {
               playClick();
               togglePlay();
@@ -213,7 +213,7 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({
             }}
           >
             {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-          </IconButton>
+          </IconButton></span>
         </Tooltip>
       </Box>
 
@@ -308,3 +308,4 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({
 };
 
 export default GameOverScreen;
+

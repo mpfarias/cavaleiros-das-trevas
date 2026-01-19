@@ -36,12 +36,12 @@ const Screen190: React.FC<Screen190Props> = ({ onGoToScreen, ficha, onUpdateFich
   // Aplicar dano de 4 pontos de FORÇA quando a tela carregar
   useEffect(() => {
     if (!damageApplied) {
-      const novaForca = Math.max(0, ficha.forca.atual - 4);
+      const novaForca = ficha.forca.atual - 4;
       const fichaAtualizada: Ficha = {
         ...ficha,
         forca: {
           ...ficha.forca,
-          atual: novaForca
+          atual: Math.max(0, novaForca)
         }
       };
       
@@ -51,6 +51,10 @@ const Screen190: React.FC<Screen190Props> = ({ onGoToScreen, ficha, onUpdateFich
       // Mostrar alert de dano
       setShowDamageAlert(true);
       setTimeout(() => setShowDamageAlert(false), 3000);
+
+      if (novaForca <= 0) {
+        onGoToScreen(999);
+      }
     }
   }, [damageApplied, ficha, onUpdateFicha]);
 

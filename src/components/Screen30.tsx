@@ -113,28 +113,30 @@ const Screen30: React.FC<Screen30Props> = ({ onGoToScreen }) => {
         }}
       >
         <Tooltip title={currentGroup ? (isPlaying ? 'Pausar música' : 'Tocar música') : 'Nenhuma música carregada'}>
-          <IconButton
-            onClick={() => {
+          <span>
+            <IconButton
+              onClick={() => {
 
-              togglePlay();
-            }}
-            disabled={!currentGroup}
-            sx={{
-              color: currentGroup ? (isPlaying ? '#B31212' : '#E0DFDB') : '#666',
-              background: 'rgba(15,17,20,0.8)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              opacity: currentGroup ? 1 : 0.5,
-              '&:hover': currentGroup ? {
-                background: 'rgba(179,18,18,0.2)',
-                borderColor: 'rgba(255,255,255,0.3)',
-              } : {},
-              '&:disabled': {
-                cursor: 'not-allowed'
-              }
-            }}
-          >
-            {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-          </IconButton>
+                togglePlay();
+              }}
+              disabled={!currentGroup}
+              sx={{
+                color: currentGroup ? (isPlaying ? '#B31212' : '#E0DFDB') : '#666',
+                background: 'rgba(15,17,20,0.8)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                opacity: currentGroup ? 1 : 0.5,
+                '&:hover': currentGroup ? {
+                  background: 'rgba(179,18,18,0.2)',
+                  borderColor: 'rgba(255,255,255,0.3)',
+                } : {},
+                '&:disabled': {
+                  cursor: 'not-allowed'
+                }
+              }}
+            >
+              {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
+            </IconButton>
+          </span>
         </Tooltip>
       </Box>
 

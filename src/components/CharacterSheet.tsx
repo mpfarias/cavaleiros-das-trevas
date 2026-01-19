@@ -147,10 +147,11 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
         sorte: 3    // Máximo atingido
       });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Executa apenas uma vez na montagem do componente
 
   // Hooks
-  const { changeTrack, tryStartMusic, autoplayBlocked, pause } = useAudio();
+  const { changeTrack, tryStartMusic, pause } = useAudio();
   const { notification, showNotification, hideNotification } = useNotification();
   const { validateForStart } = useCharacterValidation();
   const { rollWithDetails } = useDiceRoller();
@@ -250,7 +251,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
     updateFicha(novaFicha);
 
     setGoldDiceModalOpen(false);
-  }, [ficha, updateFicha, showNotification]);
+  }, [ficha, updateFicha]);
 
 
 

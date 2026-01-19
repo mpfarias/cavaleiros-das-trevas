@@ -141,7 +141,7 @@ const Screen254: React.FC<Screen254Props> = ({ onGoToScreen, ficha, onUpdateFich
         }}
       >
         <Tooltip title={currentGroup ? (isPlaying ? 'Pausar música' : 'Tocar música') : 'Nenhuma música carregada'}>
-          <IconButton
+          <span><IconButton
             onClick={() => {
               playClick();
               togglePlay();
@@ -162,7 +162,7 @@ const Screen254: React.FC<Screen254Props> = ({ onGoToScreen, ficha, onUpdateFich
             }}
           >
             {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-          </IconButton>
+          </IconButton></span>
         </Tooltip>
       </Box>
 
@@ -255,3 +255,4 @@ const Screen254: React.FC<Screen254Props> = ({ onGoToScreen, ficha, onUpdateFich
 };
 
 export default Screen254;
+

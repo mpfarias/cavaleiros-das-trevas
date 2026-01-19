@@ -192,10 +192,9 @@ interface InventoryModalProps {
   open: boolean;
   onClose: () => void;
   ficha: Ficha;
-  onUpdateFicha?: (ficha: Ficha) => void;
 }
 
-const InventoryModal: React.FC<InventoryModalProps> = ({ open, onClose, ficha, onUpdateFicha }) => {
+const InventoryModal: React.FC<InventoryModalProps> = ({ open, onClose, ficha }) => {
   const [tabValue, setTabValue] = useState(0);
   
   // Estados para hover da imagem
@@ -459,10 +458,14 @@ const InventoryModal: React.FC<InventoryModalProps> = ({ open, onClose, ficha, o
         <Box sx={{ padding: '16px' }}>
           {/* Atributos */}
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 2, mb: 2 }}>
-            {[{ key: 'pericia', label: 'Perícia' }, { key: 'forca', label: 'Força' }, { key: 'sorte', label: 'Sorte' }].map(({ key, label }) => {
-              const atr = (ficha as any)[key] as { inicial: number; atual: number };
+            {([
+              { key: 'pericia', label: 'Perícia' },
+              { key: 'forca', label: 'Força' },
+              { key: 'sorte', label: 'Sorte' },
+            ] as const).map(({ key, label }) => {
+              const atr = ficha[key];
               const atualClamped = Math.min(atr.atual, atr.inicial);
-              const modificador = ficha.modificadoresAtivos?.[key as keyof typeof ficha.modificadoresAtivos] || 0;
+              const modificador = ficha.modificadoresAtivos?.[key] || 0;
               return (
                 <Card key={key} sx={{ border: '2px solid #8B4513', background: 'linear-gradient(135deg, rgba(255,255,255,0.85), rgba(245,222,179,0.6))' }}>
                   <CardContent>

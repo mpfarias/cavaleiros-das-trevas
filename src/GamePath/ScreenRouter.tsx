@@ -29,6 +29,10 @@ import Screen78 from '../components/Screen78';
 import Screen175 from '../components/Screen175';
 import Screen38 from '../components/Screen38';
 import Screen60 from '../components/Screen60';
+import Screen11 from '../components/Screen11';
+import Screen113 from '../components/Screen113';
+import Screen20 from '../components/Screen20';
+import Screen52 from '../components/Screen52';
 import Screen126 from '../components/Screen126';
 import Screen134 from '../components/Screen134';
 import Screen208 from '../components/Screen208';
@@ -153,7 +157,11 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({ ficha: fichaFromProps, onGa
   }
 
   const goToScreen = (nextId: number) => {
-    try { localStorage.setItem('cavaleiro:screenId', String(nextId)); } catch {}
+    try {
+      localStorage.setItem('cavaleiro:screenId', String(nextId));
+    } catch (error) {
+      console.warn('⚠️ [ScreenRouter] Falha ao salvar screenId:', error);
+    }
     navigate(`/game/${nextId}`, { replace: true });
   };
 
@@ -189,6 +197,12 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({ ficha: fichaFromProps, onGa
     );
   }
 
+  if (screenId === 113) {
+    return (
+      <Screen113 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
   if (screenId === 94) {
     return (
       <Screen94 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
@@ -216,6 +230,12 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({ ficha: fichaFromProps, onGa
   if (screenId === 30) {
     return (
       <Screen30 onGoToScreen={goToScreen} />
+    );
+  }
+
+  if (screenId === 52) {
+    return (
+      <Screen52 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
     );
   }
 
@@ -261,6 +281,12 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({ ficha: fichaFromProps, onGa
     );
   }
 
+  if (screenId === 20) {
+    return (
+      <Screen20 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
   if (screenId === 199) {
     return (
       <Screen199 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
@@ -288,6 +314,12 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({ ficha: fichaFromProps, onGa
   if (screenId === 13) {
     return (
       <Screen13 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 11) {
+    return (
+      <Screen11 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
     );
   }
 

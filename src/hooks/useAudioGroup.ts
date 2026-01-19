@@ -20,6 +20,7 @@ import bgmArabic from '../assets/sounds/bgm-arabic.mp3';
 import bgmTemple from '../assets/sounds/bgm-temple.mp3';
 import bgmTatoo from '../assets/sounds/bgm-tatoo.mp3';
 import bgmWizardRoom from '../assets/sounds/bgm-wizard-room.mp3';
+import bgmForest from '../assets/sounds/forest.mp3';
 
 // Definição dos grupos de áudio
 export type AudioGroup = 
@@ -40,6 +41,7 @@ export type AudioGroup =
   | 'temple'          // bgm-temple.mp3 - Templo
   | 'tattoo'          // bgm-tatoo.mp3 - Loja de tatuagens
   | 'wizard-room'     // bgm-wizard-room.mp3 - Sala do mago
+  | 'forest'          // forest.mp3 - Encontro na floresta
   | 'cinematic';      // bgm-intro.mp3, rainning.mp3 - Cinemática
 
 // Mapeamento de grupos para arquivos de áudio
@@ -61,6 +63,7 @@ const AUDIO_GROUP_MAP: Record<AudioGroup, string> = {
   'temple': bgmTemple,
   'tattoo': bgmTatoo,
   'wizard-room': bgmWizardRoom,
+  'forest': bgmForest,
   'cinematic': bgmIntro
 };
 
@@ -139,6 +142,8 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   306: 'creepy',                // Fingir-se de morto (rota /game/306) - bgm-creepy.mp3
   279: 'creepy',                // Sucesso ao fingir-se de morto (rota /game/279) - bgm-creepy.mp3
   102: 'map',                   // Saída sul do estreito - reflexão (rota /game/102) - nature-sound-map.mp3
+  113: 'map',                   // Ponte/Poço do Feiticeiro (rota /game/113) - herdado de 102
+  11: 'forest',                 // João Verdesfolhas (rota /game/11) - forest.mp3
   335: 'creepy',                // Vitória sobre Cavaleiro das Trevas (rota /game/335) - bgm-creepy.mp3
   72: 'hiding',                 // Perseguição reiniciada pelos Cavaleiros (rota /game/72) - bgm-hiding.mp3
   166: 'chase',                 // Casa da velhinha - Fuga dos guardas (rota /game/166) - bgm-running.mp3
@@ -146,6 +151,8 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   360: 'chase',                 // Fuga dos guardas pela rua (rota /game/360) - bgm-running.mp3
   216: 'chase',                 // Beco - escolha entre jardim do templo ou viela (rota /game/216) - bgm-running.mp3
   196: 'chase',                 // Viela - portão fechado (rota /game/196) - bgm-running.mp3
+  52: 'chase',                  // Teste de perícia no portão (rota /game/52) - herdado de 196
+  20: 'chase',                  // Guardas na viela (rota /game/20) - herdado de 196
   243: 'chase',                 // Revistar corpo Bartolph - Fuga dos guardas (rota /game/243) - bgm-running.mp3
   262: 'chase',                 // Beco sem saída - Guarda solitário (rota /game/262) - bgm-running.mp3
   375: 'sewers',                // Esgotos - Encontro com Slygore (rota /game/375) - bgm-sewers.mp3

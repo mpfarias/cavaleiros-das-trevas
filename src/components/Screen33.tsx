@@ -74,7 +74,7 @@ const Screen33: React.FC<Screen33Props> = ({ onGoToScreen, ficha: _ficha, onUpda
         }}
       >
         <Tooltip title={currentGroup ? (isPlaying ? 'Pausar música' : 'Tocar música') : 'Nenhuma música carregada'}>
-          <IconButton
+          <span><IconButton
             onClick={() => {
               playClick();
               togglePlay();
@@ -95,7 +95,7 @@ const Screen33: React.FC<Screen33Props> = ({ onGoToScreen, ficha: _ficha, onUpda
             }}
           >
             {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-          </IconButton>
+          </IconButton></span>
         </Tooltip>
       </Box>
 
@@ -160,3 +160,4 @@ const Screen33: React.FC<Screen33Props> = ({ onGoToScreen, ficha: _ficha, onUpda
 };
 
 export default Screen33;
+

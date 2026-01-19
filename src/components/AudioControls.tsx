@@ -46,7 +46,7 @@ const AudioControls: React.FC = () => {
     >
       {/* Botão Play/Pause */}
       <Tooltip title={isPlaying ? 'Pausar música' : 'Tocar música'}>
-        <IconButton
+        <span><IconButton
           onClick={togglePlay}
           sx={{
             color: isPlaying ? '#B31212' : '#E0DFDB',
@@ -56,7 +56,7 @@ const AudioControls: React.FC = () => {
           }}
         >
           {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-        </IconButton>
+        </IconButton></span>
       </Tooltip>
       
       {/* Indicador de autoplay bloqueado */}
@@ -81,7 +81,7 @@ const AudioControls: React.FC = () => {
 
       {/* Controle de Volume */}
       <Tooltip title={isMuted ? 'Desmutar' : 'Mutado'}>
-        <IconButton
+        <span><IconButton
           onClick={toggleMute}
           sx={{
             color: isMuted ? '#B31212' : '#E0DFDB',
@@ -92,7 +92,7 @@ const AudioControls: React.FC = () => {
           }}
         >
           {isMuted ? <VolumeOffIcon /> : <VolumeUpIcon />}
-        </IconButton>
+        </IconButton></span>
       </Tooltip>
 
       {/* Slider de Volume */}
@@ -126,3 +126,4 @@ const AudioControls: React.FC = () => {
 };
 
 export default AudioControls;
+

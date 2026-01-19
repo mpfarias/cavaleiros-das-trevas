@@ -29,18 +29,28 @@ Object.defineProperty(window.HTMLMediaElement.prototype, 'pause', {
 });
 
 // Mock simples do IntersectionObserver
-global.IntersectionObserver = class {
+class MockIntersectionObserver implements IntersectionObserver {
+  readonly root: Element | Document | null = null;
+  readonly rootMargin = '';
+  readonly thresholds: ReadonlyArray<number> = [];
+
   observe() {}
   unobserve() {}
   disconnect() {}
-} as any;
+  takeRecords(): IntersectionObserverEntry[] {
+    return [];
+  }
+}
 
 // Mock simples do ResizeObserver
-global.ResizeObserver = class {
+class MockResizeObserver implements ResizeObserver {
   observe() {}
   unobserve() {}
   disconnect() {}
-} as any;
+}
+
+globalThis.IntersectionObserver = MockIntersectionObserver;
+globalThis.ResizeObserver = MockResizeObserver;
 
 // Mock simples do matchMedia
 Object.defineProperty(window, 'matchMedia', {

@@ -273,7 +273,7 @@ const Screen222: React.FC<Screen222Props> = ({ onGoToScreen, ficha, onFichaChang
         }}
       >
         <Tooltip title={currentGroup ? (isPlaying ? 'Pausar música' : 'Tocar música') : 'Nenhuma música carregada'}>
-          <IconButton
+          <span><IconButton
             onClick={togglePlay}
             disabled={!currentGroup}
             sx={{
@@ -291,7 +291,7 @@ const Screen222: React.FC<Screen222Props> = ({ onGoToScreen, ficha, onFichaChang
             }}
           >
             {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-          </IconButton>
+          </IconButton></span>
         </Tooltip>
       </Box>
 
@@ -359,3 +359,4 @@ const Screen222: React.FC<Screen222Props> = ({ onGoToScreen, ficha, onFichaChang
 };
 
 export default Screen222;
+

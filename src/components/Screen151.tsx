@@ -179,7 +179,7 @@ const Screen151: React.FC<Screen151Props> = ({ onGoToScreen }) => {
         }}
       >
         <Tooltip title={currentTrack ? (isPlaying ? 'Pausar música' : 'Tocar música') : 'Nenhuma música carregada'}>
-          <IconButton
+          <span><IconButton
             onClick={togglePlay}
             disabled={!currentTrack}
             sx={{
@@ -197,7 +197,7 @@ const Screen151: React.FC<Screen151Props> = ({ onGoToScreen }) => {
             }}
           >
             {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-          </IconButton>
+          </IconButton></span>
         </Tooltip>
       </Box>
 
@@ -261,3 +261,4 @@ const Screen151: React.FC<Screen151Props> = ({ onGoToScreen }) => {
 };
 
 export default Screen151;
+

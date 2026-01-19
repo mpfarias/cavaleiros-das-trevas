@@ -12,35 +12,96 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
   const [volume, setVolumeState] = useState(1.0);
   const [currentTrack, setCurrentTrack] = useState<string | null>(null);
   const [autoplayBlocked, setAutoplayBlocked] = useState(false);
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Inicializa o áudio quando o componente monta
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = volume;
-      audioRef.current.loop = true;
-      
-      // Adicionar listener para garantir que o áudio está pronto
-      const handleCanPlay = () => {
-        // Áudio global inicializado e pronto
-      };
-      
-      const handleError = (error: Event) => {
-        console.error('❌ [AudioContext] Erro no áudio global:', error);
-      };
-      
-      audioRef.current.addEventListener('canplaythrough', handleCanPlay, { once: true });
-      audioRef.current.addEventListener('error', handleError);
-      
-      return () => {
-        if (audioRef.current) {
-          audioRef.current.removeEventListener('canplaythrough', handleCanPlay);
-          audioRef.current.removeEventListener('error', handleError);
-        }
-      };
-    }
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    audio.volume = volume;
+    audio.loop = true;
+
+    // Adicionar listener para garantir que o áudio está pronto
+    const handleCanPlay = () => {
+      // Áudio global inicializado e pronto
+    };
+
+    const handleError = (error: Event) => {
+      console.error('❌ [AudioContext] Erro no áudio global:', error);
+    };
+
+    audio.addEventListener('canplaythrough', handleCanPlay, { once: true });
+    audio.addEventListener('error', handleError);
+
+    return () => {
+      audio.removeEventListener('canplaythrough', handleCanPlay);
+      audio.removeEventListener('error', handleError);
+    };
   }, [volume]);
+
+  // Detecta a primeira interação do usuário para liberar autoplay
+  useEffect(() => {
+    if (hasUserInteracted) return;
+
+    const handleFirstInteraction = () => {
+      setHasUserInteracted(true);
+      setAutoplayBlocked(false);
+      if (audioRef.current && currentTrack) {
+        audioRef.current.play().catch((error) => {
+          console.warn('⚠️ [AudioContext] Autoplay bloqueado:', error);
+          setAutoplayBlocked(true);
+        });
+      }
+    };
+
+    window.addEventListener('pointerdown', handleFirstInteraction, { once: true });
+    window.addEventListener('keydown', handleFirstInteraction, { once: true });
+    window.addEventListener('touchstart', handleFirstInteraction, { once: true });
+
+    return () => {
+      window.removeEventListener('pointerdown', handleFirstInteraction);
+      window.removeEventListener('keydown', handleFirstInteraction);
+      window.removeEventListener('touchstart', handleFirstInteraction);
+    };
+  }, [hasUserInteracted, currentTrack]);
+
+  // Se o autoplay foi bloqueado, tenta novamente após a primeira interação
+  useEffect(() => {
+    if (!hasUserInteracted || !autoplayBlocked) return;
+
+    const tryResume = async () => {
+      if (!audioRef.current || !currentTrack) return;
+      try {
+        await audioRef.current.play();
+        setAutoplayBlocked(false);
+      } catch (error) {
+        console.warn('⚠️ [AudioContext] Autoplay bloqueado:', error);
+      }
+    };
+
+    tryResume();
+  }, [hasUserInteracted, autoplayBlocked, currentTrack]);
+
+  // Se já houve interação e a música foi trocada, tenta iniciar automaticamente
+  useEffect(() => {
+    if (!hasUserInteracted || !currentTrack) return;
+    if (!audioRef.current) return;
+
+    const tryPlay = async () => {
+      try {
+        await audioRef.current.play();
+        setAutoplayBlocked(false);
+      } catch (error) {
+        console.warn('⚠️ [AudioContext] Autoplay bloqueado:', error);
+        setAutoplayBlocked(true);
+      }
+    };
+
+    tryPlay();
+  }, [hasUserInteracted, currentTrack]);
 
   // Controla o volume
   useEffect(() => {
@@ -56,17 +117,18 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
       
       const handleCanPlay = async () => {
         setAutoplayBlocked(false);
-        
+
         // Tenta iniciar automaticamente quando estiver pronto
         try {
           await audio.play();
         } catch (error) {
+          console.warn('⚠️ [AudioContext] Autoplay bloqueado:', error);
           setAutoplayBlocked(true);
         }
       };
 
-      const handleError = (_e: Event) => {
-  
+      const handleError = (error: Event) => {
+        console.warn('❌ [AudioContext] Erro ao carregar áudio:', error);
         setAutoplayBlocked(true);
         setIsPlaying(false);
       };
@@ -111,7 +173,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
   // Função para tocar música
   const play = useCallback(async (): Promise<void> => {
     if (!audioRef.current || !currentTrack) {
-
+      console.warn('⚠️ [AudioContext] Play chamado sem áudio disponível.');
       setAutoplayBlocked(true);
       setIsPlaying(false);
       return;
@@ -121,13 +183,12 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
       // Verifica se já está carregado
       if (audioRef.current.readyState >= 2) {
         await audioRef.current.play();
-
       } else {
-
+        console.warn('⚠️ [AudioContext] Áudio ainda não carregado.');
         setAutoplayBlocked(true);
       }
     } catch (error) {
-      
+      console.warn('❌ [AudioContext] Erro ao iniciar reprodução:', error);
       setAutoplayBlocked(true);
       setIsPlaying(false);
     }
@@ -137,11 +198,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
   const pause = useCallback((): void => {
 
     if (audioRef.current && !audioRef.current.paused) {
-
       audioRef.current.pause();
-
-    } else {
-
     }
   }, []);
 
@@ -177,7 +234,6 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
 
     // Evita recarregar a mesma música
     if (currentTrack === trackSrc) {
-
       return;
     }
 
@@ -204,7 +260,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
         await audioRef.current.play();
         
       } catch (error) {
-        
+        console.warn('⚠️ [AudioContext] Falha ao iniciar música:', error);
         setAutoplayBlocked(true);
       }
     }

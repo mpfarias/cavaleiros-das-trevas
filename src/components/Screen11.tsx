@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { Box, CardContent, IconButton, Tooltip } from '@mui/material';
-import { keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
 import { useScreenTheme } from '../hooks/useScreenTheme';
@@ -10,23 +9,18 @@ import ImageModal from './ui/ImageModal';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import type { Ficha } from '../types';
-import mendokanImg from '../assets/images/personagens/mendokan.png';
+import joaoVerduraImg from '../assets/images/personagens/joao-verdura.png';
 
-const fadeIn = keyframes`
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-`;
-
-interface Screen145Props {
+interface Screen11Props {
   onGoToScreen: (screenId: number) => void;
   ficha: Ficha;
   onUpdateFicha: (ficha: Ficha) => void;
 }
 
-const Screen145: React.FC<Screen145Props> = ({ onGoToScreen, ficha: _ficha, onUpdateFicha: _onUpdateFicha }) => {
-  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(145);
+const Screen11: React.FC<Screen11Props> = ({ onGoToScreen, ficha, onUpdateFicha: _onUpdateFicha }) => {
+  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(11);
   const playClick = useClickSound(0.2);
-  const theme = useScreenTheme(145);
+  const theme = useScreenTheme(11);
   const { Container, CardWrap, NarrativeText, ChoiceButton, LocationLink, HoverImage } = useMemo(
     () => createThemedComponents(theme),
     [theme]
@@ -35,19 +29,27 @@ const Screen145: React.FC<Screen145Props> = ({ onGoToScreen, ficha: _ficha, onUp
   const [hoverImage, setHoverImage] = useState<{ src: string; x: number; y: number } | null>(null);
   const [showImageModal, setShowImageModal] = useState(false);
 
-  const handleMendokanHover = useCallback((event: React.MouseEvent) => {
+  const hasBrocheFolhaVerde = useMemo(() => {
+    return ficha.bolsa.some((item) => (
+      item.tipo === 'equipamento' &&
+      item.nome.toLowerCase().includes('broche') &&
+      item.nome.toLowerCase().includes('folha verde')
+    ));
+  }, [ficha.bolsa]);
+
+  const handleJoaoHover = useCallback((event: React.MouseEvent) => {
     setHoverImage({
-      src: mendokanImg,
+      src: joaoVerduraImg,
       x: event.clientX + 20,
       y: event.clientY - 20
     });
   }, []);
 
-  const handleMendokanLeave = useCallback(() => {
+  const handleJoaoLeave = useCallback(() => {
     setHoverImage(null);
   }, []);
 
-  const handleMendokanMove = useCallback((event: React.MouseEvent) => {
+  const handleJoaoMove = useCallback((event: React.MouseEvent) => {
     setHoverImage(prev => prev ? {
       ...prev,
       x: event.clientX + 20,
@@ -55,17 +57,15 @@ const Screen145: React.FC<Screen145Props> = ({ onGoToScreen, ficha: _ficha, onUp
     } : null);
   }, []);
 
-  const handleMendokanClick = useCallback(() => {
+  const handleJoaoClick = useCallback(() => {
     playClick();
     setShowImageModal(true);
   }, [playClick]);
 
   return (
-    <Container data-screen="screen-145">
-      {/* Controle de Volume */}
+    <Container data-screen="screen-11">
       <VolumeControl />
-      
-      {/* Controle de Música */}
+
       <Box
         sx={{
           position: 'fixed',
@@ -105,52 +105,42 @@ const Screen145: React.FC<Screen145Props> = ({ onGoToScreen, ficha: _ficha, onUp
       <CardWrap>
         <CardContent sx={{ padding: '40px' }}>
           <NarrativeText>
-            <strong><LocationLink
-              onMouseEnter={handleMendokanHover}
-              onMouseLeave={handleMendokanLeave}
-              onMouseMove={handleMendokanMove}
-              onClick={handleMendokanClick}
-            >Mendokan</LocationLink></strong> e seus dois companheiros aguardam por você no ponto combinado.
+            Embora ainda esteja longe de Gornt, você continua avançando a bom ritmo para o sul. De repente, para ao ver um rosto estranho e sorridente olhando para você do meio da grama à beira da estrada.
             <br/><br/>
-            Um deles é bastante idoso e tem dificuldade para se locomover, o que obriga o grupo a viajar apenas durante a noite para compensar o ritmo mais lento.
+            Só então percebe que é um rosto feito de folhas — parte viva da própria relva! Ele se move de um lado para o outro, como se fosse levado pelo vento, e sua voz é rápida e misteriosa:
             <br/><br/>
-            Quando finalmente alcançam o estreito de Magyaar, todos estão exaustos.
+            “Aqui está <strong><LocationLink
+              onMouseEnter={handleJoaoHover}
+              onMouseLeave={handleJoaoLeave}
+              onMouseMove={handleJoaoMove}
+              onClick={handleJoaoClick}
+            >João Verdesfolhas</LocationLink></strong>, um velho rei, para guiá-lo. O mundo está moribundo; o solo está corrompido e as árvores tremem diante da violência. Cinco guerreiros procuram seu senhor, que não será libertado. A Terra-Mãe pode curá-lo, mas você deve provar seu valor.”
             <br/><br/>
-            Essa é a parte mais estreita da Estrada do Comércio, um trilho de pedras que se estende à esquerda, junto a um enorme rochedo.
-            <br/><br/>
-            À direita, há uma ravina de seis metros de largura e cerca de trinta metros de profundidade.
-            <br/><br/>
-            Do outro lado, é possível avistar um caminho, usado por aqueles que viajam em direção a Lendle.
-            <br/><br/>
-            De repente, um grito terrível ecoa pelo ar, seguido por outro, e mais outro ainda. Os aldeões se encolhem de medo, enquanto você se prepara para a luta.
-            <br/><br/>
-            É então que você os vê vindo direto em sua direção: cinco cavaleiros montados em criaturas assustadoras, cujos cascos fazem o chão tremer a cada passo. Apesar das máscaras metálicas que usam, você consegue ver como têm a pele velha e ressecada, e olhos que parecem buracos negros sem fundo.
-            <br/><br/>
-            <strong><LocationLink
-              onMouseEnter={handleMendokanHover}
-              onMouseLeave={handleMendokanLeave}
-              onMouseMove={handleMendokanMove}
-              onClick={handleMendokanClick}
-            >Mendokan</LocationLink></strong> empalidece:
-            <br/><br/>
-            — É o nosso fim! Os Cavaleiros das Trevas vieram nos pegar!
-            <br/><br/>
-            Os outros aldeões correm, mas é inútil. Logo se percebe que as espadas dos Cavaleiros são bem reais.
+            João Verdesfolhas lhe dá uma chance de provar do que é capaz.
           </NarrativeText>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
+            {hasBrocheFolhaVerde && (
+              <ChoiceButton onClick={() => {
+                playClick();
+                onGoToScreen(398);
+              }}>
+                Mostrar broche de Folha Verde
+              </ChoiceButton>
+            )}
+
             <ChoiceButton onClick={() => {
               playClick();
-              onGoToScreen(190);
+              onGoToScreen(382);
             }}>
-              Enfrentá-los
+              Aceitar o desafio
             </ChoiceButton>
 
             <ChoiceButton onClick={() => {
               playClick();
-              onGoToScreen(28);
+              onGoToScreen(398);
             }}>
-              Prefere fugir, ainda com pouca esperança de sobreviver
+              Recusar o desafio
             </ChoiceButton>
           </Box>
         </CardContent>
@@ -170,12 +160,11 @@ const Screen145: React.FC<Screen145Props> = ({ onGoToScreen, ficha: _ficha, onUp
       <ImageModal
         open={showImageModal}
         onClose={() => setShowImageModal(false)}
-        imageSrc={mendokanImg}
-        imageAlt="Mendokan"
+        imageSrc={joaoVerduraImg}
+        imageAlt="João Verdesfolhas"
       />
     </Container>
   );
 };
 
-export default Screen145;
-
+export default Screen11;

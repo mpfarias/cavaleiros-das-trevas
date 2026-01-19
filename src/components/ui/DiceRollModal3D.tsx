@@ -5,6 +5,16 @@ import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 import { useDiceSound } from '../../hooks/useDiceSound';
 
+const WORLD_UP = new THREE.Vector3(0, 1, 0);
+const FACE_NORMALS = [
+  { n: new THREE.Vector3(0, 1, 0), value: 1 },
+  { n: new THREE.Vector3(0, -1, 0), value: 6 },
+  { n: new THREE.Vector3(1, 0, 0), value: 3 },
+  { n: new THREE.Vector3(-1, 0, 0), value: 4 },
+  { n: new THREE.Vector3(0, 0, 1), value: 2 },
+  { n: new THREE.Vector3(0, 0, -1), value: 5 },
+];
+
 // Animações sutis para o modal
 const modalEntrance = keyframes`
   0% { 
@@ -98,17 +108,6 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
 
   // Configurações
   const POWER_MULT = 2.2; // Ajustado para meio termo - força moderada
-  const WORLD_UP = new THREE.Vector3(0, 1, 0);
-  
-  // Face normais para detectar valores dos dados
-  const FACE_NORMALS = [
-    { n: new THREE.Vector3( 0, 1, 0), value: 1 },
-    { n: new THREE.Vector3( 0,-1, 0), value: 6 },
-    { n: new THREE.Vector3( 1, 0, 0), value: 3 },
-    { n: new THREE.Vector3(-1, 0, 0), value: 4 },
-    { n: new THREE.Vector3( 0, 0, 1), value: 2 },
-    { n: new THREE.Vector3( 0, 0,-1), value: 5 },
-  ];
 
   // Criar textura para faces dos dados
   const createFaceTexture = useCallback((size: number, value: number) => {
@@ -376,6 +375,55 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
     diceRef.current = [];
   }, []);
 
+  // Ler resultados dos dados
+  const readDiceResults = useCallback(async (): Promise<number[]> => {
+    return new Promise((resolve) => {
+      const checkStable = () => {
+        if (!worldRef.current || !diceRef.current.length) {
+          resolve([]);
+          return;
+        }
+
+        const allSlow = diceRef.current.every(die => 
+          die.body.sleepState === CANNON.Body.SLEEPING ||
+          (die.body.velocity.length() < 0.04 && die.body.angularVelocity.length() < 0.04) // Ajustado para dados mais controlados
+        );
+
+
+        if (allSlow) {
+          // Ler valores finais
+          const results = diceRef.current.map(die => {
+            const q = new THREE.Quaternion(
+              die.body.quaternion.x,
+              die.body.quaternion.y,
+              die.body.quaternion.z,
+              die.body.quaternion.w
+            );
+            
+            let bestDot = -Infinity;
+            let bestVal = 1;
+            
+            for (const { n, value } of FACE_NORMALS) {
+              const dot = n.clone().applyQuaternion(q).dot(WORLD_UP);
+              if (dot > bestDot) {
+                bestDot = dot;
+                bestVal = value;
+              }
+            }
+            
+            return bestVal;
+          });
+          
+          resolve(results);
+        } else {
+          setTimeout(checkStable, 30); // Reduzido de 50ms para 30ms para verificação mais frequente
+        }
+      };
+
+      checkStable();
+    });
+  }, []);
+
   // Rolar dados
   const rollDice = useCallback(() => {
     
@@ -440,57 +488,7 @@ const DiceRollModal3D: React.FC<DiceRollModal3DProps> = ({
 
       // Não fechar automaticamente - usuário clica em "Ok"
     }, 2000); // Mantido em 2000ms para garantir precisão na leitura dos resultados
-  }, [bonus, onComplete]);
-
-  // Ler resultados dos dados
-  const readDiceResults = useCallback(async (): Promise<number[]> => {
-    return new Promise((resolve) => {
-      const checkStable = () => {
-        if (!worldRef.current || !diceRef.current.length) {
-          resolve([]);
-          return;
-        }
-
-        const allSlow = diceRef.current.every(die => 
-          die.body.sleepState === CANNON.Body.SLEEPING ||
-          (die.body.velocity.length() < 0.04 && die.body.angularVelocity.length() < 0.04) // Ajustado para dados mais controlados
-        );
-
-
-
-        if (allSlow) {
-          // Ler valores finais
-          const results = diceRef.current.map(die => {
-            const q = new THREE.Quaternion(
-              die.body.quaternion.x,
-              die.body.quaternion.y,
-              die.body.quaternion.z,
-              die.body.quaternion.w
-            );
-            
-            let bestDot = -Infinity;
-            let bestVal = 1;
-            
-            for (const { n, value } of FACE_NORMALS) {
-              const dot = n.clone().applyQuaternion(q).dot(WORLD_UP);
-              if (dot > bestDot) {
-                bestDot = dot;
-                bestVal = value;
-              }
-            }
-            
-            return bestVal;
-          });
-          
-          resolve(results);
-        } else {
-          setTimeout(checkStable, 30); // Reduzido de 50ms para 30ms para verificação mais frequente
-        }
-      };
-
-      checkStable();
-    });
-  }, []);
+  }, [bonus, playDice, readDiceResults]);
 
   // Efeitos
   useEffect(() => {

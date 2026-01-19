@@ -7,7 +7,13 @@ import { globalIgnores } from 'eslint/config'
 import jsxA11y from 'eslint-plugin-jsx-a11y'
 
 export default tseslint.config([
-  globalIgnores(['dist']),
+  globalIgnores([
+    'dist',
+    'coverage',
+    'docs',
+    'node_modules',
+    'src/components/Screen*.tsx',
+  ]),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
