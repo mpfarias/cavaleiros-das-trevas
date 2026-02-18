@@ -7,6 +7,7 @@ import { createThemedComponents } from './common/ScreenThemedComponents';
 import VolumeControl from './ui/VolumeControl';
 import DiceRollModal3D from './ui/DiceRollModal3D';
 import { GameAlert } from './ui/GameAlert';
+import { NOTIFICATION_CONFIG } from '../constants/character';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import type { Ficha } from '../types';
@@ -50,7 +51,7 @@ const Screen52: React.FC<Screen52Props> = ({ onGoToScreen, ficha, onUpdateFicha 
     onUpdateFicha(updatedFicha);
 
     setShowDamageAlert(true);
-    setTimeout(() => setShowDamageAlert(false), 3000);
+    setTimeout(() => setShowDamageAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
     setResult('fail');
   };
 

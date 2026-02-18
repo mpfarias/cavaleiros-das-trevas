@@ -6,6 +6,7 @@ import { useClickSound } from '../hooks/useClickSound';
 import VolumeControl from './ui/VolumeControl';
 import ImageModal from './ui/ImageModal';
 import { GameAlert } from './ui/GameAlert';
+import { NOTIFICATION_CONFIG } from '../constants/character';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import type { Ficha } from '../types';
@@ -188,7 +189,7 @@ const Screen233: React.FC<Screen233Props> = ({ onGoToScreen, ficha, onUpdateFich
     // Mostrar alerta após um pequeno delay
     setTimeout(() => {
       setShowItemsAlert(true);
-      setTimeout(() => setShowItemsAlert(false), 5000);
+      setTimeout(() => setShowItemsAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
     }, 500);
   }, [ficha, onUpdateFicha]);
 

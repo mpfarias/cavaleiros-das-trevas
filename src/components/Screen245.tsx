@@ -9,6 +9,7 @@ import VolumeControl from './ui/VolumeControl';
 import BattleSystem from './BattleSystem';
 import DiceRollModal3D from './ui/DiceRollModal3D';
 import { GameAlert } from './ui/GameAlert';
+import { NOTIFICATION_CONFIG } from '../constants/character';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import cavaleiroImg from '../assets/images/personagens/cavaleiro05.png';
@@ -101,7 +102,7 @@ const Screen245: React.FC<Screen245Props> = ({ onGoToScreen, ficha, onUpdateFich
           
           setTimeout(() => waitForBattleSystem(), 150);
         }, 500);
-      }, 3000);
+      }, NOTIFICATION_CONFIG.autoHideDuration);
     } else {
       // Falha! Estrela acertou = morte instantânea
       setSkillResult(`Você falhou no teste de Perícia! Dados: ${total} - A estrela de Metal-Cruel perfura seu corpo. A dor é insuportável... e então... nada.`);

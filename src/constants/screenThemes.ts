@@ -423,6 +423,7 @@ export const SCREEN_THEMES: Record<number | string, ThemeName> = {
   
   // Tema Esgotos
   70: 'sewers',
+  154: 'sewers',
   170: 'sewers',
   180: 'sewers',
   356: 'sewers',
@@ -448,9 +449,10 @@ export const SCREEN_THEMES: Record<number | string, ThemeName> = {
   335: 'dark-knights',
   394: 'dark-knights',
   
-  // Tema Laboratório do Mago
+  // Tema Laboratório do Mago (Santuário de Hegmar)
   105: 'wizard-room',
-  
+  147: 'wizard-room',
+
   // Todas as outras telas usam o tema padrão (não precisa listar todas)
 };
 

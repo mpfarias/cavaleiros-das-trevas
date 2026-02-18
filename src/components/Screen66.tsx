@@ -8,6 +8,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import { useState, useCallback } from 'react';
 import { GameAlert } from './ui/GameAlert';
+import { NOTIFICATION_CONFIG } from '../constants/character';
 import type { Ficha } from '../types';
 
 // Imports das imagens dos itens
@@ -344,7 +345,7 @@ const Screen66: React.FC<Screen66Props> = ({ onGoToScreen, ficha, onUpdateFicha 
             
             // Mostrar alert de erro
             setShowPurchaseAlert(true);
-            setTimeout(() => setShowPurchaseAlert(false), 3000);
+            setTimeout(() => setShowPurchaseAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
             
             setShowPurchaseDialog(false);
             setSelectedItem(null);
@@ -435,12 +436,12 @@ const Screen66: React.FC<Screen66Props> = ({ onGoToScreen, ficha, onUpdateFicha 
       
       // Mostrar alert de compra
       setShowPurchaseAlert(true);
-      setTimeout(() => setShowPurchaseAlert(false), 3000);
+      setTimeout(() => setShowPurchaseAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
       
       // Mostrar alert de moedas após 1 segundo
       setTimeout(() => {
         setShowMoneyAlert(true);
-        setTimeout(() => setShowMoneyAlert(false), 3000);
+        setTimeout(() => setShowMoneyAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
       }, 1000);
       
       // Fechar o modal por último

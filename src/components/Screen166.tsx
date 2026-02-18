@@ -5,6 +5,7 @@ import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
 import VolumeControl from './ui/VolumeControl';
 import { GameAlert } from './ui/GameAlert';
+import { NOTIFICATION_CONFIG } from '../constants/character';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import type { Ficha } from '../types';
@@ -120,7 +121,7 @@ const Screen166: React.FC<Screen166Props> = ({ onGoToScreen, ficha, onUpdateFich
       
       // Mostrar alert de perda de sorte
       setShowLuckAlert(true);
-      setTimeout(() => setShowLuckAlert(false), 3000);
+      setTimeout(() => setShowLuckAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
     }
   }, [luckApplied, ficha, onUpdateFicha]);
 

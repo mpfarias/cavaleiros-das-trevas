@@ -1,5 +1,6 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useCharacterValidation } from '../hooks/useCharacterValidation';
 import Screen86 from '../components/Screen86';
 import Screen54 from '../components/Screen54';
 import Screen43 from '../components/Screen43';
@@ -34,12 +35,15 @@ import Screen113 from '../components/Screen113';
 import Screen20 from '../components/Screen20';
 import Screen52 from '../components/Screen52';
 import Screen126 from '../components/Screen126';
+import Screen137 from '../components/Screen137';
 import Screen134 from '../components/Screen134';
 import Screen208 from '../components/Screen208';
 import Screen233 from '../components/Screen233';
 import Screen272 from '../components/Screen272';
 import Screen301 from '../components/Screen301';
 import Screen351 from '../components/Screen351';
+import Screen143 from '../components/Screen143';
+import Screen147 from '../components/Screen147';
 import Screen145 from '../components/Screen145';
 import Screen190 from '../components/Screen190';
 import Screen28 from '../components/Screen28';
@@ -73,6 +77,8 @@ import Screen70 from '../components/Screen70';
 import Screen2 from '../components/Screen2';
 import Screen22 from '../components/Screen22';
 import Screen24 from '../components/Screen24';
+import Screen100 from '../components/Screen100';
+import Screen392 from '../components/Screen392';
 import Screen102 from '../components/Screen102';
 import Screen105 from '../components/Screen105';
 import Screen211 from '../components/Screen211';
@@ -83,6 +89,7 @@ import Screen225 from '../components/Screen225';
 import Screen57 from '../components/Screen57';
 import Screen118 from '../components/Screen118';
 import Screen164 from '../components/Screen164';
+import Screen154 from '../components/Screen154';
 import Screen356 from '../components/Screen356';
 import Screen389 from '../components/Screen389';
 import GameOverScreen from '../components/GameOverScreen';
@@ -118,6 +125,7 @@ const DEATH_MESSAGES: Record<number, { reason: string; location: string }> = {
 const ScreenRouter: React.FC<ScreenRouterProps> = ({ ficha: fichaFromProps, onGameResult, onAdjustSorte, onFichaChange }) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { validateForStart } = useCharacterValidation();
   const screenId = Number(id);
 
   // 🔥 SOLUÇÃO: Sempre usar a ficha mais recente do localStorage
@@ -153,6 +161,13 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({ ficha: fichaFromProps, onGa
   if (!ficha || !ficha.bolsa || !Array.isArray(ficha.bolsa)) {
     console.warn('🎲 [ScreenRouter] Ficha inválida detectada, redirecionando para início');
     navigate('/', { replace: true });
+    return null;
+  }
+
+  // Bloquear acesso direto via URL: se a ficha não está preenchida (nome, atributos, ouro), redireciona para /sheet
+  const startValidation = validateForStart(ficha);
+  if (!startValidation.isValid) {
+    navigate('/sheet', { replace: true, state: { fromGameBlock: true } });
     return null;
   }
 
@@ -212,6 +227,18 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({ ficha: fichaFromProps, onGa
   if (screenId === 140) {
     return (
       <Screen140 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 143) {
+    return (
+      <Screen143 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 147) {
+    return (
+      <Screen147 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
     );
   }
 
@@ -369,6 +396,13 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({ ficha: fichaFromProps, onGa
       <Screen126 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
     );
   }
+
+  if (screenId === 137) {
+    return (
+      <Screen137 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
   if (screenId === 134) {
     return (
       <Screen134 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} onAdjustSorte={onAdjustSorte} />
@@ -596,6 +630,18 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({ ficha: fichaFromProps, onGa
     );
   }
 
+  if (screenId === 100) {
+    return (
+      <Screen100 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 392) {
+    return (
+      <Screen392 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
   if (screenId === 102) {
     return (
       <Screen102 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} onAdjustSorte={onAdjustSorte} />
@@ -665,6 +711,12 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({ ficha: fichaFromProps, onGa
   if (screenId === 164) {
     return (
       <Screen164 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 154) {
+    return (
+      <Screen154 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
     );
   }
 

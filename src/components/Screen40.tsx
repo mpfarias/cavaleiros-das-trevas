@@ -5,6 +5,7 @@ import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
 import VolumeControl from './ui/VolumeControl';
 import { GameAlert } from './ui/GameAlert';
+import { NOTIFICATION_CONFIG } from '../constants/character';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import type { Ficha, Item } from '../types';
@@ -124,7 +125,7 @@ const Screen40: React.FC<Screen40Props> = ({ onGoToScreen, ficha, onUpdateFicha 
       
       // Mostrar alert de item ganho
       setShowItemAlert(true);
-      setTimeout(() => setShowItemAlert(false), 3000);
+      setTimeout(() => setShowItemAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
     }
   }, [itemAdded, ficha, onUpdateFicha]);
 

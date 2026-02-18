@@ -3,6 +3,7 @@ import { Box, Typography, Button } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useClickSound } from '../hooks/useClickSound';
 import { GameAlert } from './ui/GameAlert';
+import { NOTIFICATION_CONFIG } from '../constants/character';
 import DiceRollModal3D from './ui/DiceRollModal3D';
 import GameOverScreen from './GameOverScreen';
 import type { Ficha } from '../types';
@@ -596,7 +597,7 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
     setShowLuckDiceModal(false);
     setLuckTestType(null);
     setShowLuckAlert(true);
-    setTimeout(() => setShowLuckAlert(false), 3000);
+    setTimeout(() => setShowLuckAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
     if (deferTurnResolve && onTurnResolved && currentTurnResult && currentTurnResult.turn === currentTurn) {
       onTurnResolved({
         ...currentTurnResult,

@@ -8,6 +8,7 @@ import { createThemedComponents } from './common/ScreenThemedComponents';
 import VolumeControl from './ui/VolumeControl';
 import DiceRollModal3D from './ui/DiceRollModal3D';
 import { GameAlert } from './ui/GameAlert';
+import { NOTIFICATION_CONFIG } from '../constants/character';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import type { Ficha } from '../types';
@@ -116,7 +117,7 @@ const Screen211: React.FC<Screen211Props> = ({ onGoToScreen, ficha, onUpdateFich
     // Mostrar alerta de perda de FORÇA
     setTimeout(() => {
       setShowForceAlert(true);
-      setTimeout(() => setShowForceAlert(false), 3000);
+      setTimeout(() => setShowForceAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
     }, 500);
 
     // Verificar se sobreviveu

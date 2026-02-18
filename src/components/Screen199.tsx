@@ -4,6 +4,7 @@ import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
 import { GameAlert } from './ui/GameAlert';
+import { NOTIFICATION_CONFIG } from '../constants/character';
 import VolumeControl from './ui/VolumeControl';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
@@ -171,7 +172,7 @@ const Screen199: React.FC<Screen199Props> = ({ onGoToScreen, ficha, onUpdateFich
       weaponRemovedRef.current = true;
       
       // Ocultar alerta após 5 segundos
-      setTimeout(() => setShowWeaponAlert(false), 5000);
+      setTimeout(() => setShowWeaponAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
       
       // Arma removida com sucesso
     } else {

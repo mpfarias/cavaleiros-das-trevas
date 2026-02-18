@@ -10,6 +10,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { GameAlert } from './ui/GameAlert';
+import { NOTIFICATION_CONFIG } from '../constants/character';
 import type { Ficha } from '../types';
 import bartolphImg from '../assets/images/personagens/bartolph.png';
 
@@ -201,7 +202,7 @@ const Screen54: React.FC<Screen54Props> = ({ onGoToScreen, ficha, onUpdateFicha 
         setTimeout(() => {
           setShowMoneyAlert(true);
           // Ocultar após 5 segundos
-          setTimeout(() => setShowMoneyAlert(false), 5000);
+          setTimeout(() => setShowMoneyAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
         }, 500);
         
         // Marcar que o alerta já foi mostrado

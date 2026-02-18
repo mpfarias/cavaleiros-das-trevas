@@ -1,32 +1,17 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { Box, Card, CardContent, Typography, IconButton, Tooltip, Button } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
 import VolumeControl from './ui/VolumeControl';
-import ImageModal from './ui/ImageModal';
-import { GameAlert } from './ui/GameAlert';
-import { NOTIFICATION_CONFIG } from '../constants/character';
 import DiceRollModal3D from './ui/DiceRollModal3D';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import type { Ficha } from '../types';
-import bartolphImg from '../assets/images/personagens/bartolph.png';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
-`;
-
-const fadeInImage = keyframes`
-  from {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
 `;
 
 const Container = styled(Box)({
@@ -106,103 +91,20 @@ const ChoiceButton = styled('button')({
   }
 });
 
-const HoverImage = styled(Box)({
-  position: 'fixed',
-  zIndex: 1500,
-  pointerEvents: 'none',
-  animation: `${fadeInImage} 0.3s ease-out`,
-  '& img': {
-    maxWidth: '400px',
-    maxHeight: '400px',
-    borderRadius: '12px',
-    border: '3px solid #8B4513',
-    boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
-    backgroundColor: 'transparent'
-  }
-});
-
-const LocationLink = styled('span')({
-  color: '#8B4513',
-  textDecoration: 'underline',
-  cursor: 'pointer',
-  fontWeight: 600,
-  transition: 'color 0.2s ease',
-  '&:hover': {
-    color: '#A0522D'
-  }
-});
-
-interface Screen243Props {
+interface Screen100Props {
   onGoToScreen: (screenId: number) => void;
   ficha: Ficha;
   onUpdateFicha: (ficha: Ficha) => void;
 }
 
-const Screen243: React.FC<Screen243Props> = ({ onGoToScreen, ficha, onUpdateFicha }) => {
-  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(243);
+const Screen100: React.FC<Screen100Props> = ({ onGoToScreen, ficha, onUpdateFicha: _onUpdateFicha }) => {
+  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(100);
   const playClick = useClickSound(0.2);
-  const [showGoldAlert, setShowGoldAlert] = useState(false);
-  const [goldAdded, setGoldAdded] = useState(false);
   const [diceModalOpen, setDiceModalOpen] = useState(false);
   const [testComplete, setTestComplete] = useState(false);
   const [testPassed, setTestPassed] = useState(false);
-  const [hoverImage, setHoverImage] = useState<{ src: string; x: number; y: number } | null>(null);
-  const [showImageModal, setShowImageModal] = useState(false);
 
   const periciaAtual = ficha.pericia.atual;
-
-  // Handlers para Bartolph
-  const handleBartolphHover = useCallback((event: React.MouseEvent) => {
-    setHoverImage({
-      src: bartolphImg,
-      x: event.clientX + 20,
-      y: event.clientY - 20
-    });
-  }, []);
-
-  const handleBartolphLeave = useCallback(() => {
-    setHoverImage(null);
-  }, []);
-
-  const handleBartolphMove = useCallback((event: React.MouseEvent) => {
-    setHoverImage(prev => prev ? {
-      ...prev,
-      x: event.clientX + 20,
-      y: event.clientY - 20
-    } : null);
-  }, []);
-
-  const handleBartolphClick = useCallback(() => {
-    playClick();
-    setShowImageModal(true);
-  }, [playClick]);
-
-  // Adicionar 1 moeda de ouro quando a tela carregar
-  useEffect(() => {
-    if (!goldAdded) {
-      const fichaAtualizada: Ficha = {
-        ...ficha,
-        bolsa: [
-          ...ficha.bolsa,
-          {
-            id: `ouro_bartolph_${Date.now()}`,
-            nome: 'Moedas de Ouro',
-            tipo: 'ouro',
-            quantidade: 1,
-            descricao: 'Moeda encontrada no corpo de Bartolph',
-            adquiridoEm: 'Revistar corpo de Bartolph'
-          }
-        ]
-      };
-      
-      onUpdateFicha(fichaAtualizada);
-      setGoldAdded(true);
-      
-      // Mostrar alert de ouro
-      setShowGoldAlert(true);
-      setTimeout(() => setShowGoldAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
-    }
-  }, [goldAdded, ficha, onUpdateFicha]);
 
   const testarPericia = () => {
     playClick();
@@ -211,30 +113,15 @@ const Screen243: React.FC<Screen243Props> = ({ onGoToScreen, ficha, onUpdateFich
 
   const handleDiceComplete = (_dice: number[], total: number) => {
     setDiceModalOpen(false);
-    
     const passou = total <= periciaAtual;
     setTestPassed(passou);
     setTestComplete(true);
-
-    // Se não passou, redireciona para tela 199
-    if (!passou) {
-      setTimeout(() => {
-        onGoToScreen(199);
-      }, 4000);
-    }
   };
 
   return (
-    <Container data-screen="screen-243">
-      {/* Alert de ouro ganho */}
-      <GameAlert sx={{ top: '120px' }} $isVisible={showGoldAlert}>
-        💰 Você ganhou 1 Moeda de Ouro!
-      </GameAlert>
-
-      {/* Controle de Volume */}
+    <Container data-screen="screen-100">
       <VolumeControl />
-      
-      {/* Controle de Música */}
+
       <Box
         sx={{
           position: 'fixed',
@@ -274,16 +161,7 @@ const Screen243: React.FC<Screen243Props> = ({ onGoToScreen, ficha, onUpdateFich
       <CardWrap>
         <CardContent sx={{ padding: '40px' }}>
           <NarrativeText>
-            O fruto da sua busca no corpo do patife é 1 Moeda de Ouro — a magra quantia que <LocationLink
-              onMouseEnter={handleBartolphHover}
-              onMouseLeave={handleBartolphLeave}
-              onMouseMove={handleBartolphMove}
-              onClick={handleBartolphClick}
-            >Bartolph</LocationLink> provavelmente pagou para que o matassem.
-            <br/><br/>
-            Você guarda a moeda, mas não há tempo a perder: os guardas já estão se aproximando e logo atiram uma rede pesada em sua direção.
-            <br/><br/>
-            Você precisa desviar!
+            Você pega impulso e salta a cerca. Teste sua HABILIDADE.
             {!testComplete && (
               <>
                 <br/><br/>
@@ -294,12 +172,16 @@ const Screen243: React.FC<Screen243Props> = ({ onGoToScreen, ficha, onUpdateFich
 
           {!testComplete && (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px', alignItems: 'center' }}>
-              <Button variant="contained" onClick={testarPericia} sx={{
-                background: 'linear-gradient(135deg, rgba(139,69,19,0.9) 0%, rgba(160,82,45,0.8) 100%)',
-                border: '1px solid #D2B48C',
-                fontFamily: '"Cinzel", serif',
-                fontWeight: 700
-              }}>
+              <Button
+                variant="contained"
+                onClick={testarPericia}
+                sx={{
+                  background: 'linear-gradient(135deg, rgba(139,69,19,0.9) 0%, rgba(160,82,45,0.8) 100%)',
+                  border: '1px solid #D2B48C',
+                  fontFamily: '"Cinzel", serif',
+                  fontWeight: 700
+                }}
+              >
                 Testar a Perícia (2d6)
               </Button>
               <Typography variant="caption" sx={{ color: '#3d2817' }}>
@@ -310,44 +192,38 @@ const Screen243: React.FC<Screen243Props> = ({ onGoToScreen, ficha, onUpdateFich
 
           {testComplete && testPassed && (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
-              <Typography sx={{ 
-                color: '#2E7D32', 
-                fontWeight: 700, 
+              <Typography sx={{
+                color: '#2E7D32',
+                fontWeight: 700,
                 textAlign: 'center',
                 fontFamily: '"Cinzel", serif',
                 fontSize: '18px',
                 marginBottom: '16px'
               }}>
-                ✅ Você conseguiu desviar da rede!
+                ✅ Você passou no teste!
               </Typography>
-
-              <ChoiceButton onClick={() => {
-                playClick();
-                onGoToScreen(360);
-              }}>
-                Fugir pela rua
-              </ChoiceButton>
-
-              <ChoiceButton onClick={() => {
-                playClick();
-                onGoToScreen(262);
-              }}>
-                Se enfiar em um beco estreito
+              <ChoiceButton onClick={() => { playClick(); onGoToScreen(238); }}>
+                Pular a cerca
               </ChoiceButton>
             </Box>
           )}
 
           {testComplete && !testPassed && (
-            <Typography sx={{ 
-              color: '#D32F2F', 
-              fontWeight: 700, 
-              textAlign: 'center',
-              fontFamily: '"Cinzel", serif',
-              fontSize: '18px',
-              marginTop: '16px'
-            }}>
-              ❌ Você falhou no teste, você foi preso!
-            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
+              <Typography sx={{
+                color: '#D32F2F',
+                fontWeight: 700,
+                textAlign: 'center',
+                fontFamily: '"Cinzel", serif',
+                fontSize: '18px',
+                marginBottom: '16px'
+              }}>
+                ❌ Você falhou no teste.
+              </Typography>
+              <ChoiceButton onClick={() => { playClick(); onGoToScreen(203); }}>
+                Você não conseguiu
+              </ChoiceButton>
+            </Box>
           )}
 
           <DiceRollModal3D
@@ -358,29 +234,8 @@ const Screen243: React.FC<Screen243Props> = ({ onGoToScreen, ficha, onUpdateFich
           />
         </CardContent>
       </CardWrap>
-
-      {/* Hover Image */}
-      {hoverImage && (
-        <HoverImage
-          sx={{
-            left: hoverImage.x,
-            top: hoverImage.y
-          }}
-        >
-          <img src={hoverImage.src} alt="" />
-        </HoverImage>
-      )}
-
-      {/* Image Modal */}
-      <ImageModal
-        open={showImageModal}
-        onClose={() => setShowImageModal(false)}
-        imageSrc={bartolphImg}
-        imageAlt="Bartolph"
-      />
     </Container>
   );
 };
 
-export default Screen243;
-
+export default Screen100;

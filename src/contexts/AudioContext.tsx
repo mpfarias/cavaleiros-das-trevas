@@ -92,6 +92,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
 
     const tryPlay = async () => {
       try {
+        if (!audioRef.current) return;
         await audioRef.current.play();
         setAutoplayBlocked(false);
       } catch (error) {

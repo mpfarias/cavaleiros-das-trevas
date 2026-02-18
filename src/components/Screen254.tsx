@@ -5,6 +5,7 @@ import { useClickSound } from '../hooks/useClickSound';
 import { useScreenTheme } from '../hooks/useScreenTheme';
 import { createThemedComponents } from './common/ScreenThemedComponents';
 import { GameAlert } from './ui/GameAlert';
+import { NOTIFICATION_CONFIG } from '../constants/character';
 import VolumeControl from './ui/VolumeControl';
 import ImageModal from './ui/ImageModal';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -107,7 +108,7 @@ const Screen254: React.FC<Screen254Props> = ({ onGoToScreen, ficha, onUpdateFich
       // Mostrar alerta de perda de FORÇA
       setTimeout(() => {
         setShowForceAlert(true);
-        setTimeout(() => setShowForceAlert(false), 4000);
+        setTimeout(() => setShowForceAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
       }, 500);
 
       // Verificar se FORÇA zerou (Game Over)

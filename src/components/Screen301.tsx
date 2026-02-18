@@ -7,6 +7,7 @@ import VolumeControl from './ui/VolumeControl';
 import ImageModal from './ui/ImageModal';
 import DiceRollModal3D from './ui/DiceRollModal3D';
 import { GameAlert } from './ui/GameAlert';
+import { NOTIFICATION_CONFIG } from '../constants/character';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import type { Ficha } from '../types';
@@ -303,7 +304,7 @@ const Screen301: React.FC<Screen301Props> = ({ onGoToScreen, ficha, onUpdateFich
       
       // Mostrar alerta de foguetes usados
       setShowFoguetesAlert(true);
-      setTimeout(() => setShowFoguetesAlert(false), 3000);
+      setTimeout(() => setShowFoguetesAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
     }
     
     // Subtrair pontos de sorte

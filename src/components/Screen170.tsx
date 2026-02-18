@@ -9,6 +9,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import type { Ficha } from '../types';
 import { GameAlert } from './ui/GameAlert';
+import { NOTIFICATION_CONFIG } from '../constants/character';
 import slygoreRoar from '../assets/sounds/slygore-roar.mp3';
 
 interface Screen170Props {
@@ -48,7 +49,7 @@ const Screen170: React.FC<Screen170Props> = ({ onGoToScreen, ficha, onUpdateFich
     if (updated.forca && typeof updated.forca.atual === 'number') {
       updated.forca.atual = Math.max(0, updated.forca.atual - 3);
       setShowForceAlert(true);
-      setTimeout(() => setShowForceAlert(false), 4000);
+      setTimeout(() => setShowForceAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
     }
 
     onUpdateFicha(updated);

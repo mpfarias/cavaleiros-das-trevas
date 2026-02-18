@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Card, CardContent, Typography, IconButton, Tooltip } from '@mui/material';
+import React from 'react';
+import { Box, Card, CardContent, IconButton, Tooltip } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
-import { GameAlert } from './ui/GameAlert';
-import { NOTIFICATION_CONFIG } from '../constants/character';
 import VolumeControl from './ui/VolumeControl';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
+import type { Ficha } from '../types';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -49,7 +48,7 @@ const CardWrap = styled(Card)({
   overflow: 'visible'
 });
 
-const NarrativeText = styled(Typography)({
+const NarrativeText = styled('p')({
   fontFamily: '"Spectral", serif',
   fontSize: 'clamp(16px, 2vw, 18px)',
   lineHeight: 1.8,
@@ -91,52 +90,20 @@ const ChoiceButton = styled('button')({
   }
 });
 
-interface Screen175Props {
+interface Screen137Props {
   onGoToScreen: (screenId: number) => void;
-  ficha: any;
-  onUpdateFicha: (ficha: any) => void;
+  ficha: Ficha;
+  onUpdateFicha: (ficha: Ficha) => void;
 }
 
-const Screen175: React.FC<Screen175Props> = ({ onGoToScreen, ficha: _ficha, onUpdateFicha: _onUpdateFicha }) => {
-  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(162);
+const Screen137: React.FC<Screen137Props> = ({ onGoToScreen, ficha: _ficha, onUpdateFicha: _onUpdateFicha }) => {
+  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(137);
   const playClick = useClickSound(0.2);
-  
-  const [moedasPerdidas, setMoedasPerdidas] = useState(0);
-  const [showMoneyAlert, setShowMoneyAlert] = useState(false);
-
-  useEffect(() => {
-    // Calcular moedas perdidas baseado na aposta anterior
-    try {
-      const apostaAnterior = localStorage.getItem('cavaleiro:apostaBartolph');
-      if (apostaAnterior) {
-        const valorApostado = parseInt(apostaAnterior);
-        setMoedasPerdidas(valorApostado);
-        
-        // Mostrar alerta com delay e ocultar após 5 segundos
-        setTimeout(() => {
-          setShowMoneyAlert(true);
-          // Ocultar após 5 segundos
-          setTimeout(() => setShowMoneyAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
-        }, 500);
-        
-        // Limpar localStorage após mostrar o alert
-        localStorage.removeItem('cavaleiro:apostaBartolph');
-      }
-    } catch (error) {
-      console.error('❌ [Screen175] Erro ao ler aposta anterior:', error);
-    }
-  }, []);
 
   return (
-    <Container data-screen="screen-175">
-      {/* Controle de Volume */}
+    <Container data-screen="screen-137">
       <VolumeControl />
-      
-      {/* Alerta de perda de dinheiro */}
-      <GameAlert sx={{ top: '120px' }} $isVisible={showMoneyAlert}>
-        💰 {moedasPerdidas > 0 ? `${moedasPerdidas} moedas perdidas na aposta!` : 'Moedas perdidas na aposta!'}
-      </GameAlert>
-      
+
       <Box
         sx={{
           position: 'fixed',
@@ -146,47 +113,54 @@ const Screen175: React.FC<Screen175Props> = ({ onGoToScreen, ficha: _ficha, onUp
         }}
       >
         <Tooltip title={currentGroup ? (isPlaying ? 'Pausar música' : 'Tocar música') : 'Nenhuma música carregada'}>
-          <span><IconButton
-            onClick={() => {
-              playClick();
-              togglePlay();
-            }}
-            disabled={!currentGroup}
-            sx={{
-              color: currentGroup ? (isPlaying ? '#B31212' : '#E0DFDB') : '#666',
-              background: 'rgba(15,17,20,0.8)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              opacity: currentGroup ? 1 : 0.5,
-              '&:hover': currentGroup ? {
-                background: 'rgba(179,18,18,0.2)',
-                borderColor: 'rgba(255,255,255,0.3)',
-              } : {},
-              '&:disabled': {
-                cursor: 'not-allowed'
-              }
-            }}
-          >
-            {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-          </IconButton></span>
+          <span>
+            <IconButton
+              onClick={() => {
+                playClick();
+                togglePlay();
+              }}
+              disabled={!currentGroup}
+              sx={{
+                color: currentGroup ? (isPlaying ? '#B31212' : '#E0DFDB') : '#666',
+                background: 'rgba(15,17,20,0.8)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                opacity: currentGroup ? 1 : 0.5,
+                '&:hover': currentGroup ? {
+                  background: 'rgba(179,18,18,0.2)',
+                  borderColor: 'rgba(255,255,255,0.3)',
+                } : {},
+                '&:disabled': {
+                  cursor: 'not-allowed'
+                }
+              }}
+            >
+              {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
+            </IconButton>
+          </span>
         </Tooltip>
       </Box>
 
       <CardWrap>
         <CardContent sx={{ padding: '40px' }}>
           <NarrativeText>
-            Bartolph aproxima o rosto sorridente do seu e anuncia:
+            O homem veste roupas negras justas. Seu rosto parece jovem, embora marcado por rugas, e o cabelo é curto.
             <br/><br/>
-            — Desculpe, mas acabou por agora. Não gosto de jogar com derrotados e, além disso... preciso dormir. O jogo terminou!
+            &quot;Gastamos tempo demais tentando acalmar nossos vizinhos!&quot; — grita, furioso.
             <br/><br/>
-            A proximidade dele faz sua pele arder e um nó apertar sua garganta. Você perdeu o ouro que apostou. Por fim, você se levanta e deixa a taverna Primeiro Passo.
+            &quot;Foram eles que começaram a Guerra dos Quatro Reinos. E ainda assim somos nós que nos humilhamos para negociar! Não devemos abandonar o que é nosso por direito! Femphrey nos destruiu — a nós, que somos superiores e que teríamos vencido a guerra, não fosse Tantalon, que nos traiu!&quot;
+            <br/><br/>
+            &quot;O traidor! Queremos o que é nosso! Queremos que Gallantaria recupere sua honra! Queremos guerra!&quot;
+            <br/><br/>
+            Apesar da fúria do orador, muitos parecem concordar com ele. Mas alguém precisa enfrentá-lo.
           </NarrativeText>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
-            <ChoiceButton onClick={() => {
-              playClick();
-              onGoToScreen(30);
-            }}>
-              Deixar a taverna
+            <ChoiceButton onClick={() => { playClick(); onGoToScreen(205); }}>
+              Discutir com ele
+            </ChoiceButton>
+
+            <ChoiceButton onClick={() => { playClick(); onGoToScreen(149); }}>
+              Dar um soco para fazê-lo se calar
             </ChoiceButton>
           </Box>
         </CardContent>
@@ -195,5 +169,4 @@ const Screen175: React.FC<Screen175Props> = ({ onGoToScreen, ficha: _ficha, onUp
   );
 };
 
-export default Screen175;
-
+export default Screen137;

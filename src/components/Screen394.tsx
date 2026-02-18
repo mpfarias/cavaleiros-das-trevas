@@ -9,6 +9,7 @@ import VolumeControl from './ui/VolumeControl';
 import BattleSystem from './BattleSystem';
 import DiceRollModal3D from './ui/DiceRollModal3D';
 import { GameAlert } from './ui/GameAlert';
+import { NOTIFICATION_CONFIG } from '../constants/character';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import cavaleiroImg from '../assets/images/personagens/cavaleiro02.png';
@@ -95,7 +96,7 @@ const Screen394: React.FC<Screen394Props> = ({ onGoToScreen, ficha, onUpdateFich
     }
     
     setShowDaggerAlert(true);
-    setTimeout(() => setShowDaggerAlert(false), 3000);
+    setTimeout(() => setShowDaggerAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
     
     // Resolve a Promise após um pequeno delay para garantir que o modal fechou
     setTimeout(() => {

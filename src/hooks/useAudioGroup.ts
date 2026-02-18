@@ -130,10 +130,13 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   389: 'arabic',                // Fuga bem-sucedida após confusão (rota /game/389) - bgm-arabic.mp3
   57: 'arabic',                 // Multidão na Praça Masonic (rota /game/57) - bgm-arabic.mp3
   118: 'royal-lendle',          // Pátio dos Oradores (rota /game/118) - people.mp3
+  137: 'royal-lendle',          // Orador em preto - Pátio dos Oradores (rota /game/137) - people.mp3
   164: 'temple',                // Templo dos Geomagos (rota /game/164) - bgm-temple.mp3
   264: 'temple',                // Escolha correta da Lua (rota /game/264) - bgm-temple.mp3
   254: 'temple',                // Desafio da Terra-Mãe (rota /game/254) - bgm-temple.mp3
+  100: 'chase',                 // Salto na cerca - teste de perícia (rota /game/100) - bgm-running.mp3
   292: 'chase',                 // Telhado - guarda ofegante (rota /game/292) - bgm-running.mp3
+  392: 'chase',                 // Luta com guarda no telhado (rota /game/392) - bgm-running.mp3
   328: 'chase',                 // Cozinha - fuga pela porta dos fundos (rota /game/328) - bgm-running.mp3
   351: 'chase',                 // Rua estreita à esquerda (rota /game/351) - bgm-running.mp3
   145: 'creepy',                // Cavaleiros das Trevas (rota /game/145) - bgm-creepy.mp3
@@ -157,6 +160,7 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   262: 'chase',                 // Beco sem saída - Guarda solitário (rota /game/262) - bgm-running.mp3
   375: 'sewers',                // Esgotos - Encontro com Slygore (rota /game/375) - bgm-sewers.mp3
   356: 'sewers',                // Teste de sorte - Fuga do Slygore (rota /game/356) - bgm-sewers.mp3
+  154: 'sewers',                // Slygore cospe - teste de Perícia (rota /game/154) - bgm-sewers.mp3
   70: 'battle',                 // Slygore - áudio de batalha (rota /game/70) - bgm-battle.mp3
   2: 'hiding',                  // Salto na ravina (rota /game/2) - usa o mesmo da tela 72
   24: 'hiding',                 // Alcançar o trilho após salto (rota /game/24) - bgm-hiding.mp3
@@ -164,7 +168,9 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   170: 'battle',                // Após usar candeia contra Slygore (rota /game/170) - bgm-battle.mp3
   180: 'battle',                // Escolha: subir ou lutar (rota /game/180) - bgm-battle.mp3
   33: 'tattoo',                 // Loja de tatuagens - Rogmondo (rota /game/33) - bgm-tatoo.mp3
+  143: 'tattoo',                // Rogmondo - guardas invadem (rota /game/143) - bgm-tatoo.mp3
   105: 'wizard-room',           // Santuário de Hegmar (rota /game/105) - bgm-wizard-room.mp3
+  147: 'wizard-room',           // Documento na escrivaninha - Hegmar (rota /game/147) - bgm-wizard-room.mp3
 };
 
 export const useAudioGroup = (screenId: number | string) => {

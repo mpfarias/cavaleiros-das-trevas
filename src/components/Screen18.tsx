@@ -8,6 +8,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import type { Ficha } from '../types';
 import { GameAlert } from './ui/GameAlert';
+import { NOTIFICATION_CONFIG } from '../constants/character';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -117,7 +118,7 @@ const Screen18: React.FC<Screen18Props> = ({ onGoToScreen, ficha, onUpdateFicha 
     if (updated.forca && typeof updated.forca.atual === 'number') {
       updated.forca.atual = Math.max(0, updated.forca.atual - 1);
       setShowForceAlert(true);
-      setTimeout(() => setShowForceAlert(false), 4000);
+      setTimeout(() => setShowForceAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
     }
 
     // Aumentar 1 ponto de SORTE ATUAL (não pode ultrapassar o valor inicial)
@@ -126,7 +127,7 @@ const Screen18: React.FC<Screen18Props> = ({ onGoToScreen, ficha, onUpdateFicha 
       // Mostrar alerta de sorte após um pequeno delay para não sobrepor com o de força
       setTimeout(() => {
         setShowSorteAlert(true);
-        setTimeout(() => setShowSorteAlert(false), 4000);
+        setTimeout(() => setShowSorteAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
       }, 500);
     }
 

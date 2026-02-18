@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -19,7 +20,6 @@ import {
   Tabs,
   Tab,
   IconButton,
-
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import {
@@ -90,12 +90,16 @@ interface CharacterSheetProps {
 }
 
 const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, onVoltar, onStartCinematic }) => {
+  const location = useLocation();
+  const fromGameBlock = (location.state as { fromGameBlock?: boolean } | null)?.fromGameBlock ?? false;
+
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [bolsaModalOpen, setBolsaModalOpen] = useState(false);
   const [abaAtiva, setAbaAtiva] = useState(0);
   const [usarMeusDados, setUsarMeusDados] = useState(false);
   const [confirmStartOpen, setConfirmStartOpen] = useState(false);
   const [goldDiceModalOpen, setGoldDiceModalOpen] = useState(false);
+  const [blockWarningDismissed, setBlockWarningDismissed] = useState(false);
 
   // Contador de rolagens para cada atributo (máximo 3 por atributo)
   const [rolagensDados, setRolagensDados] = useState({
@@ -512,6 +516,46 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
           hideNotification();
         }}
       />
+
+      {fromGameBlock && !blockWarningDismissed && (
+        <Dialog
+          open
+          onClose={() => setBlockWarningDismissed(true)}
+          PaperProps={{
+            sx: {
+              padding: 2,
+              minWidth: 320,
+              textAlign: 'center',
+              background: 'linear-gradient(135deg, rgba(245,222,179,0.98), rgba(222,184,135,0.95))',
+              border: '2px solid #8B4513',
+            },
+          }}
+        >
+          <DialogTitle sx={{ fontFamily: '"Cinzel", serif', color: '#4a2c00' }}>
+            Aviso
+          </DialogTitle>
+          <DialogContent>
+            <Typography sx={{ color: '#3d2817', fontFamily: '"Spectral", serif' }}>
+              Você precisa preencher a ficha do seu personagem antes de seguir com a aventura!
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
+            <Button
+              variant="contained"
+              onClick={() => {
+                playClick();
+                setBlockWarningDismissed(true);
+              }}
+              sx={{
+                background: 'linear-gradient(135deg, #B31212, #8B0000)',
+                fontFamily: '"Cinzel", serif',
+              }}
+            >
+              Ok
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
 
       <Typography variant="h2" sx={{ mb: 2 }}>
         Ficha do Personagem

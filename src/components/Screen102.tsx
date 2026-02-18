@@ -7,6 +7,7 @@ import { useScreenTheme } from '../hooks/useScreenTheme';
 import { createThemedComponents } from './common/ScreenThemedComponents';
 import VolumeControl from './ui/VolumeControl';
 import { GameAlert } from './ui/GameAlert';
+import { NOTIFICATION_CONFIG } from '../constants/character';
 import ImageModal from './ui/ImageModal';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
@@ -88,7 +89,7 @@ const Screen102: React.FC<Screen102Props> = ({ onGoToScreen, ficha, onUpdateFich
       // Mostrar alert de sorte ganha
       setTimeout(() => {
         setShowSorteAlert(true);
-        setTimeout(() => setShowSorteAlert(false), 4000);
+        setTimeout(() => setShowSorteAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
       }, 500);
     }
   }, [onAdjustSorte]);

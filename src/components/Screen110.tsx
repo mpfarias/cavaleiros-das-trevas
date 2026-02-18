@@ -7,6 +7,7 @@ import { useDiceSound } from '../hooks/useDiceSound';
 import VolumeControl from './ui/VolumeControl';
 import DiceRollModal3D from './ui/DiceRollModal3D';
 import { GameAlert } from './ui/GameAlert';
+import { NOTIFICATION_CONFIG } from '../constants/character';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import type { Ficha } from '../types';
@@ -111,7 +112,7 @@ const Screen110: React.FC<Screen110Props> = ({ onGoToScreen, ficha, onUpdateFich
     // Mostrar alerta após um pequeno delay
     setTimeout(() => {
       setShowProvisionsAlert(true);
-      setTimeout(() => setShowProvisionsAlert(false), 5000);
+      setTimeout(() => setShowProvisionsAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
     }, 500);
   }, [ficha, onUpdateFicha]); // Dependências necessárias
 

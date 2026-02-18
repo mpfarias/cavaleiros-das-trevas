@@ -7,6 +7,7 @@ import { useScreenTheme } from '../hooks/useScreenTheme';
 import { createThemedComponents } from './common/ScreenThemedComponents';
 import VolumeControl from './ui/VolumeControl';
 import { GameAlert } from './ui/GameAlert';
+import { NOTIFICATION_CONFIG } from '../constants/character';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import type { Ficha } from '../types';
@@ -50,7 +51,7 @@ const Screen279: React.FC<Screen279Props> = ({ onGoToScreen, ficha, onUpdateFich
       
       // Mostrar alert de dano
       setShowDamageAlert(true);
-      setTimeout(() => setShowDamageAlert(false), 3000);
+      setTimeout(() => setShowDamageAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
     }
   }, [damageApplied, ficha, onUpdateFicha]);
 

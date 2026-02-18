@@ -4,6 +4,7 @@ import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
 import { GameAlert } from './ui/GameAlert';
+import { NOTIFICATION_CONFIG } from '../constants/character';
 import VolumeControl from './ui/VolumeControl';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
@@ -120,7 +121,7 @@ const Screen57: React.FC<Screen57Props> = ({ onGoToScreen, ficha, onUpdateFicha 
         setMoedasPerdidas(valor);
         setTimeout(() => {
           setShowMoneyAlert(true);
-          setTimeout(() => setShowMoneyAlert(false), 5000);
+          setTimeout(() => setShowMoneyAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
         }, 500);
         // Limpar após mostrar
         localStorage.removeItem('cavaleiro:moedasUsadas225');
@@ -174,7 +175,7 @@ const Screen57: React.FC<Screen57Props> = ({ onGoToScreen, ficha, onUpdateFicha 
     // Mostrar alerta de perda de FORÇA
     setTimeout(() => {
       setShowForceAlert(true);
-      setTimeout(() => setShowForceAlert(false), 4000);
+      setTimeout(() => setShowForceAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
     }, 500);
 
     // Verificar se sobreviveu

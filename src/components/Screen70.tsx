@@ -8,6 +8,7 @@ import VolumeControl from './ui/VolumeControl';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import { GameAlert } from './ui/GameAlert';
+import { NOTIFICATION_CONFIG } from '../constants/character';
 import slygoreImg from '../assets/images/personagens/slygore.png';
 
 interface Screen70Props {
@@ -59,7 +60,7 @@ const Screen70: React.FC<Screen70Props> = ({ onGoToScreen, ficha, onUpdateFicha 
     if (updated.forca && typeof updated.forca.atual === 'number') {
       updated.forca.atual = Math.max(0, updated.forca.atual - 2);
       setShowForceAlert(true);
-      setTimeout(() => setShowForceAlert(false), 4000);
+      setTimeout(() => setShowForceAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
     }
 
     // Remover arma em mãos (primeira de tipo 'arma')
@@ -70,7 +71,7 @@ const Screen70: React.FC<Screen70Props> = ({ onGoToScreen, ficha, onUpdateFicha 
         updated.bolsa.splice(idx, 1);
         setWeaponLost(removed?.nome || 'sua arma');
         setShowWeaponAlert(true);
-        setTimeout(() => setShowWeaponAlert(false), 5000);
+        setTimeout(() => setShowWeaponAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
       }
     }
 

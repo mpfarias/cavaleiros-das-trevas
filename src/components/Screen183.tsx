@@ -9,6 +9,7 @@ import VolumeControl from './ui/VolumeControl';
 import BattleSystem from './BattleSystem';
 import DiceRollModal3D from './ui/DiceRollModal3D';
 import { GameAlert } from './ui/GameAlert';
+import { NOTIFICATION_CONFIG } from '../constants/character';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import cavaleiroImg from '../assets/images/personagens/cavaleiro04.png';
@@ -129,7 +130,7 @@ const Screen183: React.FC<Screen183Props> = ({ onGoToScreen, ficha, onUpdateFich
 
                 setTimeout(() => waitForBattleSystem(), 150);
             }, 500);
-        }, 4000); // Alert fica 4 segundos para dar tempo de ler
+        }, NOTIFICATION_CONFIG.autoHideDuration);
     }, [ficha, onUpdateFicha]);
 
     const handleDefeat = () => {

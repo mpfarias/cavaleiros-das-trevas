@@ -9,6 +9,7 @@ import ImageModal from './ui/ImageModal';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import { GameAlert } from './ui/GameAlert';
+import { NOTIFICATION_CONFIG } from '../constants/character';
 import type { Ficha, Item } from '../types';
 import bartolphImg from '../assets/images/personagens/bartolph.png';
 
@@ -237,13 +238,13 @@ const Screen222: React.FC<Screen222Props> = ({ onGoToScreen, ficha, onFichaChang
       setTimeout(() => {
         setShowGoldAlert(true);
         // Ocultar após 5 segundos
-        setTimeout(() => setShowGoldAlert(false), 5000);
+        setTimeout(() => setShowGoldAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
       }, 500);
       
       setTimeout(() => {
         setShowDiceAlert(true);
         // Ocultar após 5 segundos
-        setTimeout(() => setShowDiceAlert(false), 5000);
+        setTimeout(() => setShowDiceAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
       }, 1500);
     };
 

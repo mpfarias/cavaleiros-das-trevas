@@ -33,6 +33,7 @@ import cordaGanchoImg from '../assets/images/corda-e-gancho.png';
 import espadaAcoImg from '../assets/images/espada-de-aco.png';
 import dadoViciadoImg from '../assets/images/dado-viciado.png';
 import chavePretaImg from '../assets/images/chave-preta.png';
+import pergaminhoHegmarImg from '../assets/images/pergaminho-hengmar.png';
 
 // Keyframes para animação da imagem
 const fadeInImage = keyframes`
@@ -221,9 +222,10 @@ const InventoryModal: React.FC<InventoryModalProps> = ({ open, onClose, ficha })
       'corda-e-gancho': cordaGanchoImg,
       'espada_inicial': espadaAcoImg,
       'dado-viciado': dadoViciadoImg,
-      'chave-preta': chavePretaImg
+      'chave-preta': chavePretaImg,
+      'aviso-hegmar': pergaminhoHegmarImg
     };
-    
+
     // Buscar primeiro pelo ID exato
     if (imageMap[item.id]) {
       return imageMap[item.id];
@@ -235,7 +237,8 @@ const InventoryModal: React.FC<InventoryModalProps> = ({ open, onClose, ficha })
     if (nomeLower.includes('provisão') || nomeLower.includes('provisao')) return provisoesImg;
     if (nomeLower.includes('espada') && nomeLower.includes('aço')) return espadaAcoImg;
     if (nomeLower.includes('dado') && nomeLower.includes('viciado')) return dadoViciadoImg;
-    
+    if (nomeLower.includes('aviso') && nomeLower.includes('hegmar')) return pergaminhoHegmarImg;
+
     return undefined;
   }, []);
 

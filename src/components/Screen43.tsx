@@ -8,6 +8,7 @@ import VolumeControl from './ui/VolumeControl';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import { GameAlert } from './ui/GameAlert';
+import { NOTIFICATION_CONFIG } from '../constants/character';
 import type { Ficha } from '../types';
 
 const fadeIn = keyframes`
@@ -124,7 +125,7 @@ const Screen43: React.FC<Screen43Props> = ({ onGoToScreen }) => {
         setTimeout(() => {
           setShowMoneyAlert(true);
           // Ocultar após 5 segundos
-          setTimeout(() => setShowMoneyAlert(false), 5000);
+          setTimeout(() => setShowMoneyAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
         }, 500);
       }
     } catch (error) {

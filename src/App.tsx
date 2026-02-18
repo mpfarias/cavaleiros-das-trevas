@@ -257,12 +257,8 @@ function AppContent() {
   }, [setFichaWithLog]);
 
   const handleStartAdventure = () => {
-    try {
-      localStorage.setItem('cavaleiro:screenId', '102');
-    } catch (error) {
-      console.warn('⚠️ [App] Falha ao salvar screenId:', error);
-    }
-    navigate('/game/102');
+    // Novo jogo: ir para a tela de criação de personagem (ficha). Depois o jogador segue: /sheet → /intro → /map → /game/...
+    navigate('/sheet');
   };
 
 

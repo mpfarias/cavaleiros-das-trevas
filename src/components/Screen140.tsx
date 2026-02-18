@@ -8,6 +8,7 @@ import VolumeControl from './ui/VolumeControl';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import { GameAlert } from './ui/GameAlert';
+import { NOTIFICATION_CONFIG } from '../constants/character';
 import type { Ficha } from '../types';
 
 const fadeIn = keyframes`
@@ -172,7 +173,7 @@ const Screen140: React.FC<Screen140Props> = ({ onGoToScreen, ficha, onUpdateFich
         setTimeout(() => {
           setShowForceAlert(true);
           // Ocultar após 5 segundos
-          setTimeout(() => setShowForceAlert(false), 5000);
+          setTimeout(() => setShowForceAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
         }, 500);
         
         // Verificar se veio da tela 43 para suprimir alert de moedas
@@ -185,7 +186,7 @@ const Screen140: React.FC<Screen140Props> = ({ onGoToScreen, ficha, onUpdateFich
           setTimeout(() => {
             setShowMoneyAlert(true);
             // Ocultar após 5 segundos
-            setTimeout(() => setShowMoneyAlert(false), 5000);
+            setTimeout(() => setShowMoneyAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
           }, 1500);
         } else {
           // Limpar a marca de origem
