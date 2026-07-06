@@ -4,6 +4,7 @@ import { Box, Card, CardContent, Typography, IconButton, Tooltip } from '@mui/ma
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
+import { playDamageScream } from '../hooks/useDamageScreamSound';
 import VolumeControl from './ui/VolumeControl';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
@@ -165,6 +166,7 @@ const Screen140: React.FC<Screen140Props> = ({ onGoToScreen, ficha, onUpdateFich
         
         // Atualizar a ficha
         onUpdateFicha(fichaAtualizada);
+        playDamageScream();
         
         // Marcar que as perdas foram aplicadas
         perdasAplicadasRef.current = true;

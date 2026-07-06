@@ -452,6 +452,7 @@ export const SCREEN_THEMES: Record<number | string, ThemeName> = {
   // Tema Laboratório do Mago (Santuário de Hegmar)
   105: 'wizard-room',
   147: 'wizard-room',
+  193: 'wizard-room',
 
   // Todas as outras telas usam o tema padrão (não precisa listar todas)
 };

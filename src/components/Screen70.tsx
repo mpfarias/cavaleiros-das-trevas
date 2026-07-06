@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Box, CardContent, IconButton, Tooltip } from '@mui/material';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
+import { playDamageScream } from '../hooks/useDamageScreamSound';
 import { useScreenTheme } from '../hooks/useScreenTheme';
 import { createThemedComponents } from './common/ScreenThemedComponents';
 import VolumeControl from './ui/VolumeControl';
@@ -59,6 +60,7 @@ const Screen70: React.FC<Screen70Props> = ({ onGoToScreen, ficha, onUpdateFicha 
     // -2 FORÇA
     if (updated.forca && typeof updated.forca.atual === 'number') {
       updated.forca.atual = Math.max(0, updated.forca.atual - 2);
+      playDamageScream();
       setShowForceAlert(true);
       setTimeout(() => setShowForceAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
     }

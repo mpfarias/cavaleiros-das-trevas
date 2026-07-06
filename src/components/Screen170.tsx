@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { Box, CardContent, IconButton, Tooltip } from '@mui/material';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
+import { playDamageScream } from '../hooks/useDamageScreamSound';
 import { useScreenTheme } from '../hooks/useScreenTheme';
 import { createThemedComponents } from './common/ScreenThemedComponents';
 import VolumeControl from './ui/VolumeControl';
@@ -48,6 +49,7 @@ const Screen170: React.FC<Screen170Props> = ({ onGoToScreen, ficha, onUpdateFich
     // Reduzir 3 pontos de FORÇA ATUAL (não inicial)
     if (updated.forca && typeof updated.forca.atual === 'number') {
       updated.forca.atual = Math.max(0, updated.forca.atual - 3);
+      playDamageScream();
       setShowForceAlert(true);
       setTimeout(() => setShowForceAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
     }

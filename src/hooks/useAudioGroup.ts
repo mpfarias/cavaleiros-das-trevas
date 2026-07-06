@@ -149,6 +149,8 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   279: 'creepy',                // Sucesso ao fingir-se de morto (rota /game/279) - bgm-creepy.mp3
   102: 'map',                   // Saída sul do estreito - reflexão (rota /game/102) - nature-sound-map.mp3
   113: 'map',                   // Ponte/Poço do Feiticeiro (rota /game/113) - herdado de 102
+  194: 'map',                   // Bandido na nascente - Poço do Feiticeiro (rota /game/194) - nature-sound-map.mp3
+  203: 'arabic',                // Queda do cavalo - ruas de Royal Lendle (rota /game/203) - bgm-arabic.mp3
   11: 'forest',                 // João Verdesfolhas (rota /game/11) - forest.mp3
   335: 'creepy',                // Vitória sobre Cavaleiro das Trevas (rota /game/335) - bgm-creepy.mp3
   72: 'hiding',                 // Perseguição reiniciada pelos Cavaleiros (rota /game/72) - bgm-hiding.mp3
@@ -174,6 +176,7 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   143: 'tattoo',                // Rogmondo - guardas invadem (rota /game/143) - bgm-tatoo.mp3
   105: 'wizard-room',           // Santuário de Hegmar (rota /game/105) - bgm-wizard-room.mp3
   147: 'wizard-room',           // Documento na escrivaninha - Hegmar (rota /game/147) - bgm-wizard-room.mp3
+  193: 'wizard-room',           // Armadilha do caixão - Santuário de Hegmar (rota /game/193) - bgm-wizard-room.mp3
 };
 
 export const useAudioGroup = (screenId: number | string) => {

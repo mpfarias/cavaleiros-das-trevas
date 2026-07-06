@@ -1,73 +1,33 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Box, CardContent, IconButton, Tooltip } from '@mui/material';
-import { keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
-import { playDamageScream } from '../hooks/useDamageScreamSound';
 import { useScreenTheme } from '../hooks/useScreenTheme';
 import { createThemedComponents } from './common/ScreenThemedComponents';
 import VolumeControl from './ui/VolumeControl';
-import { GameAlert } from './ui/GameAlert';
-import { NOTIFICATION_CONFIG } from '../constants/character';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import type { Ficha } from '../types';
 
-const fadeIn = keyframes`
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-`;
-
-interface Screen279Props {
+interface Screen194Props {
   onGoToScreen: (screenId: number) => void;
   ficha: Ficha;
   onUpdateFicha: (ficha: Ficha) => void;
 }
 
-const Screen279: React.FC<Screen279Props> = ({ onGoToScreen, ficha, onUpdateFicha }) => {
-  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(279);
+const Screen194: React.FC<Screen194Props> = ({ onGoToScreen, ficha: _ficha, onUpdateFicha: _onUpdateFicha }) => {
+  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(194);
   const playClick = useClickSound(0.2);
-  const theme = useScreenTheme(279);
+  const theme = useScreenTheme(194);
   const { Container, CardWrap, NarrativeText, ChoiceButton } = useMemo(
     () => createThemedComponents(theme),
     [theme]
   );
-  const [showDamageAlert, setShowDamageAlert] = useState(false);
-  const [damageApplied, setDamageApplied] = useState(false);
-
-  // Aplicar dano de 2 pontos de FORÇA quando a tela carregar
-  useEffect(() => {
-    if (!damageApplied) {
-      const novaForca = Math.max(0, ficha.forca.atual - 2);
-      const fichaAtualizada: Ficha = {
-        ...ficha,
-        forca: {
-          ...ficha.forca,
-          atual: novaForca
-        }
-      };
-      
-      onUpdateFicha(fichaAtualizada);
-      setDamageApplied(true);
-      playDamageScream();
-      
-      // Mostrar alert de dano
-      setShowDamageAlert(true);
-      setTimeout(() => setShowDamageAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
-    }
-  }, [damageApplied, ficha, onUpdateFicha]);
 
   return (
-    <Container data-screen="screen-279">
-      {/* Alert de dano */}
-      <GameAlert sx={{ top: '120px' }} $isVisible={showDamageAlert}>
-        ⚔️ Você perdeu 2 pontos de FORÇA!
-      </GameAlert>
-
-      {/* Controle de Volume */}
+    <Container data-screen="screen-194">
       <VolumeControl />
-      
-      {/* Controle de Música */}
+
       <Box
         sx={{
           position: 'fixed',
@@ -107,19 +67,28 @@ const Screen279: React.FC<Screen279Props> = ({ onGoToScreen, ficha, onUpdateFich
       <CardWrap>
         <CardContent sx={{ padding: '40px' }}>
           <NarrativeText>
-            Um dos Cavaleiros crava a espada em sua perna e fica observando friamente a sua reação.
-            <br/><br/>
-            Apesar da dor lancinante que consome seu corpo, você não demonstra fraqueza — nem um tremor, nem um gemido.
-            <br/><br/>
-            Aliviado por acreditar que o ferimento foi suficiente para abatê-lo, o Cavaleiro vira as costas e se afasta.
+            Você se aproxima da nascente e, quando está prestes a beber, ouve uma voz firme:
+            <br /><br />
+            — A bolsa ou a vida!
+            <br /><br />
+            Você se vira e dá de cara com um bandido mascarado, que aponta uma flecha para o seu peito.
+            <br /><br />
+            Ele ri.
+            <br /><br />
+            — Sem dúvida você é mais um tolo procurando o eremita. Esqueça essa ideia. Ele está morto. Fui eu quem o matou. E farei o mesmo com você... a menos que compre a sua liberdade.
+            <br /><br />
+            Enquanto fala, ele encaixa a flecha no arco e se prepara para atirar.
           </NarrativeText>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
-            <ChoiceButton onClick={() => {
-              playClick();
-              onGoToScreen(102);
-            }}>
-              Seguir
+            <ChoiceButton onClick={() => { playClick(); onGoToScreen(92); }}>
+              Atacar o bandido
+            </ChoiceButton>
+            <ChoiceButton onClick={() => { playClick(); onGoToScreen(373); }}>
+              Oferecer algumas Moedas de Ouro
+            </ChoiceButton>
+            <ChoiceButton onClick={() => { playClick(); onGoToScreen(177); }}>
+              Procurar na mochila outra coisa para lhe entregar
             </ChoiceButton>
           </Box>
         </CardContent>
@@ -128,5 +97,4 @@ const Screen279: React.FC<Screen279Props> = ({ onGoToScreen, ficha, onUpdateFich
   );
 };
 
-export default Screen279;
-
+export default Screen194;

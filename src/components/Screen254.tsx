@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { Box, CardContent, IconButton, Tooltip } from '@mui/material';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
+import { playDamageScream } from '../hooks/useDamageScreamSound';
 import { useScreenTheme } from '../hooks/useScreenTheme';
 import { createThemedComponents } from './common/ScreenThemedComponents';
 import { GameAlert } from './ui/GameAlert';
@@ -101,6 +102,7 @@ const Screen254: React.FC<Screen254Props> = ({ onGoToScreen, ficha, onUpdateFich
     if (updated.forca && typeof updated.forca.atual === 'number') {
       const novaForca = Math.max(0, updated.forca.atual - 2);
       updated.forca.atual = novaForca;
+      playDamageScream();
       
       // Atualizar ficha
       onUpdateFicha(updated);

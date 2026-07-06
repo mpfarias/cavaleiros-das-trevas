@@ -3,6 +3,7 @@ import { Box, CardContent, IconButton, Tooltip } from '@mui/material';
 import { keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
+import { playDamageScream } from '../hooks/useDamageScreamSound';
 import { useScreenTheme } from '../hooks/useScreenTheme';
 import { createThemedComponents } from './common/ScreenThemedComponents';
 import VolumeControl from './ui/VolumeControl';
@@ -48,6 +49,7 @@ const Screen190: React.FC<Screen190Props> = ({ onGoToScreen, ficha, onUpdateFich
       
       onUpdateFicha(fichaAtualizada);
       setDamageApplied(true);
+      playDamageScream();
       
       // Mostrar alert de dano
       setShowDamageAlert(true);

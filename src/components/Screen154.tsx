@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { Box, CardContent, IconButton, Tooltip, Button } from '@mui/material';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
+import { playDamageScream } from '../hooks/useDamageScreamSound';
 import { useScreenTheme } from '../hooks/useScreenTheme';
 import { createThemedComponents } from './common/ScreenThemedComponents';
 import VolumeControl from './ui/VolumeControl';
@@ -48,6 +49,7 @@ const Screen154: React.FC<Screen154Props> = ({ onGoToScreen, ficha, onUpdateFich
     if (updated.forca && typeof updated.forca.atual === 'number') {
       const novaForca = Math.max(0, updated.forca.atual - 3);
       updated.forca = { ...updated.forca, atual: novaForca };
+      playDamageScream();
       onUpdateFicha(updated);
 
       setTimeout(() => {

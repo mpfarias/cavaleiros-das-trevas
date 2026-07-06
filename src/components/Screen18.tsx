@@ -3,6 +3,7 @@ import { Box, Card, CardContent, Typography, IconButton, Tooltip } from '@mui/ma
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
+import { playDamageScream } from '../hooks/useDamageScreamSound';
 import VolumeControl from './ui/VolumeControl';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
@@ -117,6 +118,7 @@ const Screen18: React.FC<Screen18Props> = ({ onGoToScreen, ficha, onUpdateFicha 
     // Reduzir 1 ponto de FORÇA ATUAL
     if (updated.forca && typeof updated.forca.atual === 'number') {
       updated.forca.atual = Math.max(0, updated.forca.atual - 1);
+      playDamageScream();
       setShowForceAlert(true);
       setTimeout(() => setShowForceAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
     }
