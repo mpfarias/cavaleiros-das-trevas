@@ -5,7 +5,7 @@ import { useAudio } from '../hooks/useAudio';
 import { useClickSound } from '../hooks/useClickSound';
 import VolumeControl from './ui/VolumeControl';
 import ImageModal from './ui/ImageModal';
-import BattleSystem from './BattleSystem';
+import BattleSystem, { type BattleSystemHandle } from './BattleSystem';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import bartolphImg from '../assets/images/personagens/bartolph.png';
@@ -171,7 +171,7 @@ const Screen286: React.FC<Screen286Props> = ({ onGoToScreen, ficha, onUpdateFich
   
   const [battlePhase, setBattlePhase] = useState<'intro' | 'enemySelection' | 'battle' | 'victory'>('intro');
   const [currentEnemy, setCurrentEnemy] = useState<Enemy | null>(null);
-  const battleSystemRef = useRef<any>(null);
+  const battleSystemRef = useRef<BattleSystemHandle | null>(null);
   const [hoverImage, setHoverImage] = useState<{ src: string; x: number; y: number } | null>(null);
   const [showImageModal, setShowImageModal] = useState(false);
 

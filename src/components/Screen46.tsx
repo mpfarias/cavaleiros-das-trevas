@@ -4,7 +4,7 @@ import { styled, keyframes } from '@mui/material/styles';
 import { useAudio } from '../hooks/useAudio';
 import { useClickSound } from '../hooks/useClickSound';
 import VolumeControl from './ui/VolumeControl';
-import BattleSystem from './BattleSystem';
+import BattleSystem, { type BattleSystemHandle } from './BattleSystem';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import guardaImg from '../assets/images/personagens/guarda01.png';
@@ -105,7 +105,7 @@ const Screen46: React.FC<Screen46Props> = ({ onGoToScreen, ficha, onUpdateFicha 
   const [battleState, setBattleState] = useState<'intro' | 'battle' | 'victory' | 'defeat'>('intro');
   const [currentTurn, setCurrentTurn] = useState(0);
   const MAX_TURNS = 5;
-  const battleSystemRef = useRef<any>(null);
+  const battleSystemRef = useRef<BattleSystemHandle | null>(null);
   const [showBattleInfoModal, setShowBattleInfoModal] = useState(false);
 
   const stableOnUpdateFicha = useCallback((updatedFicha: any) => {

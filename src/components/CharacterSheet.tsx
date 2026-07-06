@@ -39,6 +39,7 @@ import {
 import type { Ficha, Item } from '../types';
 import { createTrulyEmptyFicha } from '../types';
 import { adicionarItem, totalOuro } from '../utils/inventory';
+import { describeArmorProtection } from '../utils/armor';
 import { DICE_FORMULAS, ITEM_COLORS } from '../constants/character';
 
 // Hooks
@@ -886,6 +887,9 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ ficha, onFichaChange, o
                                   {item.descricao}
                                 </Typography>
                               )}
+                              <Typography variant="caption" display="block" color="warning.main" sx={{ mt: 0.5 }}>
+                                {describeArmorProtection(item)}
+                              </Typography>
                               {item.adquiridoEm && (
                                 <Typography variant="caption" display="block" color="text.secondary">
                                   Obtido em: {item.adquiridoEm}

@@ -16,11 +16,14 @@ import AudioControls from './AudioControls';
 import bgmModal from '../assets/sounds/bgm-modal.mp3';
 import { useClickSound } from '../hooks/useClickSound';
 
+import { clearCheckpoint } from '../utils/save';
+
 interface HomeProps {
   onStart: () => void;
+  onLoadGame: (saveData: { ficha: unknown; lastScreen?: string; version?: string }) => void;
 }
 
-const Home: React.FC<HomeProps> = ({ onStart }) => {
+const Home: React.FC<HomeProps> = ({ onStart, onLoadGame }) => {
   const [modalExplicativoOpen, setModalExplicativoOpen] = useState(false);
   const { changeTrack, tryStartMusic } = useAudio();
 
@@ -31,6 +34,7 @@ const Home: React.FC<HomeProps> = ({ onStart }) => {
       localStorage.removeItem('cavaleiro:ficha');
       localStorage.removeItem('cavaleiro:screenId');
       localStorage.removeItem('cavaleiro:lastScreen');
+      clearCheckpoint();
     } catch (error) {
       console.warn('🏠 [Home] Erro ao limpar localStorage:', error);
     }
@@ -77,15 +81,7 @@ const Home: React.FC<HomeProps> = ({ onStart }) => {
             
             // Validar se é um arquivo de save válido
             if (saveData.ficha && saveData.version) {
-              
-              // Salvar no localStorage para que o App.tsx possa carregar
-              localStorage.setItem('cavaleiro:ficha', JSON.stringify(saveData.ficha));
-              if (saveData.lastScreen) {
-                localStorage.setItem('cavaleiro:lastScreen', saveData.lastScreen);
-              }
-              
-              // Navegar para o jogo
-              onStart();
+              onLoadGame(saveData);
             } else {
               alert('Arquivo inválido. Este não parece ser um arquivo de save do jogo.');
             }

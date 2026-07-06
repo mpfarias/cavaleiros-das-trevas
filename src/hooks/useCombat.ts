@@ -1,5 +1,11 @@
 import { useCallback } from 'react';
 import type { Ficha, Item } from '../types';
+import { getArmorMaxDurability, hasArmorCombatProtection } from '../utils/armor';
+
+export interface ApplyArmorDamageResult {
+  ficha: Ficha;
+  armorBroken?: string;
+}
 
 export const useCombat = () => {
   // Calcula o dano de uma arma baseado nos efeitos e atributos
@@ -37,59 +43,69 @@ export const useCombat = () => {
   }, []);
 
   // Aplica dano a um atributo considerando proteção da armadura
-  const applyDamageWithArmor = useCallback((ficha: Ficha, damage: number, damageType: 'forca' | 'sorte', luckTestSuccess?: boolean) => {
-    const newFicha = { ...ficha };
-    
-    // Verificar se tem armadura equipada
-    const armor = ficha.bolsa.find(item => item.tipo === 'armadura');
-    
-    if (armor && armor.efeitos?.combat?.damage) {
-      let reducedDamage = armor.efeitos.combat.damage;
-      
-      // Aplicar modificadores baseados em testes de sorte para armadura
-      if (luckTestSuccess !== undefined && armor.efeitos.combat.damageCondition) {
-        if (luckTestSuccess) {
-          // Se passou no teste de sorte, aplicar o melhor resultado
-          if (armor.efeitos.combat.damageCondition.includes('0 se sucesso em Sorte')) {
+  const applyDamageWithArmor = useCallback((
+    ficha: Ficha,
+    damage: number,
+    damageType: 'forca' | 'sorte',
+    luckTestSuccess?: boolean
+  ): ApplyArmorDamageResult => {
+    const armorIndex = ficha.bolsa.findIndex(item => item.tipo === 'armadura');
+    let finalDamage = damage;
+    let bolsa = ficha.bolsa;
+    let armorBroken: string | undefined;
+
+    if (armorIndex !== -1) {
+      const armor = ficha.bolsa[armorIndex];
+
+      if (hasArmorCombatProtection(armor)) {
+        let reducedDamage = armor.efeitos!.combat!.damage!;
+
+        if (luckTestSuccess !== undefined && armor.efeitos?.combat?.damageCondition) {
+          if (luckTestSuccess && armor.efeitos.combat.damageCondition.includes('0 se sucesso em Sorte')) {
             reducedDamage = 0;
-          }
-        } else {
-          // Se falhou no teste de sorte, aplicar o pior resultado
-          if (armor.efeitos.combat.damageCondition.includes('2 se falhar')) {
+          } else if (!luckTestSuccess && armor.efeitos.combat.damageCondition.includes('2 se falhar')) {
             reducedDamage = 2;
           }
         }
-      }
-      
-      // Reduzir durabilidade da armadura
-      if (armor.durabilidadeAtual !== undefined) {
-        armor.durabilidadeAtual = Math.max(0, armor.durabilidadeAtual - 1);
-        
-        // Se a durabilidade chegou a 0, remove a armadura
-        if (armor.durabilidadeAtual === 0) {
-          newFicha.bolsa = newFicha.bolsa.filter(item => item.id !== armor.id);
+
+        finalDamage = reducedDamage;
+
+        const maxDurability = getArmorMaxDurability(armor);
+        if (maxDurability !== undefined) {
+          const currentDurability = armor.durabilidadeAtual ?? maxDurability;
+          const nextDurability = Math.max(0, currentDurability - 1);
+
+          if (nextDurability === 0) {
+            bolsa = bolsa.filter((_, index) => index !== armorIndex);
+            armorBroken = armor.nome;
+          } else {
+            bolsa = bolsa.map((item, index) => (
+              index === armorIndex ? { ...item, durabilidadeAtual: nextDurability } : item
+            ));
+          }
         }
       }
-      
-      damage = reducedDamage;
     }
-    
-    // Aplicar o dano final ao atributo
+
+    const newFicha: Ficha = {
+      ...ficha,
+      bolsa,
+      forca: { ...ficha.forca },
+      sorte: { ...ficha.sorte },
+    };
+
     if (damageType === 'forca') {
-      newFicha.forca.atual = Math.max(0, newFicha.forca.atual - damage);
+      newFicha.forca.atual = Math.max(0, newFicha.forca.atual - finalDamage);
     } else if (damageType === 'sorte') {
-      newFicha.sorte.atual = Math.max(0, newFicha.sorte.atual - damage);
+      newFicha.sorte.atual = Math.max(0, newFicha.sorte.atual - finalDamage);
     }
-    
-    return newFicha;
+
+    return { ficha: newFicha, armorBroken };
   }, []);
 
   // Executa um ataque com uma arma
   const executeAttack = useCallback((ficha: Ficha, weapon: Item, _target: 'enemy', luckTestSuccess?: boolean) => {
     const damage = calculateWeaponDamage(weapon, ficha, luckTestSuccess);
-    
-    // Aqui você pode adicionar lógica para aplicar dano ao inimigo
-    // Por enquanto, retorna o dano calculado
     
     return {
       damage,
@@ -100,7 +116,7 @@ export const useCombat = () => {
 
   // Executa uma defesa (receber dano)
   const executeDefense = useCallback((ficha: Ficha, incomingDamage: number, damageType: 'forca' | 'sorte', luckTestSuccess?: boolean) => {
-    const newFicha = applyDamageWithArmor(ficha, incomingDamage, damageType, luckTestSuccess);
+    const { ficha: newFicha } = applyDamageWithArmor(ficha, incomingDamage, damageType, luckTestSuccess);
     
     return {
       ficha: newFicha,

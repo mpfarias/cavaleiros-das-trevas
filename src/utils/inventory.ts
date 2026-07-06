@@ -1,4 +1,5 @@
 import type { Ficha, Item } from '../types';
+import { prepareArmorItem } from './armor';
 
 /**
  * Adiciona um item à bolsa do personagem
@@ -25,9 +26,10 @@ export const adicionarItem = (ficha: Ficha, item: Omit<Item, 'id'>): Ficha => {
   // Se for arma ou armadura, remove a existente antes de adicionar a nova
   if (item.tipo === 'arma' || item.tipo === 'armadura') {
     const novaBolsa = ficha.bolsa.filter(i => i.tipo !== item.tipo);
+    const itemEquipado = item.tipo === 'armadura' ? prepareArmorItem(novoItem) : novoItem;
     return {
       ...ficha,
-      bolsa: [...novaBolsa, novoItem],
+      bolsa: [...novaBolsa, itemEquipado],
     };
   }
 

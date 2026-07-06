@@ -10,12 +10,13 @@ import MapScreen from './components/MapScreen';
 import RoyalLendleScreen from './components/RoyalLendleScreen';
 
 import type { Ficha } from './types';
-import { FichaSchema } from './types';
+import { FichaSchema, createTrulyEmptyFicha } from './types';
 import { AudioProvider } from './contexts/AudioContext';
 import './index.css';
 import InventoryModal from './components/InventoryModal';
 import { styled } from '@mui/material/styles';
 import { totalOuro, validarBolsa } from './utils/inventory';
+import { saveCheckpoint, loadCheckpoint, clearCheckpoint, isRestorableCheckpoint } from './utils/save';
 import { useItemEffects } from './hooks/useItemEffects';
 import { useBagSound } from './hooks/useBagSound';
 import SaveGameButton from './components/SaveGameButton';
@@ -279,11 +280,75 @@ function AppContent() {
     // IMPORTANTE: Salvar no localStorage ANTES de setState para garantir consistência
     try {
       localStorage.setItem('cavaleiro:ficha', JSON.stringify(fichaComModificadores));
+      if (fichaComModificadores.forca.atual > 0 && fichaComModificadores.nome) {
+        saveCheckpoint(fichaComModificadores, location.pathname);
+      }
     } catch (e) {
       console.error('🎲 [App] Falha ao salvar no localStorage:', e);
     }
     
     setFichaWithLog(fichaComModificadores);
+  };
+
+  const handleGameOverRestart = () => {
+    const emptyFicha = createTrulyEmptyFicha();
+    clearCheckpoint();
+    try {
+      localStorage.setItem('cavaleiro:ficha', JSON.stringify(emptyFicha));
+      localStorage.removeItem('cavaleiro:lastScreen');
+      localStorage.removeItem('cavaleiro:screenId');
+    } catch (e) {
+      console.warn('Erro ao resetar progresso:', e);
+    }
+    setFichaWithLog(emptyFicha);
+    navigate('/sheet');
+  };
+
+  const handleGameOverContinue = () => {
+    const checkpoint = loadCheckpoint();
+    if (!checkpoint || !isRestorableCheckpoint(checkpoint)) {
+      handleGameOverRestart();
+      return;
+    }
+
+    const validated = FichaSchema.safeParse(checkpoint.ficha);
+    if (!validated.success) {
+      handleGameOverRestart();
+      return;
+    }
+
+    const restoredFicha = validated.data;
+    try {
+      localStorage.setItem('cavaleiro:ficha', JSON.stringify(restoredFicha));
+      localStorage.setItem('cavaleiro:lastScreen', checkpoint.lastScreen);
+    } catch (e) {
+      console.warn('Erro ao restaurar checkpoint:', e);
+    }
+
+    setFichaWithLog(restoredFicha);
+    navigate(checkpoint.lastScreen || '/map');
+  };
+
+  const handleLoadGame = (saveData: { ficha: Ficha; lastScreen?: string }) => {
+    const validated = FichaSchema.safeParse(saveData.ficha);
+    if (!validated.success) {
+      alert('Arquivo de save inválido ou corrompido.');
+      return;
+    }
+
+    const restoredFicha = validarBolsa(validated.data);
+    const targetScreen = saveData.lastScreen || '/map';
+
+    try {
+      localStorage.setItem('cavaleiro:ficha', JSON.stringify(restoredFicha));
+      localStorage.setItem('cavaleiro:lastScreen', targetScreen);
+      saveCheckpoint(restoredFicha, targetScreen);
+    } catch (e) {
+      console.warn('Erro ao carregar save:', e);
+    }
+
+    setFichaWithLog(restoredFicha);
+    navigate(targetScreen);
   };
 
   const handleLocationSelect = (location: string) => {
@@ -450,7 +515,7 @@ function AppContent() {
         />
 
         <Routes>
-          <Route path="/" element={<Home onStart={handleStartAdventure} />} />
+          <Route path="/" element={<Home onStart={handleStartAdventure} onLoadGame={handleLoadGame} />} />
           <Route path="/sheet" element={<CharacterSheet ficha={ficha} onFichaChange={handleFichaChange} onVoltar={() => navigate('/')} onStartCinematic={() => {
             // Navegando para tela de introdução
             try {
@@ -472,7 +537,7 @@ function AppContent() {
             navigate('/map');
           }} ficha={ficha} />} />
 
-          <Route path="/game/:id" element={<ScreenRouter ficha={ficha} onGameResult={handleGameResult} onAdjustSorte={(delta:number)=>{
+          <Route path="/game/:id" element={<ScreenRouter ficha={ficha} onGameResult={handleGameResult} onGameOverRestart={handleGameOverRestart} onGameOverContinue={handleGameOverContinue} onAdjustSorte={(delta:number)=>{
             // Ler do localStorage para garantir a ficha mais atualizada
             let fichaAtualizada: Ficha;
             try {

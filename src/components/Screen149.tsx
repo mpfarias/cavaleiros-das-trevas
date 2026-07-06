@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { Box, Card, CardContent, Typography, IconButton, Tooltip } from '@mui/material';
+import React from 'react';
+import { Box, Card, CardContent, IconButton, Tooltip } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
@@ -18,9 +18,9 @@ const Container = styled(Box)({
   width: '100%',
   minHeight: '100vh',
   background: `
-    linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 25%, #1f1f1f 50%, #0d0d0d 75%, #000000 100%),
-    radial-gradient(circle at 30% 30%, rgba(70,70,80,0.3) 0%, transparent 50%),
-    radial-gradient(circle at 70% 70%, rgba(50,50,60,0.2) 0%, transparent 50%)
+    linear-gradient(135deg, #2c1810 0%, #4a2c1a 25%, #3d1f12 50%, #2c1810 75%, #1a0f08 100%),
+    radial-gradient(circle at 30% 30%, rgba(139,69,19,0.2) 0%, transparent 50%),
+    radial-gradient(circle at 70% 70%, rgba(160,82,45,0.1) 0%, transparent 50%)
   `,
   display: 'flex',
   flexDirection: 'column',
@@ -48,7 +48,7 @@ const CardWrap = styled(Card)({
   overflow: 'visible'
 });
 
-const NarrativeText = styled(Typography)({
+const NarrativeText = styled('p')({
   fontFamily: '"Spectral", serif',
   fontSize: 'clamp(16px, 2vw, 18px)',
   lineHeight: 1.8,
@@ -90,39 +90,20 @@ const ChoiceButton = styled('button')({
   }
 });
 
-interface Screen208Props {
+interface Screen149Props {
   onGoToScreen: (screenId: number) => void;
   ficha: Ficha;
   onUpdateFicha: (ficha: Ficha) => void;
 }
 
-const Screen208: React.FC<Screen208Props> = ({ onGoToScreen, ficha, onUpdateFicha }) => {
-  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(208);
+const Screen149: React.FC<Screen149Props> = ({ onGoToScreen, ficha: _ficha, onUpdateFicha: _onUpdateFicha }) => {
+  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(149);
   const playClick = useClickSound(0.2);
-  const itemsLostRef = useRef(false);
-
-  // Perder todos os itens da bolsa quando a tela carrega (apenas uma vez)
-  useEffect(() => {
-    if (itemsLostRef.current) return;
-
-    itemsLostRef.current = true;
-
-    onUpdateFicha({ ...ficha, bolsa: [] });
-  }, [ficha, onUpdateFicha]);
-
-
-  const handleGameOver = () => {
-    playClick();
-    onGoToScreen(999); // Ir para rota do Game Over
-  };
-
 
   return (
-    <Container data-screen="screen-208">
-      {/* Controle de Volume */}
+    <Container data-screen="screen-149">
       <VolumeControl />
-      
-      {/* Controle de Música */}
+
       <Box
         sx={{
           position: 'fixed',
@@ -132,46 +113,48 @@ const Screen208: React.FC<Screen208Props> = ({ onGoToScreen, ficha, onUpdateFich
         }}
       >
         <Tooltip title={currentGroup ? (isPlaying ? 'Pausar música' : 'Tocar música') : 'Nenhuma música carregada'}>
-          <span><IconButton
-            onClick={() => {
-              playClick();
-              togglePlay();
-            }}
-            disabled={!currentGroup}
-            sx={{
-              color: currentGroup ? (isPlaying ? '#B31212' : '#E0DFDB') : '#666',
-              background: 'rgba(15,17,20,0.8)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              opacity: currentGroup ? 1 : 0.5,
-              '&:hover': currentGroup ? {
-                background: 'rgba(179,18,18,0.2)',
-                borderColor: 'rgba(255,255,255,0.3)',
-              } : {},
-              '&:disabled': {
-                cursor: 'not-allowed'
-              }
-            }}
-          >
-            {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-          </IconButton></span>
+          <span>
+            <IconButton
+              onClick={() => {
+                playClick();
+                togglePlay();
+              }}
+              disabled={!currentGroup}
+              sx={{
+                color: currentGroup ? (isPlaying ? '#B31212' : '#E0DFDB') : '#666',
+                background: 'rgba(15,17,20,0.8)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                opacity: currentGroup ? 1 : 0.5,
+                '&:hover': currentGroup ? {
+                  background: 'rgba(179,18,18,0.2)',
+                  borderColor: 'rgba(255,255,255,0.3)',
+                } : {},
+                '&:disabled': {
+                  cursor: 'not-allowed'
+                }
+              }}
+            >
+              {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
+            </IconButton>
+          </span>
         </Tooltip>
       </Box>
-      
+
       <CardWrap>
         <CardContent sx={{ padding: '40px' }}>
           <NarrativeText>
-            A noite parece interminável e, por causa do ronco do carcereiro, você não consegue pregar o olho.
-            <br/><br/>
-            Na madrugada, os guardas tomam seus pertences e o empurram para dentro de uma carroça de metal.
-            <br/><br/>
-            Levado às masmorras da cidade, você é acompanhado por uma multidão de malfeitores. Acorrentado a um poste de pedra, fica preso no meio de uma roda de miseráveis, sem qualquer esperança de voltar a ver a luz do dia.
-            <br/><br/>
-            E mesmo que um milagre aconteça… já será tarde demais para salvar Karnstein.
+            Consumido pelo veneno de suas falas, você parte para cima do homem e o derruba com um único golpe.
+            <br /><br />
+            A maioria das pessoas ao redor fica em choque, mas quatro delas começam a insultá-lo. Devem ser aliados do homem que você atacou e agitadores experientes. Em poucos minutos, a confusão toma conta do lugar, obrigando os guardas a intervir.
           </NarrativeText>
-          
+
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
-            <ChoiceButton onClick={handleGameOver}>
-              Fim da sua aventura
+            <ChoiceButton onClick={() => { playClick(); onGoToScreen(181); }}>
+              Ajudar os guardas a restabelecer a ordem
+            </ChoiceButton>
+
+            <ChoiceButton onClick={() => { playClick(); onGoToScreen(301); }}>
+              Aproveitar a confusão para fugir pelo Portão Leste
             </ChoiceButton>
           </Box>
         </CardContent>
@@ -180,5 +163,4 @@ const Screen208: React.FC<Screen208Props> = ({ onGoToScreen, ficha, onUpdateFich
   );
 };
 
-export default Screen208;
-
+export default Screen149;

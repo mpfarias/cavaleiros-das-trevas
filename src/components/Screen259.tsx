@@ -6,7 +6,7 @@ import { useClickSound } from '../hooks/useClickSound';
 import { useScreenTheme } from '../hooks/useScreenTheme';
 import { createThemedComponents } from './common/ScreenThemedComponents';
 import VolumeControl from './ui/VolumeControl';
-import BattleSystem from './BattleSystem';
+import BattleSystem, { type BattleSystemHandle } from './BattleSystem';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import cavaleiroImg from '../assets/images/personagens/cavaleiro03.png';
@@ -33,7 +33,7 @@ const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFich
   );
   
   const [battleState, setBattleState] = useState<'intro' | 'battle' | 'victory'>('intro');
-  const battleSystemRef = useRef<any>(null);
+  const battleSystemRef = useRef<BattleSystemHandle | null>(null);
   const [showBattleInfoModal, setShowBattleInfoModal] = useState(false);
 
   const stableOnUpdateFicha = useCallback((updatedFicha: any) => {

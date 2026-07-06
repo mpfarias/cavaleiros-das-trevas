@@ -4,7 +4,7 @@ import { styled, keyframes } from '@mui/material/styles';
 import { useAudio } from '../hooks/useAudio';
 import { useClickSound } from '../hooks/useClickSound';
 import VolumeControl from './ui/VolumeControl';
-import BattleSystem from './BattleSystem';
+import BattleSystem, { type BattleSystemHandle } from './BattleSystem';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 
@@ -103,7 +103,7 @@ const Screen272: React.FC<Screen272Props> = ({ onGoToScreen, ficha, onUpdateFich
   const playClick = useClickSound(0.2);
   
   const [battleState, setBattleState] = useState<'intro' | 'battle' | 'victory' | 'defeat'>('intro');
-  const battleSystemRef = useRef<any>(null);
+  const battleSystemRef = useRef<BattleSystemHandle | null>(null);
   const [showBattleInfoModal, setShowBattleInfoModal] = useState(false);
 
   // Estabilizar o callback onUpdateFicha para evitar re-renderizações do BattleSystem

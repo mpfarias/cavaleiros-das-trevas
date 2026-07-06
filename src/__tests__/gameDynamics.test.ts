@@ -109,7 +109,7 @@ describe('Dinâmica do Jogo - Cenários Reais', () => {
       const danoInimigo = 5;
       
       // Aplica dano diretamente
-      const fichaDanificada = result.current.applyDamageWithArmor(ficha, danoInimigo, 'forca');
+      const fichaDanificada = result.current.applyDamageWithArmor(ficha, danoInimigo, 'forca').ficha;
 
       // Verifica se o dano foi aplicado corretamente
       expect(fichaDanificada.forca.atual).toBe(13); // 18 - 5

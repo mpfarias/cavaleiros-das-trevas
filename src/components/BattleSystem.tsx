@@ -2,11 +2,13 @@ import { useState, useEffect, useCallback, forwardRef, useImperativeHandle } fro
 import { Box, Typography, Button } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useClickSound } from '../hooks/useClickSound';
+import { useCombat } from '../hooks/useCombat';
 import { GameAlert } from './ui/GameAlert';
 import { NOTIFICATION_CONFIG } from '../constants/character';
 import DiceRollModal3D from './ui/DiceRollModal3D';
 import GameOverScreen from './GameOverScreen';
 import type { Ficha } from '../types';
+import { getCombatPericia, hasEquippedWeapon } from '../utils/weapon';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -17,24 +19,6 @@ const fadeIn = keyframes`
 const modalFadeIn = keyframes`
   from { opacity: 0; }
   to { opacity: 1; }
-`;
-
-// Animações para vitória
-const victoryTitle = keyframes`
-  0% { transform: scale(1) rotate(0deg); }
-  50% { transform: scale(1.05) rotate(1deg); }
-  100% { transform: scale(1) rotate(0deg); }
-`;
-
-const enemyFadeOut = keyframes`
-  0% { opacity: 1; transform: scale(1) rotate(0deg); }
-  50% { opacity: 0.5; transform: scale(0.8) rotate(5deg); }
-  100% { opacity: 0; transform: scale(0.6) rotate(10deg); }
-`;
-
-const pathOptionsFadeIn = keyframes`
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
 `;
 
 // Container principal do sistema de combate - sem fundo, apenas conteúdo
@@ -190,7 +174,12 @@ interface TurnResult {
   multipleResults?: Array<{ enemyRoll: number; enemyPower: number; result: 'player_hit' | 'enemy_hit' | 'dodge'; damage: number }>; // Resultados individuais de cada ataque
 }
 
-const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(({
+export type BattleSystemHandle = {
+  startBattle: () => void;
+  currentTurn: number;
+};
+
+const BattleSystem = forwardRef<BattleSystemHandle, BattleSystemProps>(({
   enemy,
   ficha,
   onUpdateFicha,
@@ -213,6 +202,7 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
 }, ref) => {
 
   const playClick = useClickSound(0.2);
+  const { applyDamageWithArmor } = useCombat();
 
   const [battleState, setBattleState] = useState<'idle' | 'rolling' | 'battle' | 'enemyDefeated' | 'victory' | 'defeat'>('idle');
   const [currentTurn, setCurrentTurn] = useState(0);
@@ -238,11 +228,50 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
   const [showLuckDiceModal, setShowLuckDiceModal] = useState(false);
   const [luckTestType, setLuckTestType] = useState<'damage' | 'reduction' | null>(null);
   const [showGameOver, setShowGameOver] = useState(false);
-  const [showVictoryModal, setShowVictoryModal] = useState(false);
   const [deferTurnResolve, setDeferTurnResolve] = useState(false);
+  const [showArmorBrokenAlert, setShowArmorBrokenAlert] = useState(false);
+  const [armorBrokenMessage, setArmorBrokenMessage] = useState('');
 
-  const playerPericia = ficha?.pericia?.atual || 0;
+  const playerPericia = getCombatPericia(ficha);
+  const isUnarmed = !hasEquippedWeapon(ficha);
   const playerForca = ficha?.forca?.atual || 0;
+
+  const applyIncomingDamageToPlayer = useCallback((
+    workingFicha: Ficha,
+    incomingDamage: number,
+    onArmorBroken?: (armorName: string) => void
+  ): { ficha: Ficha; damageDealt: number } => {
+    if (disablePlayerForcaLoss) {
+      return { ficha: workingFicha, damageDealt: 0 };
+    }
+
+    if (enemy.ignoreArmor) {
+      const newForca = Math.max(0, workingFicha.forca.atual - incomingDamage);
+      const damageDealt = workingFicha.forca.atual - newForca;
+      return {
+        ficha: {
+          ...workingFicha,
+          forca: { ...workingFicha.forca, atual: newForca }
+        },
+        damageDealt
+      };
+    }
+
+    const { ficha: updatedFicha, armorBroken } = applyDamageWithArmor(workingFicha, incomingDamage, 'forca');
+    const damageDealt = workingFicha.forca.atual - updatedFicha.forca.atual;
+
+    if (armorBroken && onArmorBroken) {
+      onArmorBroken(armorBroken);
+    }
+
+    return { ficha: updatedFicha, damageDealt };
+  }, [disablePlayerForcaLoss, enemy.ignoreArmor, applyDamageWithArmor]);
+
+  const handleArmorBroken = useCallback((armorName: string) => {
+    setArmorBrokenMessage(`Sua ${armorName} absorveu o último golpe e se despedaçou! Foi removida da bolsa.`);
+    setShowArmorBrokenAlert(true);
+    setTimeout(() => setShowArmorBrokenAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
+  }, []);
 
   // Verificar condições de vitória/derrota
   useEffect(() => {
@@ -256,16 +285,15 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
       
       setTimeout(() => {
         setBattleState('victory');
-        setShowVictoryModal(true);
         onVictory();
       }, 2500);
     } else if (!ignorePlayerForcaDefeat && playerForca <= 0) {
       setBattleState('defeat');
+      onDefeat();
       if (onGoToScreen) {
-        onGoToScreen(999); // Ir para rota do Game Over
+        onGoToScreen(999);
       } else {
         setShowGameOver(true);
-        onDefeat();
       }
     }
   }, [enemyForca, playerForca, onVictory, onDefeat, onGoToScreen, ignoreEnemyForcaVictory, ignorePlayerForcaDefeat]);
@@ -289,8 +317,9 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
 
   // Expõe a função startBattle para o componente pai
   useImperativeHandle(ref, () => ({
-    startBattle: () => startBattle()
-  }), [startBattle]);
+    startBattle: () => startBattle(),
+    currentTurn,
+  }), [startBattle, currentTurn]);
 
   const nextTurn = useCallback(async () => {
     playClick();
@@ -326,27 +355,28 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
     if (hasMultipleAttacks && enemyRoll2 !== null) {
       const multipleResults = [];
       let totalPlayerDamage = 0;
-      let playerWonAtLeastOnce = false; // Flag para controlar dano do jogador
+      let playerWonAtLeastOnce = false;
+      let workingFicha = ficha;
 
       // Primeira rolagem do inimigo
       const enemyPower1 = enemyRoll + enemy.pericia;
       if (playerPower > enemyPower1) {
-        // Jogador venceu este ataque
         playerWonAtLeastOnce = true;
         multipleResults.push({
           enemyRoll: enemyRoll,
           enemyPower: enemyPower1,
           result: 'player_hit' as const,
-          damage: 2 // Mostra 2 no display, mas só aplica uma vez
+          damage: 2
         });
       } else if (enemyPower1 > playerPower) {
-        // Inimigo venceu - causa dano base (2 pontos para cavaleiro comum)
-        totalPlayerDamage += 2; // Sempre 2 por ataque, não baseDamage
+        const { ficha: updatedFicha, damageDealt } = applyIncomingDamageToPlayer(workingFicha, baseDamage, handleArmorBroken);
+        workingFicha = updatedFicha;
+        totalPlayerDamage += damageDealt;
         multipleResults.push({
           enemyRoll: enemyRoll,
           enemyPower: enemyPower1,
           result: 'enemy_hit' as const,
-          damage: 2
+          damage: damageDealt
         });
       } else {
         multipleResults.push({
@@ -360,22 +390,22 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
       // Segunda rolagem do inimigo
       const enemyPower2 = enemyRoll2 + enemy.pericia;
       if (playerPower > enemyPower2) {
-        // Jogador venceu este ataque
         playerWonAtLeastOnce = true;
         multipleResults.push({
           enemyRoll: enemyRoll2,
           enemyPower: enemyPower2,
           result: 'player_hit' as const,
-          damage: 2 // Mostra 2 no display, mas só aplica uma vez
+          damage: 2
         });
       } else if (enemyPower2 > playerPower) {
-        // Inimigo venceu - causa dano base (2 pontos para cavaleiro comum)
-        totalPlayerDamage += 2; // Sempre 2 por ataque, não baseDamage
+        const { ficha: updatedFicha, damageDealt } = applyIncomingDamageToPlayer(workingFicha, baseDamage, handleArmorBroken);
+        workingFicha = updatedFicha;
+        totalPlayerDamage += damageDealt;
         multipleResults.push({
           enemyRoll: enemyRoll2,
           enemyPower: enemyPower2,
           result: 'enemy_hit' as const,
-          damage: 2
+          damage: damageDealt
         });
       } else {
         multipleResults.push({
@@ -386,16 +416,12 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
         });
       }
 
-      // Aplicar dano: jogador causa apenas 2 pontos NO TOTAL se vencer pelo menos 1 ataque
       if (playerWonAtLeastOnce) {
-        setEnemyForca(prev => prev - 2); // Sempre 2, não importa quantos ataques venceu
+        setEnemyForca(prev => prev - 2);
       }
-      
-      // Inimigo causa 2 pontos POR CADA ataque que venceu
-      if (totalPlayerDamage > 0 && !disablePlayerForcaLoss) {
-        const updatedFicha = { ...ficha };
-        updatedFicha.forca.atual = Math.max(0, playerForca - totalPlayerDamage);
-        onUpdateFicha(updatedFicha);
+
+      if (totalPlayerDamage > 0) {
+        onUpdateFicha(workingFicha);
       }
 
       // Calcular dano total causado ao inimigo
@@ -449,11 +475,9 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
         setEnemyForca(prev => prev - damage);
       } else if (enemyPower > playerPower) {
         result = 'enemy_hit';
-        // Inimigo usa customDamage se definido
-        damage = baseDamage;
-        if (!disablePlayerForcaLoss) {
-          const updatedFicha = { ...ficha };
-          updatedFicha.forca.atual = Math.max(0, playerForca - damage);
+        const { ficha: updatedFicha, damageDealt } = applyIncomingDamageToPlayer(ficha, baseDamage, handleArmorBroken);
+        damage = damageDealt;
+        if (damageDealt > 0) {
           onUpdateFicha(updatedFicha);
         }
       } else {
@@ -477,7 +501,7 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
       setCurrentTurnResult(turnResult);
       setShowBattleResultModal(true);
     }
-  }, [enemyRoll, enemyRoll2, playerRoll, enemy.pericia, enemy.attacksPerTurn, enemy.customDamage, playerPericia, currentTurn, ficha, playerForca, onUpdateFicha, onTurnResolved]);
+  }, [enemyRoll, enemyRoll2, playerRoll, enemy.pericia, enemy.attacksPerTurn, enemy.customDamage, enemy.ignoreArmor, playerPericia, currentTurn, ficha, onUpdateFicha, applyIncomingDamageToPlayer, handleArmorBroken]);
 
   const handleDiceComplete = useCallback((_dice: number[], total: number) => {
     if (dicePhase === 'enemy') {
@@ -523,15 +547,18 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
     // Teste de sorte: se o total for igual ou MENOR que a sorte ATUAL do jogador, é sucesso
     
     const isSuccess = total <= ficha.sorte.atual;
+    const luckFlags = luckTestType === 'damage'
+      ? { playerLuck: true as const }
+      : { enemyLuck: true as const };
     
     if (luckEffectOverride) {
       const message = luckEffectOverride({ success: isSuccess, total, type: luckTestType });
       setLuckResult(message);
       setTurnHistory(prev => prev.map(turn => 
-        turn.turn === currentTurn ? { ...turn, luckTestApplied: true, luckTestSuccess: isSuccess } : turn
+        turn.turn === currentTurn ? { ...turn, ...luckFlags, luckTestApplied: true, luckTestSuccess: isSuccess } : turn
       ));
       setCurrentTurnResult(prev => (
-        prev && prev.turn === currentTurn ? { ...prev, luckTestApplied: true, luckTestSuccess: isSuccess } : prev
+        prev && prev.turn === currentTurn ? { ...prev, ...luckFlags, luckTestApplied: true, luckTestSuccess: isSuccess } : prev
       ));
     } else if (luckTestType === 'damage') {
       if (isSuccess) {
@@ -542,10 +569,10 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
         
         // Atualizar o histórico com o dano final
         setTurnHistory(prev => prev.map(turn => 
-          turn.turn === currentTurn ? { ...turn, finalDamage: 4, luckTestApplied: true, luckTestSuccess: true } : turn
+          turn.turn === currentTurn ? { ...turn, ...luckFlags, finalDamage: 4, luckTestApplied: true, luckTestSuccess: true } : turn
         ));
         setCurrentTurnResult(prev => (
-          prev && prev.turn === currentTurn ? { ...prev, finalDamage: 4, luckTestApplied: true, luckTestSuccess: true } : prev
+          prev && prev.turn === currentTurn ? { ...prev, ...luckFlags, finalDamage: 4, luckTestApplied: true, luckTestSuccess: true } : prev
         ));
       } else {
         // Regra 3: Se falhar no teste de sorte para dano, o inimigo perde apenas 1 ponto
@@ -555,10 +582,10 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
         
         // Atualizar o histórico com o dano final
         setTurnHistory(prev => prev.map(turn => 
-          turn.turn === currentTurn ? { ...turn, finalDamage: 1, luckTestApplied: true, luckTestSuccess: false } : turn
+          turn.turn === currentTurn ? { ...turn, ...luckFlags, finalDamage: 1, luckTestApplied: true, luckTestSuccess: false } : turn
         ));
         setCurrentTurnResult(prev => (
-          prev && prev.turn === currentTurn ? { ...prev, finalDamage: 1, luckTestApplied: true, luckTestSuccess: false } : prev
+          prev && prev.turn === currentTurn ? { ...prev, ...luckFlags, finalDamage: 1, luckTestApplied: true, luckTestSuccess: false } : prev
         ));
       }
     } else {
@@ -572,10 +599,10 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
         
         // Atualizar o histórico com o dano final
         setTurnHistory(prev => prev.map(turn => 
-          turn.turn === currentTurn ? { ...turn, finalDamage: 1, luckTestApplied: true, luckTestSuccess: true } : turn
+          turn.turn === currentTurn ? { ...turn, ...luckFlags, finalDamage: 1, luckTestApplied: true, luckTestSuccess: true } : turn
         ));
         setCurrentTurnResult(prev => (
-          prev && prev.turn === currentTurn ? { ...prev, finalDamage: 1, luckTestApplied: true, luckTestSuccess: true } : prev
+          prev && prev.turn === currentTurn ? { ...prev, ...luckFlags, finalDamage: 1, luckTestApplied: true, luckTestSuccess: true } : prev
         ));
       } else {
         // Regra 5: Se falhar no teste de sorte para redução, o jogador perde 3 pontos
@@ -586,10 +613,10 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
         
         // Atualizar o histórico com o dano final
         setTurnHistory(prev => prev.map(turn => 
-          turn.turn === currentTurn ? { ...turn, finalDamage: 3, luckTestApplied: true, luckTestSuccess: false } : turn
+          turn.turn === currentTurn ? { ...turn, ...luckFlags, finalDamage: 3, luckTestApplied: true, luckTestSuccess: false } : turn
         ));
         setCurrentTurnResult(prev => (
-          prev && prev.turn === currentTurn ? { ...prev, finalDamage: 3, luckTestApplied: true, luckTestSuccess: false } : prev
+          prev && prev.turn === currentTurn ? { ...prev, ...luckFlags, finalDamage: 3, luckTestApplied: true, luckTestSuccess: false } : prev
         ));
       }
     }
@@ -668,9 +695,17 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
     if (enemy.disableLuckTest) {
       return false;
     }
-    return (turn.result === 'player_hit' && !turn.playerLuck) || 
-           (turn.result === 'enemy_hit' && !turn.enemyLuck);
+    return ((turn.result === 'player_hit' && !turn.playerLuck) ||
+           (turn.result === 'enemy_hit' && !turn.enemyLuck)) &&
+           !turn.luckTestApplied;
   };
+
+  const isTurnInteractionBlocked =
+    diceModalOpen ||
+    showEnemyResultModal ||
+    showPlayerResultModal ||
+    showBattleResultModal ||
+    showLuckDiceModal;
 
   const handleEnemyModalClose = useCallback(() => {
     setShowEnemyResultModal(false);
@@ -729,7 +764,7 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
             Você
           </Typography>
                      <Typography variant="body2" sx={{ color: '#d35656ff' }}>
-             PERÍCIA: {playerPericia} | FORÇA: {playerForca}
+             PERÍCIA: {playerPericia}{isUnarmed ? ' (-1 sem arma)' : ''} | FORÇA: {playerForca}
            </Typography>
         </Box>
       </StatusBox>
@@ -801,6 +836,7 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
         <Box sx={{ textAlign: 'center' }}>
                      <Button
              onClick={nextTurn}
+             disabled={isTurnInteractionBlocked}
              variant="contained"
              sx={{
                padding: '16px 32px',
@@ -856,6 +892,12 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
       {showLuckAlert && (
         <GameAlert sx={{ top: '120px' }} $isVisible={showLuckAlert}>
          {luckResult}
+        </GameAlert>
+      )}
+
+      {showArmorBrokenAlert && (
+        <GameAlert sx={{ top: '180px' }} $isVisible={showArmorBrokenAlert}>
+          {armorBrokenMessage}
         </GameAlert>
       )}
 
@@ -1082,94 +1124,6 @@ const BattleSystem = forwardRef<{ startBattle: () => void }, BattleSystemProps>(
                 </ModalButton>
               </Box>
             )}
-          </BattleModal>
-        </>
-      )}
-
-      {/* Modal de Vitória */}
-      {showVictoryModal && (
-        <>
-          <ModalOverlay onClick={() => {}} />
-          <BattleModal>
-            <Typography variant="h3" sx={{ 
-              textAlign: 'center', 
-              marginBottom: '32px',
-              color: '#FFD700',
-              fontFamily: '"Cinzel", serif',
-              fontWeight: 'bold',
-              textShadow: '0 4px 8px rgba(0,0,0,0.8)',
-              animation: `${victoryTitle} 2s ease-in-out infinite alternate`
-            }}>
-              🏆 VITÓRIA! 🏆
-            </Typography>
-            
-            {/* Imagem do inimigo com fade out */}
-            <Box sx={{ 
-              textAlign: 'center', 
-              marginBottom: '32px',
-              animation: `${enemyFadeOut} 3s ease-out forwards`
-            }}>
-              <img 
-                src={enemy.imagem} 
-                alt={enemy.nome}
-                style={{
-                  maxWidth: '200px',
-                  maxHeight: '200px',
-                  borderRadius: '12px',
-                  border: '3px solid #8B4513'
-                }}
-              />
-              <Typography variant="h6" sx={{ 
-                marginTop: '16px',
-                color: '#8B4513',
-                fontFamily: '"Cinzel", serif',
-                fontWeight: 'bold'
-              }}>
-                {enemy.nome} foi derrotado!
-              </Typography>
-            </Box>
-
-            {/* Opções de caminho */}
-            <Box sx={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              gap: '16px',
-              animation: `${pathOptionsFadeIn} 1s ease-in 3s both`
-            }}>
-              <Typography variant="h6" sx={{ 
-                textAlign: 'center',
-                color: '#8B4513',
-                fontFamily: '"Cinzel", serif',
-                fontWeight: 'bold',
-                marginBottom: '16px'
-              }}>
-                Escolha seu caminho para escapar da cidade:
-              </Typography>
-              
-              <ModalButton 
-                onClick={() => {
-                  playClick();
-                  setShowVictoryModal(false);
-                  // Redirecionar para tela 272 (Porta Sul)
-                  window.location.href = '/screen/272';
-                }}
-                sx={{ marginBottom: '8px' }}
-              >
-                🗺️ Porta Sul - Estrada do Comércio Principal
-              </ModalButton>
-              
-              <ModalButton 
-                onClick={() => {
-                  playClick();
-                  setShowVictoryModal(false);
-                  // Redirecionar para tela 60 (Porta Leste)
-                  window.location.href = '/screen/60';
-                }}
-                sx={{ marginBottom: '8px' }}
-              >
-                🗺️ Porta Leste
-              </ModalButton>
-            </Box>
           </BattleModal>
         </>
       )}

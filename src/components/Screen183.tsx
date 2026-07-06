@@ -6,7 +6,7 @@ import { useClickSound } from '../hooks/useClickSound';
 import { useScreenTheme } from '../hooks/useScreenTheme';
 import { createThemedComponents } from './common/ScreenThemedComponents';
 import VolumeControl from './ui/VolumeControl';
-import BattleSystem from './BattleSystem';
+import BattleSystem, { type BattleSystemHandle } from './BattleSystem';
 import DiceRollModal3D from './ui/DiceRollModal3D';
 import { GameAlert } from './ui/GameAlert';
 import { NOTIFICATION_CONFIG } from '../constants/character';
@@ -36,7 +36,7 @@ const Screen183: React.FC<Screen183Props> = ({ onGoToScreen, ficha, onUpdateFich
     );
 
     const [battleState, setBattleState] = useState<'intro' | 'luck-test' | 'battle' | 'victory'>('intro');
-    const battleSystemRef = useRef<any>(null);
+    const battleSystemRef = useRef<BattleSystemHandle | null>(null);
     const [showBattleInfoModal, setShowBattleInfoModal] = useState(false);
 
     // Estados para o teste de sorte inicial

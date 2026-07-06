@@ -11,6 +11,8 @@ import { useState, useCallback } from 'react';
 import { GameAlert } from './ui/GameAlert';
 import { NOTIFICATION_CONFIG } from '../constants/character';
 import type { Ficha, Item } from '../types';
+import { getArmorAcquisitionNotice, prepareArmorItem } from '../utils/armor';
+import { getWeaponAcquisitionNotice } from '../utils/weapon';
 
 // Imports das imagens dos itens
 import machadoGuerraImg from '../assets/images/machado-de-guerra.png';
@@ -193,6 +195,8 @@ const Screen82: React.FC<Screen82Props> = ({ onGoToScreen, ficha, onUpdateFicha 
   // Estados para os alerts de compra
   const [showPurchaseAlert, setShowPurchaseAlert] = useState(false);
   const [showMoneyAlert, setShowMoneyAlert] = useState(false);
+  const [showArmorNotice, setShowArmorNotice] = useState(false);
+  const [armorNotice, setArmorNotice] = useState('');
   const [purchaseInfo, setPurchaseInfo] = useState({ itemName: '', quantity: 0, cost: 0, remaining: 0 });
   
   // Estados para confirmação de substituição de equipamento
@@ -432,6 +436,21 @@ const Screen82: React.FC<Screen82Props> = ({ onGoToScreen, ficha, onUpdateFicha 
   };
 
   // Função para executar a compra
+  const notifyEquipmentAcquisition = useCallback((item: Item, previousName?: string) => {
+    if (item.tipo === 'armadura') {
+      setArmorNotice(getArmorAcquisitionNotice(item));
+      setShowArmorNotice(true);
+      setTimeout(() => setShowArmorNotice(false), NOTIFICATION_CONFIG.autoHideDuration * 2.5);
+      return;
+    }
+
+    if (item.tipo === 'arma') {
+      setArmorNotice(getWeaponAcquisitionNotice(item, previousName));
+      setShowArmorNotice(true);
+      setTimeout(() => setShowArmorNotice(false), NOTIFICATION_CONFIG.autoHideDuration * 2.5);
+    }
+  }, []);
+
   const executePurchase = (item: MarketItem, qty: number, cost: number, currentGold: number) => {
     // Compra normal (sem substituição)
     let newBolsa = [...ficha.bolsa];
@@ -444,7 +463,7 @@ const Screen82: React.FC<Screen82Props> = ({ onGoToScreen, ficha, onUpdateFicha 
     );
     
     // Adiciona o novo item à bolsa com efeitos detalhados
-    const newItem = {
+    const newItem = prepareArmorItem({
       id: item.id,
       nome: item.name,
       tipo: (item.type === 'weapon' ? 'arma' : 
@@ -458,7 +477,7 @@ const Screen82: React.FC<Screen82Props> = ({ onGoToScreen, ficha, onUpdateFicha 
         durability: item.detailedEffects.durability
       } : undefined,
       durabilidadeAtual: item.detailedEffects?.durability
-    };
+    });
     
     newBolsa.push(newItem);
     
@@ -492,6 +511,8 @@ const Screen82: React.FC<Screen82Props> = ({ onGoToScreen, ficha, onUpdateFicha 
       setShowMoneyAlert(true);
       setTimeout(() => setShowMoneyAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
     }, 1000);
+
+    notifyEquipmentAcquisition(newItem);
   };
 
   // Função para confirmar substituição de equipamento
@@ -513,7 +534,7 @@ const Screen82: React.FC<Screen82Props> = ({ onGoToScreen, ficha, onUpdateFicha 
         );
         
         // Adiciona o novo equipamento
-        const newItem = {
+        const newItem = prepareArmorItem({
           id: replaceInfo.newItem.id,
           nome: replaceInfo.newItem.name,
           tipo: (replaceInfo.newItem.type === 'weapon' ? 'arma' : 'armadura') as 'arma' | 'armadura',
@@ -526,7 +547,7 @@ const Screen82: React.FC<Screen82Props> = ({ onGoToScreen, ficha, onUpdateFicha 
             durability: replaceInfo.newItem.detailedEffects.durability
           } : undefined,
           durabilidadeAtual: replaceInfo.newItem.detailedEffects?.durability
-        };
+        });
         
         updatedBolsa.push(newItem);
         
@@ -559,6 +580,8 @@ const Screen82: React.FC<Screen82Props> = ({ onGoToScreen, ficha, onUpdateFicha 
           setShowMoneyAlert(true);
           setTimeout(() => setShowMoneyAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
         }, 1000);
+
+        notifyEquipmentAcquisition(newItem, replaceInfo.currentItem?.nome);
       }
     }
   };
@@ -603,6 +626,10 @@ const Screen82: React.FC<Screen82Props> = ({ onGoToScreen, ficha, onUpdateFicha 
       
       <GameAlert sx={{ top: '180px' }} $isVisible={showMoneyAlert}>
         Moedas gastas: {purchaseInfo.cost} | Restantes: {purchaseInfo.remaining}
+      </GameAlert>
+
+      <GameAlert sx={{ top: '240px', maxWidth: 'min(560px, 92vw)' }} $isVisible={showArmorNotice}>
+        {armorNotice}
       </GameAlert>
       
              {/* Botão de controle de música */}

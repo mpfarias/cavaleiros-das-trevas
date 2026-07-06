@@ -131,6 +131,9 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   57: 'arabic',                 // Multidão na Praça Masonic (rota /game/57) - bgm-arabic.mp3
   118: 'royal-lendle',          // Pátio dos Oradores (rota /game/118) - people.mp3
   137: 'royal-lendle',          // Orador em preto - Pátio dos Oradores (rota /game/137) - people.mp3
+  149: 'royal-lendle',          // Confusão no Pátio dos Oradores (rota /game/149) - people.mp3
+  181: 'battle',                // Combate com Agitador (rota /game/181) - bgm-battle.mp3
+  370: 'royal-lendle',          // Recompensa após agitadores (rota /game/370) - people.mp3
   164: 'temple',                // Templo dos Geomagos (rota /game/164) - bgm-temple.mp3
   264: 'temple',                // Escolha correta da Lua (rota /game/264) - bgm-temple.mp3
   254: 'temple',                // Desafio da Terra-Mãe (rota /game/254) - bgm-temple.mp3

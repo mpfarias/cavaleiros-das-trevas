@@ -5,7 +5,7 @@ import { useClickSound } from '../hooks/useClickSound';
 import { useScreenTheme } from '../hooks/useScreenTheme';
 import { createThemedComponents } from './common/ScreenThemedComponents';
 import VolumeControl from './ui/VolumeControl';
-import BattleSystem from './BattleSystem';
+import BattleSystem, { type BattleSystemHandle } from './BattleSystem';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import type { Ficha } from '../types';
@@ -35,7 +35,7 @@ const Screen392: React.FC<Screen392Props> = ({ onGoToScreen, ficha, onUpdateFich
     [theme]
   );
 
-  const battleSystemRef = useRef<{ startBattle: () => void } | null>(null);
+  const battleSystemRef = useRef<BattleSystemHandle | null>(null);
   const [battlePhase, setBattlePhase] = useState<'intro' | 'guardIntro' | 'battle' | 'victory' | 'defeat'>('intro');
   const [battleKey, setBattleKey] = useState(0);
   const [guard] = useState<Guard>({

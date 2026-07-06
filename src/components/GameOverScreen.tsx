@@ -136,7 +136,8 @@ const StatText = styled(Typography)({
 
 interface GameOverScreenProps {
   onRestart: () => void;
-  onContinue: () => void;
+  onContinue?: () => void;
+  hasSave?: boolean;
   deathReason?: string;
   deathLocation?: string;
   characterStats?: {
@@ -150,6 +151,7 @@ interface GameOverScreenProps {
 const GameOverScreen: React.FC<GameOverScreenProps> = ({
   onRestart,
   onContinue,
+  hasSave = false,
   deathReason = 'Você foi derrotado em combate',
   deathLocation = 'Desconhecido',
   characterStats
@@ -273,23 +275,25 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({
 
       {/* Botões de ação */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center' }}>
+        {hasSave && onContinue && (
+          <ContinueButton 
+            onClick={() => {
+              playClick();
+              onContinue();
+            }}
+          >
+            📁 Continuar Aventura
+          </ContinueButton>
+        )}
+
         <ActionButton 
           onClick={() => {
             playClick();
             onRestart();
           }}
         >
-          🔄 Reiniciar Aventura
+          🔄 {hasSave ? 'Nova Aventura' : 'Reiniciar'}
         </ActionButton>
-        
-        <ContinueButton 
-          onClick={() => {
-            playClick();
-            onContinue();
-          }}
-        >
-          📁 Continuar Aventura
-        </ContinueButton>
       </Box>
 
       {/* Mensagem de consolo */}

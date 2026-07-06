@@ -36,6 +36,9 @@ import Screen20 from '../components/Screen20';
 import Screen52 from '../components/Screen52';
 import Screen126 from '../components/Screen126';
 import Screen137 from '../components/Screen137';
+import Screen149 from '../components/Screen149';
+import Screen181 from '../components/Screen181';
+import Screen370 from '../components/Screen370';
 import Screen134 from '../components/Screen134';
 import Screen208 from '../components/Screen208';
 import Screen233 from '../components/Screen233';
@@ -94,12 +97,15 @@ import Screen356 from '../components/Screen356';
 import Screen389 from '../components/Screen389';
 import GameOverScreen from '../components/GameOverScreen';
 import type { Ficha } from '../types';
+import { hasCheckpoint, clearCheckpoint } from '../utils/save';
 
 type ScreenRouterProps = {
   ficha: Ficha;
   onGameResult: (won: boolean, goldChange: number) => void;
   onAdjustSorte: (delta: number) => void;
   onFichaChange: (ficha: Ficha) => void;
+  onGameOverRestart: () => void;
+  onGameOverContinue: () => void;
 };
 
 // Mapeamento de mensagens de Game Over customizadas por tela de morte
@@ -122,7 +128,17 @@ const DEATH_MESSAGES: Record<number, { reason: string; location: string }> = {
   }
 };
 
-const ScreenRouter: React.FC<ScreenRouterProps> = ({ ficha: fichaFromProps, onGameResult, onAdjustSorte, onFichaChange }) => {
+/** Telas em que a ficha pode estar incompleta (ex.: pertences confiscados, game over). */
+const SCREENS_WITHOUT_START_VALIDATION = new Set([208, 999]);
+
+const ScreenRouter: React.FC<ScreenRouterProps> = ({
+  ficha: fichaFromProps,
+  onGameResult,
+  onAdjustSorte,
+  onFichaChange,
+  onGameOverRestart,
+  onGameOverContinue,
+}) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { validateForStart } = useCharacterValidation();
@@ -164,14 +180,20 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({ ficha: fichaFromProps, onGa
     return null;
   }
 
-  // Bloquear acesso direto via URL: se a ficha não está preenchida (nome, atributos, ouro), redireciona para /sheet
-  const startValidation = validateForStart(ficha);
-  if (!startValidation.isValid) {
-    navigate('/sheet', { replace: true, state: { fromGameBlock: true } });
-    return null;
+  // Bloquear acesso direto via URL: se a ficha não está preenchida, redireciona para /sheet
+  if (!SCREENS_WITHOUT_START_VALIDATION.has(screenId)) {
+    const startValidation = validateForStart(ficha);
+    if (!startValidation.isValid) {
+      navigate('/sheet', { replace: true, state: { fromGameBlock: true } });
+      return null;
+    }
   }
 
   const goToScreen = (nextId: number) => {
+    // Fim narrativo nas masmorras: não há ponto de retorno
+    if (nextId === 999 && screenId === 208) {
+      clearCheckpoint();
+    }
     try {
       localStorage.setItem('cavaleiro:screenId', String(nextId));
     } catch (error) {
@@ -400,6 +422,24 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({ ficha: fichaFromProps, onGa
   if (screenId === 137) {
     return (
       <Screen137 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 149) {
+    return (
+      <Screen149 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 181) {
+    return (
+      <Screen181 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 370) {
+    return (
+      <Screen370 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
     );
   }
 
@@ -737,12 +777,9 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({ ficha: fichaFromProps, onGa
     const deathMessage = DEATH_MESSAGES[screenId];
     return (
       <GameOverScreen
-        onRestart={() => {
-          window.location.reload();
-        }}
-        onContinue={() => {
-          navigate('/game/0');
-        }}
+        hasSave={hasCheckpoint()}
+        onRestart={onGameOverRestart}
+        onContinue={onGameOverContinue}
         deathReason={deathMessage.reason}
         deathLocation={deathMessage.location}
         characterStats={{

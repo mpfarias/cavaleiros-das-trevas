@@ -97,7 +97,7 @@ const Screen164: React.FC<Screen164Props> = ({ onGoToScreen, ficha, onUpdateFich
             <br/><br/>
             Acima do portão lê-se uma adivinha:
             <br/><br/>
-            <em>"Reflete e refletido; um escurece e o outro ao passar."</em>
+            <em>"Reflete e refletido; um escurece ao outro ao passar."</em>
           </NarrativeText>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
