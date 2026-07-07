@@ -16,7 +16,6 @@ import './index.css';
 import InventoryModal from './components/InventoryModal';
 import { styled } from '@mui/material/styles';
 import { totalOuro, validarBolsa } from './utils/inventory';
-import { saveCheckpoint, loadCheckpoint, clearCheckpoint, isRestorableCheckpoint } from './utils/save';
 import { useItemEffects } from './hooks/useItemEffects';
 import { useBagSound } from './hooks/useBagSound';
 import SaveGameButton from './components/SaveGameButton';
@@ -280,9 +279,6 @@ function AppContent() {
     // IMPORTANTE: Salvar no localStorage ANTES de setState para garantir consistência
     try {
       localStorage.setItem('cavaleiro:ficha', JSON.stringify(fichaComModificadores));
-      if (fichaComModificadores.forca.atual > 0 && fichaComModificadores.nome) {
-        saveCheckpoint(fichaComModificadores, location.pathname);
-      }
     } catch (e) {
       console.error('🎲 [App] Falha ao salvar no localStorage:', e);
     }
@@ -292,41 +288,16 @@ function AppContent() {
 
   const handleGameOverRestart = () => {
     const emptyFicha = createTrulyEmptyFicha();
-    clearCheckpoint();
     try {
       localStorage.setItem('cavaleiro:ficha', JSON.stringify(emptyFicha));
       localStorage.removeItem('cavaleiro:lastScreen');
       localStorage.removeItem('cavaleiro:screenId');
+      localStorage.removeItem('cavaleiro:checkpoint');
     } catch (e) {
       console.warn('Erro ao resetar progresso:', e);
     }
     setFichaWithLog(emptyFicha);
     navigate('/sheet');
-  };
-
-  const handleGameOverContinue = () => {
-    const checkpoint = loadCheckpoint();
-    if (!checkpoint || !isRestorableCheckpoint(checkpoint)) {
-      handleGameOverRestart();
-      return;
-    }
-
-    const validated = FichaSchema.safeParse(checkpoint.ficha);
-    if (!validated.success) {
-      handleGameOverRestart();
-      return;
-    }
-
-    const restoredFicha = validated.data;
-    try {
-      localStorage.setItem('cavaleiro:ficha', JSON.stringify(restoredFicha));
-      localStorage.setItem('cavaleiro:lastScreen', checkpoint.lastScreen);
-    } catch (e) {
-      console.warn('Erro ao restaurar checkpoint:', e);
-    }
-
-    setFichaWithLog(restoredFicha);
-    navigate(checkpoint.lastScreen || '/map');
   };
 
   const handleLoadGame = (saveData: { ficha: Ficha; lastScreen?: string }) => {
@@ -342,7 +313,6 @@ function AppContent() {
     try {
       localStorage.setItem('cavaleiro:ficha', JSON.stringify(restoredFicha));
       localStorage.setItem('cavaleiro:lastScreen', targetScreen);
-      saveCheckpoint(restoredFicha, targetScreen);
     } catch (e) {
       console.warn('Erro ao carregar save:', e);
     }
@@ -537,7 +507,7 @@ function AppContent() {
             navigate('/map');
           }} ficha={ficha} />} />
 
-          <Route path="/game/:id" element={<ScreenRouter ficha={ficha} onGameResult={handleGameResult} onGameOverRestart={handleGameOverRestart} onGameOverContinue={handleGameOverContinue} onAdjustSorte={(delta:number)=>{
+          <Route path="/game/:id" element={<ScreenRouter ficha={ficha} onGameResult={handleGameResult} onGameOverRestart={handleGameOverRestart} onAdjustSorte={(delta:number)=>{
             // Ler do localStorage para garantir a ficha mais atualizada
             let fichaAtualizada: Ficha;
             try {

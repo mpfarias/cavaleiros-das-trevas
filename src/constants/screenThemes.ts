@@ -354,6 +354,66 @@ export const WIZARD_ROOM_THEME: ScreenTheme = {
 } as const;
 
 /**
+ * Tema Floresta
+ *
+ * Tons verdes naturais de floresta e folhagem, com luz dourada filtrada pelas copas.
+ * Distinto do tema de esgotos: sem preto absoluto nem verde menta/neon úmido.
+ *
+ * Cores principais:
+ * - Fundo: Verde-floresta profundo com toques de musgo e marrom-terra
+ * - Card: Pergaminho quente (bege) com bordas oliva
+ * - Acentos: Oliva, musgo e verde folha (#556B2F, #6B8E23, #8FBC8F)
+ */
+export const FOREST_THEME: ScreenTheme = {
+  container: {
+    background: `
+      linear-gradient(135deg, #1a2e14 0%, #2d4a22 25%, #3a5c2e 50%, #2a4520 75%, #1e3218 100%),
+      radial-gradient(circle at 25% 20%, rgba(218,165,32,0.12) 0%, transparent 45%),
+      radial-gradient(circle at 75% 65%, rgba(107,142,35,0.18) 0%, transparent 50%),
+      radial-gradient(circle at 50% 90%, rgba(85,107,47,0.15) 0%, transparent 40%)
+    `
+  },
+  cardWrap: {
+    background: `
+      linear-gradient(135deg, rgba(250,245,230,0.97) 0%, rgba(240,235,210,0.94) 50%, rgba(235,228,200,0.96) 100%)
+    `,
+    border: '3px solid #6B8E23',
+    borderRadius: '16px',
+    boxShadow: `
+      0 12px 40px rgba(0,0,0,0.45),
+      inset 0 1px 0 rgba(255,255,255,0.45),
+      0 0 0 1px rgba(85,107,47,0.35),
+      0 0 18px rgba(107,142,35,0.15)
+    `
+  },
+  narrativeText: {
+    color: '#2f3d1a',
+    textShadow: '0 1px 2px rgba(250,245,230,0.8)'
+  },
+  choiceButton: {
+    background: 'linear-gradient(135deg, rgba(85,107,47,0.9) 0%, rgba(107,142,35,0.82) 100%)',
+    color: '#F5F5DC',
+    border: '2px solid #8FBC8F',
+    textShadow: '0 1px 2px rgba(0,0,0,0.7)',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.15)',
+    hoverBackground: 'linear-gradient(135deg, rgba(107,142,35,0.95) 0%, rgba(143,188,143,0.88) 100%)',
+    hoverBorderColor: '#DAA520',
+    hoverTextShadow: '0 1px 3px rgba(0,0,0,0.8), 0 0 8px rgba(218,165,32,0.35)',
+    hoverBoxShadow: '0 8px 25px rgba(85,107,47,0.4), inset 0 1px 0 rgba(255,255,255,0.2)'
+  },
+  locationLink: {
+    color: '#556B2F',
+    hoverColor: '#6B8E23',
+    textShadow: '0 0 2px rgba(218,165,32,0.25)',
+    hoverTextShadow: '0 0 6px rgba(107,142,35,0.5)'
+  },
+  hoverImage: {
+    border: '3px solid #6B8E23',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.5), 0 0 16px rgba(107,142,35,0.25)'
+  }
+} as const;
+
+/**
  * Tema Padrão (Default)
  * 
  * Tema clássico medieval com tons de marrom e bege.
@@ -412,18 +472,21 @@ export const DEFAULT_THEME: ScreenTheme = {
 } as const;
 
 // Tipo para identificar qual tema usar
-export type ThemeName = 'default' | 'temple' | 'sewers' | 'prison' | 'dark-knights' | 'wizard-room';
+export type ThemeName = 'default' | 'temple' | 'sewers' | 'prison' | 'dark-knights' | 'wizard-room' | 'forest';
 
 // Mapeamento de telas para temas
 export const SCREEN_THEMES: Record<number | string, ThemeName> = {
   // Tema Templo
   164: 'temple',
   254: 'temple',
+  380: 'temple',
+  332: 'temple',
   264: 'temple',
   
   // Tema Esgotos
   70: 'sewers',
   154: 'sewers',
+  250: 'sewers',
   170: 'sewers',
   180: 'sewers',
   356: 'sewers',
@@ -450,9 +513,22 @@ export const SCREEN_THEMES: Record<number | string, ThemeName> = {
   394: 'dark-knights',
   
   // Tema Laboratório do Mago (Santuário de Hegmar)
+  10: 'wizard-room',
   105: 'wizard-room',
   147: 'wizard-room',
   193: 'wizard-room',
+  312: 'wizard-room',
+
+  // Tema Floresta (viagem / região do eremita)
+  113: 'forest',
+  194: 'forest',
+
+  // Tema Floresta (João Verdesfolhas e caminho ao sul)
+  11: 'forest',
+  382: 'forest',
+  398: 'forest',
+
+  // Cabana do eremita — tema padrão marrom (349 não listada de propósito)
 
   // Todas as outras telas usam o tema padrão (não precisa listar todas)
 };
@@ -472,6 +548,8 @@ export const getScreenTheme = (screenId: number | string): ScreenTheme => {
       return DARK_KNIGHTS_THEME;
     case 'wizard-room':
       return WIZARD_ROOM_THEME;
+    case 'forest':
+      return FOREST_THEME;
     case 'default':
     default:
       return DEFAULT_THEME;

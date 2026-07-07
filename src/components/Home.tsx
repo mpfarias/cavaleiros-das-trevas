@@ -16,8 +16,6 @@ import AudioControls from './AudioControls';
 import bgmModal from '../assets/sounds/bgm-modal.mp3';
 import { useClickSound } from '../hooks/useClickSound';
 
-import { clearCheckpoint } from '../utils/save';
-
 interface HomeProps {
   onStart: () => void;
   onLoadGame: (saveData: { ficha: unknown; lastScreen?: string; version?: string }) => void;
@@ -34,7 +32,7 @@ const Home: React.FC<HomeProps> = ({ onStart, onLoadGame }) => {
       localStorage.removeItem('cavaleiro:ficha');
       localStorage.removeItem('cavaleiro:screenId');
       localStorage.removeItem('cavaleiro:lastScreen');
-      clearCheckpoint();
+      localStorage.removeItem('cavaleiro:checkpoint');
     } catch (error) {
       console.warn('🏠 [Home] Erro ao limpar localStorage:', error);
     }

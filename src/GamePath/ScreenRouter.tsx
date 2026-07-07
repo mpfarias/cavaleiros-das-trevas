@@ -52,6 +52,20 @@ import Screen190 from '../components/Screen190';
 import Screen193 from '../components/Screen193';
 import Screen194 from '../components/Screen194';
 import Screen203 from '../components/Screen203';
+import Screen205 from '../components/Screen205';
+import Screen219 from '../components/Screen219';
+import Screen238 from '../components/Screen238';
+import Screen250 from '../components/Screen250';
+import Screen270 from '../components/Screen270';
+import Screen6 from '../components/Screen6';
+import Screen289 from '../components/Screen289';
+import Screen10 from '../components/Screen10';
+import Screen312 from '../components/Screen312';
+import Screen332 from '../components/Screen332';
+import Screen349 from '../components/Screen349';
+import Screen380 from '../components/Screen380';
+import Screen382 from '../components/Screen382';
+import Screen398 from '../components/Screen398';
 import Screen28 from '../components/Screen28';
 import Screen306 from '../components/Screen306';
 import Screen166 from '../components/Screen166';
@@ -100,7 +114,6 @@ import Screen356 from '../components/Screen356';
 import Screen389 from '../components/Screen389';
 import GameOverScreen from '../components/GameOverScreen';
 import type { Ficha } from '../types';
-import { hasCheckpoint, clearCheckpoint } from '../utils/save';
 
 type ScreenRouterProps = {
   ficha: Ficha;
@@ -108,7 +121,6 @@ type ScreenRouterProps = {
   onAdjustSorte: (delta: number) => void;
   onFichaChange: (ficha: Ficha) => void;
   onGameOverRestart: () => void;
-  onGameOverContinue: () => void;
 };
 
 // Mapeamento de mensagens de Game Over customizadas por tela de morte
@@ -140,7 +152,6 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({
   onAdjustSorte,
   onFichaChange,
   onGameOverRestart,
-  onGameOverContinue,
 }) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -193,10 +204,6 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({
   }
 
   const goToScreen = (nextId: number) => {
-    // Fim narrativo nas masmorras: não há ponto de retorno
-    if (nextId === 999 && screenId === 208) {
-      clearCheckpoint();
-    }
     try {
       localStorage.setItem('cavaleiro:screenId', String(nextId));
     } catch (error) {
@@ -517,6 +524,90 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({
     );
   }
 
+  if (screenId === 205) {
+    return (
+      <Screen205 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 219) {
+    return (
+      <Screen219 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 238) {
+    return (
+      <Screen238 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 250) {
+    return (
+      <Screen250 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 270) {
+    return (
+      <Screen270 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 6) {
+    return (
+      <Screen6 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 289) {
+    return (
+      <Screen289 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 10) {
+    return (
+      <Screen10 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 312) {
+    return (
+      <Screen312 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 332) {
+    return (
+      <Screen332 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 349) {
+    return (
+      <Screen349 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 380) {
+    return (
+      <Screen380 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 382) {
+    return (
+      <Screen382 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 398) {
+    return (
+      <Screen398 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
   if (screenId === 28) {
     return (
       <Screen28 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
@@ -798,9 +889,7 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({
     const deathMessage = DEATH_MESSAGES[screenId];
     return (
       <GameOverScreen
-        hasSave={hasCheckpoint()}
         onRestart={onGameOverRestart}
-        onContinue={onGameOverContinue}
         deathReason={deathMessage.reason}
         deathLocation={deathMessage.location}
         characterStats={{

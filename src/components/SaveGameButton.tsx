@@ -15,7 +15,6 @@ import {
 import SaveIcon from '@mui/icons-material/Save';
 import type { Ficha } from '../types';
 import { useClickSound } from '../hooks/useClickSound';
-import { saveCheckpoint } from '../utils/save';
 
 interface SaveGameButtonProps {
   ficha: Ficha;
@@ -50,8 +49,6 @@ const SaveGameButton: React.FC<SaveGameButtonProps> = ({ ficha }) => {
         version: '1.0.0'
       };
 
-      saveCheckpoint(ficha, window.location.pathname);
-      
       // Criar blob e download
       const blob = new Blob([JSON.stringify(saveData, null, 2)], {
         type: 'application/json'

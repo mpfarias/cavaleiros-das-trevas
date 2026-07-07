@@ -21,6 +21,8 @@ import bgmTemple from '../assets/sounds/bgm-temple.mp3';
 import bgmTatoo from '../assets/sounds/bgm-tatoo.mp3';
 import bgmWizardRoom from '../assets/sounds/bgm-wizard-room.mp3';
 import bgmForest from '../assets/sounds/forest.mp3';
+import bgmPatioOradores from '../assets/sounds/bgm-patio-oradores.mp3';
+import bgmEremita from '../assets/sounds/bgm-eremita.mp3';
 
 // Definição dos grupos de áudio
 export type AudioGroup = 
@@ -42,6 +44,8 @@ export type AudioGroup =
   | 'tattoo'          // bgm-tatoo.mp3 - Loja de tatuagens
   | 'wizard-room'     // bgm-wizard-room.mp3 - Sala do mago
   | 'forest'          // forest.mp3 - Encontro na floresta
+  | 'patio-oradores'  // bgm-patio-oradores.mp3 - Pátio dos Oradores
+  | 'eremita'         // bgm-eremita.mp3 - Cabana do eremita
   | 'cinematic';      // bgm-intro.mp3, rainning.mp3 - Cinemática
 
 // Mapeamento de grupos para arquivos de áudio
@@ -64,6 +68,8 @@ const AUDIO_GROUP_MAP: Record<AudioGroup, string> = {
   'tattoo': bgmTatoo,
   'wizard-room': bgmWizardRoom,
   'forest': bgmForest,
+  'patio-oradores': bgmPatioOradores,
+  'eremita': bgmEremita,
   'cinematic': bgmIntro
 };
 
@@ -129,14 +135,22 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   225: 'arabic',                // Praça Masonic (rota /game/225) - bgm-arabic.mp3
   389: 'arabic',                // Fuga bem-sucedida após confusão (rota /game/389) - bgm-arabic.mp3
   57: 'arabic',                 // Multidão na Praça Masonic (rota /game/57) - bgm-arabic.mp3
-  118: 'royal-lendle',          // Pátio dos Oradores (rota /game/118) - people.mp3
-  137: 'royal-lendle',          // Orador em preto - Pátio dos Oradores (rota /game/137) - people.mp3
-  149: 'royal-lendle',          // Confusão no Pátio dos Oradores (rota /game/149) - people.mp3
+  6: 'patio-oradores',          // Oradora transformada em sapo (rota /game/6) - bgm-patio-oradores.mp3
+  118: 'patio-oradores',        // Pátio dos Oradores (rota /game/118) - bgm-patio-oradores.mp3
+  137: 'patio-oradores',        // Orador em preto - Pátio dos Oradores (rota /game/137) - bgm-patio-oradores.mp3
+  149: 'patio-oradores',        // Confusão no Pátio dos Oradores (rota /game/149) - bgm-patio-oradores.mp3
   181: 'battle',                // Combate com Agitador (rota /game/181) - bgm-battle.mp3
-  370: 'royal-lendle',          // Recompensa após agitadores (rota /game/370) - people.mp3
+  205: 'battle',                // Quatro agitadores - Pátio dos Oradores (rota /game/205) - bgm-battle.mp3
+  219: 'patio-oradores',        // Zekareh, mendigo profeta - Pátio dos Oradores (rota /game/219) - bgm-patio-oradores.mp3
+  289: 'patio-oradores',        // Oradora anti-magos - Pátio dos Oradores (rota /game/289) - bgm-patio-oradores.mp3
+  341: 'patio-oradores',        // Proteger oradora do projétil (rota /game/341) - bgm-patio-oradores.mp3
+  238: 'chase',                 // Queda no cavalo - fuga pelo Portão Norte (rota /game/238) - bgm-running.mp3
+  370: 'patio-oradores',        // Recompensa após agitadores (rota /game/370) - bgm-patio-oradores.mp3
   164: 'temple',                // Templo dos Geomagos (rota /game/164) - bgm-temple.mp3
   264: 'temple',                // Escolha correta da Lua (rota /game/264) - bgm-temple.mp3
   254: 'temple',                // Desafio da Terra-Mãe (rota /game/254) - bgm-temple.mp3
+  380: 'temple',                // Morte no Desafio da Terra-Mãe (rota /game/380) - bgm-temple.mp3
+  332: 'temple',                // Broche da Folha Verde - Templo dos Geomagos (rota /game/332) - bgm-temple.mp3
   100: 'chase',                 // Salto na cerca - teste de perícia (rota /game/100) - bgm-running.mp3
   292: 'chase',                 // Telhado - guarda ofegante (rota /game/292) - bgm-running.mp3
   392: 'chase',                 // Luta com guarda no telhado (rota /game/392) - bgm-running.mp3
@@ -152,6 +166,9 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   194: 'map',                   // Bandido na nascente - Poço do Feiticeiro (rota /game/194) - nature-sound-map.mp3
   203: 'arabic',                // Queda do cavalo - ruas de Royal Lendle (rota /game/203) - bgm-arabic.mp3
   11: 'forest',                 // João Verdesfolhas (rota /game/11) - forest.mp3
+  382: 'forest',                // Desafio de João Verdesfolhas (rota /game/382) - forest.mp3
+  398: 'forest',                // Seguir o caminho - João Verdesfolhas (rota /game/398) - forest.mp3
+  349: 'eremita',               // Cabana do eremita Hammicus (rota /game/349) - bgm-eremita.mp3
   335: 'creepy',                // Vitória sobre Cavaleiro das Trevas (rota /game/335) - bgm-creepy.mp3
   72: 'hiding',                 // Perseguição reiniciada pelos Cavaleiros (rota /game/72) - bgm-hiding.mp3
   166: 'chase',                 // Casa da velhinha - Fuga dos guardas (rota /game/166) - bgm-running.mp3
@@ -166,6 +183,7 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   375: 'sewers',                // Esgotos - Encontro com Slygore (rota /game/375) - bgm-sewers.mp3
   356: 'sewers',                // Teste de sorte - Fuga do Slygore (rota /game/356) - bgm-sewers.mp3
   154: 'sewers',                // Slygore cospe - teste de Perícia (rota /game/154) - bgm-sewers.mp3
+  250: 'sewers',                // Esquiva do Slygore - teste de Sorte (rota /game/250) - bgm-sewers.mp3
   70: 'battle',                 // Slygore - áudio de batalha (rota /game/70) - bgm-battle.mp3
   2: 'hiding',                  // Salto na ravina (rota /game/2) - usa o mesmo da tela 72
   24: 'hiding',                 // Alcançar o trilho após salto (rota /game/24) - bgm-hiding.mp3
@@ -174,9 +192,12 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   180: 'battle',                // Escolha: subir ou lutar (rota /game/180) - bgm-battle.mp3
   33: 'tattoo',                 // Loja de tatuagens - Rogmondo (rota /game/33) - bgm-tatoo.mp3
   143: 'tattoo',                // Rogmondo - guardas invadem (rota /game/143) - bgm-tatoo.mp3
+  270: 'tattoo',                // Rogmondo pergunta o que você faz aqui (rota /game/270) - bgm-tatoo.mp3
+  10: 'wizard-room',           // Orbe Armadilha da Mente - Santuário de Hegmar (rota /game/10) - bgm-wizard-room.mp3
   105: 'wizard-room',           // Santuário de Hegmar (rota /game/105) - bgm-wizard-room.mp3
   147: 'wizard-room',           // Documento na escrivaninha - Hegmar (rota /game/147) - bgm-wizard-room.mp3
   193: 'wizard-room',           // Armadilha do caixão - Santuário de Hegmar (rota /game/193) - bgm-wizard-room.mp3
+  312: 'wizard-room',           // Bola de cristal - teste de Sorte (rota /game/312) - bgm-wizard-room.mp3
 };
 
 export const useAudioGroup = (screenId: number | string) => {

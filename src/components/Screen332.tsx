@@ -9,33 +9,34 @@ import ImageModal from './ui/ImageModal';
 import { GameAlert } from './ui/GameAlert';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
-import type { Ficha, Item } from '../types';
+import type { Ficha } from '../types';
 import { NOTIFICATION_CONFIG } from '../constants/character';
-import mendokanImg from '../assets/images/personagens/mendokan.png';
-import marcaCaosImg from '../assets/images/marcacaos.png';
-import perdaoCivicoImg from '../assets/images/perdao-civico.png';
+import { adicionarItem } from '../utils/inventory';
+import geomagosImg from '../assets/images/personagens/geomagos.png';
+import arquidruidaImg from '../assets/images/personagens/arquidruida.png';
+import brocheFolhasVerdesImg from '../assets/images/broche-folhas-verdes.png';
 
-const DOCUMENTO_PERDAO_ID = 'documento-perdao-civico';
+const BROCHE_FOLHA_VERDE_ID = 'broche-folha-verde';
 
-interface Screen370Props {
+interface Screen332Props {
   onGoToScreen: (screenId: number) => void;
   ficha: Ficha;
   onUpdateFicha: (ficha: Ficha) => void;
 }
 
-const Screen370: React.FC<Screen370Props> = ({ onGoToScreen, ficha, onUpdateFicha }) => {
-  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(370);
+const Screen332: React.FC<Screen332Props> = ({ onGoToScreen, ficha, onUpdateFicha }) => {
+  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(332);
   const playClick = useClickSound(0.2);
-  const theme = useScreenTheme(370);
+  const theme = useScreenTheme(332);
   const { Container, CardWrap, NarrativeText, ChoiceButton, LocationLink, HoverImage } = useMemo(
     () => createThemedComponents(theme),
     [theme]
   );
 
   const [hoverImage, setHoverImage] = useState<{ src: string; x: number; y: number } | null>(null);
+  const [showImageModal, setShowImageModal] = useState(false);
   const [modalImage, setModalImage] = useState<{ src: string; alt: string } | null>(null);
   const [showItemAlert, setShowItemAlert] = useState(false);
-  const [showSorteAlert, setShowSorteAlert] = useState(false);
   const rewardsAppliedRef = useRef(false);
 
   const createHoverHandlers = useCallback((src: string) => ({
@@ -56,72 +57,48 @@ const Screen370: React.FC<Screen370Props> = ({ onGoToScreen, ficha, onUpdateFich
     },
   }), []);
 
+  const geomagosHandlers = createHoverHandlers(geomagosImg);
+  const arquidruidaHandlers = createHoverHandlers(arquidruidaImg);
+  const brocheHandlers = createHoverHandlers(brocheFolhasVerdesImg);
+
   const handleImageClick = useCallback((src: string, alt: string) => {
     playClick();
     setModalImage({ src, alt });
+    setShowImageModal(true);
   }, [playClick]);
-
-  const marcaHandlers = createHoverHandlers(marcaCaosImg);
-  const mendokanHandlers = createHoverHandlers(mendokanImg);
-  const perdaoHandlers = createHoverHandlers(perdaoCivicoImg);
 
   useEffect(() => {
     if (rewardsAppliedRef.current) return;
 
-    const jaTemDocumento = ficha.bolsa.some(
-      (item: Item) =>
-        item.id === DOCUMENTO_PERDAO_ID ||
-        (item.nome.toLowerCase().includes('documento') && item.nome.toLowerCase().includes('perdão'))
+    const jaTemBroche = ficha.bolsa.some(
+      item =>
+        item.id === BROCHE_FOLHA_VERDE_ID ||
+        (item.nome.toLowerCase().includes('broche') && item.nome.toLowerCase().includes('folha verde'))
     );
 
-    if (jaTemDocumento) {
+    if (jaTemBroche) {
       rewardsAppliedRef.current = true;
       return;
     }
 
     rewardsAppliedRef.current = true;
 
-    const documentoPerdao: Item = {
-      id: DOCUMENTO_PERDAO_ID,
-      nome: 'Documento de Perdão Cívico',
+    const fichaAtualizada = adicionarItem(ficha, {
+      nome: 'Broche da Folha Verde',
       tipo: 'equipamento',
-      descricao: 'Perdão oficial da Cidade de Royal Lendle. Você não deve mais nada à Cidade.',
-      adquiridoEm: 'Tela 370 - Pátio dos Oradores'
-    };
-
-    const novaSorteAtual = Math.min(ficha.sorte.inicial, ficha.sorte.atual + 1);
-    const sorteAumentou = novaSorteAtual > ficha.sorte.atual;
-
-    const fichaAtualizada: Ficha = {
-      ...ficha,
-      sorte: {
-        ...ficha.sorte,
-        atual: novaSorteAtual
-      },
-      bolsa: [...ficha.bolsa, documentoPerdao]
-    };
+      descricao: 'Presente da Terra-Mãe, entregue pelo Arquidruida. Permite percorrer as Linhas de Força de Titã.',
+      adquiridoEm: 'Tela 332 - Templo dos Geomagos',
+    });
 
     onUpdateFicha(fichaAtualizada);
-
     setShowItemAlert(true);
     setTimeout(() => setShowItemAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
-
-    if (sorteAumentou) {
-      setTimeout(() => {
-        setShowSorteAlert(true);
-        setTimeout(() => setShowSorteAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
-      }, 800);
-    }
   }, [ficha, onUpdateFicha]);
 
   return (
-    <Container data-screen="screen-370">
+    <Container data-screen="screen-332">
       <GameAlert sx={{ top: '120px' }} $isVisible={showItemAlert}>
-        📜 Você recebeu: Documento de Perdão Cívico!
-      </GameAlert>
-
-      <GameAlert sx={{ top: showItemAlert ? '180px' : '120px' }} $isVisible={showSorteAlert}>
-        🍀 +1 SORTE atual!
+        🍃 Você ganhou: Broche da Folha Verde!
       </GameAlert>
 
       <VolumeControl />
@@ -165,67 +142,65 @@ const Screen370: React.FC<Screen370Props> = ({ onGoToScreen, ficha, onUpdateFich
       <CardWrap>
         <CardContent sx={{ padding: '40px' }}>
           <NarrativeText>
-            O combate é duro e demorado, mas, no fim, os guardas conseguem retomar o controle da situação. Muitos ficaram feridos e alguns morreram — entre eles, os agitadores.
-            <br /><br />
-            O comandante rasga a túnica negra do líder e revela a{' '}
+            Quando os{' '}
             <LocationLink
-              {...marcaHandlers}
-              onClick={() => handleImageClick(marcaCaosImg, 'Marca do Caos')}
+              {...geomagosHandlers}
+              onClick={() => handleImageClick(geomagosImg, 'Geomagos')}
             >
-              Marca do Caos
+              Geomagos
             </LocationLink>
-            . Além disso, o homem carregava um pingente mágico capaz de hipnotizar até os mais resistentes.
-            <br /><br />
-            Trata-se de mais um servo do Mal, enviado para desestabilizar a aliança entre os Quatro Reinos.
-            <br /><br />
-            Satisfeito, o comandante se volta para você.
-            <br /><br />
-            — Foi uma sorte encontrá-lo aqui, mercenário. Sem a sua ajuda, este confronto teria terminado de forma bem diferente. Sei que você tem uma grande dívida a pagar. Como recompensa, ofereço este{' '}
+            {' '}afastam as foices do seu pescoço, o{' '}
             <LocationLink
-              {...perdaoHandlers}
-              onClick={() => handleImageClick(perdaoCivicoImg, 'Documento de Perdão Cívico')}
+              {...arquidruidaHandlers}
+              onClick={() => handleImageClick(arquidruidaImg, 'Arquidruida')}
             >
-              Documento de Perdão Cívico
+              Arquidruida
             </LocationLink>
-            . A partir de agora, você não deve mais nada à Cidade.
+            {' '}ergue os braços e declara:
             <br /><br />
-            Depois de toda essa confusão, você decide que o melhor é reencontrar{' '}
+            — De acordo com as antigas leis do Deus dos Chifres, você superou a prova e agora está livre para percorrer as Linhas de Força de Titã. Selamos nossos destinos. Nada mais podemos fazer. Tome isto.
+            <br /><br />
+            Ele prende em sua roupa um pequeno{' '}
             <LocationLink
-              {...mendokanHandlers}
-              onClick={() => handleImageClick(mendokanImg, 'Mendokan')}
+              {...brocheHandlers}
+              onClick={() => handleImageClick(brocheFolhasVerdesImg, 'Broche da Folha Verde')}
             >
-              Mendokan
+              broche em forma de folha
             </LocationLink>
             .
+            <br /><br />
+            — Este é um presente da Terra-Mãe. Os tempos estão mudando, e ela está ameaçada. As profecias dizem que será você quem irá salvá-la. Agora vá! Ajude Titã, pois somente assim encontrará a força necessária para cumprir sua missão.
+            <br /><br />
+            Você ganhou um broche da Folha Verde.
+            <br /><br />
+            Os servos do Arquidruida acompanham você até o portão dos fundos, que dá para uma rua estreita.
           </NarrativeText>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
-            <ChoiceButton onClick={() => { playClick(); onGoToScreen(272); }}>
-              Deixar a cidade pelo Portão Sul
+            <ChoiceButton onClick={() => { playClick(); onGoToScreen(301); }}>
+              Seguir para a esquerda
             </ChoiceButton>
 
-            <ChoiceButton onClick={() => { playClick(); onGoToScreen(60); }}>
-              Seguir para o Portão Leste
+            <ChoiceButton onClick={() => { playClick(); onGoToScreen(118); }}>
+              Seguir para a direita
             </ChoiceButton>
           </Box>
         </CardContent>
       </CardWrap>
 
       {hoverImage && (
-        <HoverImage
-          sx={{
-            left: hoverImage.x,
-            top: hoverImage.y
-          }}
-        >
+        <HoverImage sx={{ left: hoverImage.x, top: hoverImage.y }}>
           <img src={hoverImage.src} alt="" />
         </HoverImage>
       )}
 
       {modalImage && (
         <ImageModal
-          open={Boolean(modalImage)}
-          onClose={() => setModalImage(null)}
+          open={showImageModal}
+          onClose={() => {
+            setShowImageModal(false);
+            setModalImage(null);
+          }}
           imageSrc={modalImage.src}
           imageAlt={modalImage.alt}
         />
@@ -234,4 +209,4 @@ const Screen370: React.FC<Screen370Props> = ({ onGoToScreen, ficha, onUpdateFich
   );
 };
 
-export default Screen370;
+export default Screen332;

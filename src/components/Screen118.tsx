@@ -130,7 +130,7 @@ interface Screen118Props {
 }
 
 const Screen118: React.FC<Screen118Props> = ({ onGoToScreen, ficha: _ficha, onUpdateFicha: _onUpdateFicha }) => {
-  // Usa o sistema de grupos de áudio - automaticamente gerencia música do grupo 'royal-lendle' (people.mp3)
+  // Usa o sistema de grupos de áudio - automaticamente gerencia música do grupo 'patio-oradores' (bgm-patio-oradores.mp3)
   const { currentGroup, isPlaying, togglePlay } = useAudioGroup(118);
   const playClick = useClickSound(0.2);
   

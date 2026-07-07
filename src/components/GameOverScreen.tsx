@@ -105,16 +105,6 @@ const ActionButton = styled(Button)({
   }
 });
 
-// Botão de continuar aventura (carregar jogo)
-const ContinueButton = styled(ActionButton)({
-  background: 'linear-gradient(135deg, rgba(20,40,20,0.9) 0%, rgba(40,60,40,0.8) 100%)',
-  borderColor: '#2a4a2a',
-  '&:hover': {
-    background: 'linear-gradient(135deg, rgba(40,60,40,0.9) 0%, rgba(20,40,20,0.8) 100%)',
-    borderColor: '#4a6a4a'
-  }
-});
-
 // Estatísticas da morte
 const DeathStats = styled(Box)({
   background: 'rgba(20,20,20,0.4)',
@@ -136,8 +126,6 @@ const StatText = styled(Typography)({
 
 interface GameOverScreenProps {
   onRestart: () => void;
-  onContinue?: () => void;
-  hasSave?: boolean;
   deathReason?: string;
   deathLocation?: string;
   characterStats?: {
@@ -150,8 +138,6 @@ interface GameOverScreenProps {
 
 const GameOverScreen: React.FC<GameOverScreenProps> = ({
   onRestart,
-  onContinue,
-  hasSave = false,
   deathReason = 'Você foi derrotado em combate',
   deathLocation = 'Desconhecido',
   characterStats
@@ -275,24 +261,13 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({
 
       {/* Botões de ação */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center' }}>
-        {hasSave && onContinue && (
-          <ContinueButton 
-            onClick={() => {
-              playClick();
-              onContinue();
-            }}
-          >
-            📁 Continuar Aventura
-          </ContinueButton>
-        )}
-
         <ActionButton 
           onClick={() => {
             playClick();
             onRestart();
           }}
         >
-          🔄 {hasSave ? 'Nova Aventura' : 'Reiniciar'}
+          🔄 Reiniciar
         </ActionButton>
       </Box>
 

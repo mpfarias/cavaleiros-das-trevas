@@ -1135,10 +1135,6 @@ const BattleSystem = forwardRef<BattleSystemHandle, BattleSystemProps>(({
             setShowGameOver(false);
             window.location.reload();
           }}
-          onContinue={() => {
-            setShowGameOver(false);
-            window.location.href = '/';
-          }}
           deathReason="Você foi derrotado em combate"
           deathLocation={`Batalha contra ${enemy.nome}`}
           characterStats={ficha}
