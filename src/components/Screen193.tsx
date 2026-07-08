@@ -57,10 +57,10 @@ const Screen193: React.FC<Screen193Props> = ({ onGoToScreen, ficha, onUpdateFich
 
   return (
     <Container data-screen="screen-193">
-      <GameAlert sx={{ top: '120px' }} $isVisible={showForcaAlert}>
+      <GameAlert sx={{ top: '120px' }} visible={showForcaAlert} onClose={() => setShowForcaAlert(false)}>
         ⚔️ Você perdeu 1 ponto de FORÇA!
       </GameAlert>
-      <GameAlert sx={{ top: '180px' }} $isVisible={showPericiaAlert}>
+      <GameAlert sx={{ top: '180px' }} visible={showPericiaAlert} onClose={() => setShowPericiaAlert(false)}>
         🗡️ Você perdeu 1 ponto de PERÍCIA!
       </GameAlert>
 

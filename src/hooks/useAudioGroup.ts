@@ -162,8 +162,11 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   306: 'creepy',                // Fingir-se de morto (rota /game/306) - bgm-creepy.mp3
   279: 'creepy',                // Sucesso ao fingir-se de morto (rota /game/279) - bgm-creepy.mp3
   102: 'map',                   // Saída sul do estreito - reflexão (rota /game/102) - nature-sound-map.mp3
+  92: 'map',                    // Bandido no Poço do Feiticeiro (rota /game/92) - nature-sound-map.mp3
+  274: 'map',                   // Revistar bandido - Poço do Feiticeiro (rota /game/274) - nature-sound-map.mp3
   113: 'map',                   // Ponte/Poço do Feiticeiro (rota /game/113) - herdado de 102
   194: 'map',                   // Bandido na nascente - Poço do Feiticeiro (rota /game/194) - nature-sound-map.mp3
+  177: 'map',                   // Enganar o bandido - Poço do Feiticeiro (rota /game/177) - nature-sound-map.mp3
   203: 'arabic',                // Queda do cavalo - ruas de Royal Lendle (rota /game/203) - bgm-arabic.mp3
   11: 'forest',                 // João Verdesfolhas (rota /game/11) - forest.mp3
   382: 'forest',                // Desafio de João Verdesfolhas (rota /game/382) - forest.mp3

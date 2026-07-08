@@ -129,7 +129,7 @@ const Screen254: React.FC<Screen254Props> = ({ onGoToScreen, ficha, onUpdateFich
 
       {/* Alerta de perda de FORÇA */}
       {showForceAlert && (
-        <GameAlert sx={{ top: '120px' }} $isVisible={showForceAlert}>
+        <GameAlert sx={{ top: '120px' }} visible={showForceAlert} onClose={() => setShowForceAlert(false)}>
           ⚔️ Você perdeu 2 pontos de FORÇA!
         </GameAlert>
       )}

@@ -97,7 +97,7 @@ const Screen332: React.FC<Screen332Props> = ({ onGoToScreen, ficha, onUpdateFich
 
   return (
     <Container data-screen="screen-332">
-      <GameAlert sx={{ top: '120px' }} $isVisible={showItemAlert}>
+      <GameAlert sx={{ top: '120px' }} visible={showItemAlert} onClose={() => setShowItemAlert(false)}>
         🍃 Você ganhou: Broche da Folha Verde!
       </GameAlert>
 

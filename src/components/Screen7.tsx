@@ -170,7 +170,7 @@ const Screen7: React.FC<Screen7Props> = ({ onGoToScreen, ficha, onUpdateFicha })
       
       {/* Alerta de uso da poção */}
       {showPotionAlert && (
-        <GameAlert sx={{ top: '120px' }} $isVisible={showPotionAlert}>
+        <GameAlert sx={{ top: '120px' }} visible={showPotionAlert} onClose={() => setShowPotionAlert(false)}>
           🧪 {potionUsed ? `Você usou ${potionUsed}!` : 'Poção Corrosiva usada!'}
         </GameAlert>
       )}

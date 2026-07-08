@@ -210,7 +210,7 @@ const Screen211: React.FC<Screen211Props> = ({ onGoToScreen, ficha, onUpdateFich
   return (
     <Container data-screen="screen-211">
       {/* Alerta de perda de FORÇA */}
-      <GameAlert sx={{ top: '120px' }} $isVisible={showForceAlert}>
+      <GameAlert sx={{ top: '120px' }} visible={showForceAlert} onClose={() => setShowForceAlert(false)}>
         ⚔️ Você perdeu {forceLost} ponto(s) de FORÇA!
       </GameAlert>
 

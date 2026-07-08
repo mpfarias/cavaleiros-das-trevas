@@ -135,7 +135,7 @@ const Screen162: React.FC<Screen162Props> = ({ onGoToScreen }) => {
       {/* Controle de Volume */}
       <VolumeControl />
       {/* Alert de perda de moedas */}
-      <GameAlert sx={{ top: '120px' }} $isVisible={showMoneyAlert}>
+      <GameAlert sx={{ top: '120px' }} visible={showMoneyAlert} onClose={() => setShowMoneyAlert(false)}>
         💰 {moedasPerdidas} moedas perdidas na aposta!
       </GameAlert>
       

@@ -138,7 +138,7 @@ const Screen43: React.FC<Screen43Props> = ({ onGoToScreen }) => {
       {/* Controle de Volume */}
       <VolumeControl />
       {/* Alerta de perda de dinheiro */}
-      <GameAlert sx={{ top: '120px' }} $isVisible={showMoneyAlert}>
+      <GameAlert sx={{ top: '120px' }} visible={showMoneyAlert} onClose={() => setShowMoneyAlert(false)}>
         💰 {moedasPerdidas > 0 ? `${moedasPerdidas} moedas perdidas na aposta!` : 'Moedas perdidas na aposta!'}
       </GameAlert>
 

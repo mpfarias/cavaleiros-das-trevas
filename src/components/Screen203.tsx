@@ -76,7 +76,7 @@ const Screen203: React.FC<Screen203Props> = ({ onGoToScreen, ficha, onUpdateFich
         bonus={0}
       />
 
-      <GameAlert sx={{ top: '120px' }} $isVisible={showForceAlert}>
+      <GameAlert sx={{ top: '120px' }} visible={showForceAlert} onClose={() => setShowForceAlert(false)}>
         ⚔️ Você perdeu {forceLost} ponto{forceLost !== 1 ? 's' : ''} de FORÇA!
       </GameAlert>
 

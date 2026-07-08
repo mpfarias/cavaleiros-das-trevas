@@ -162,14 +162,14 @@ const Screen18: React.FC<Screen18Props> = ({ onGoToScreen, ficha, onUpdateFicha 
 
       {/* Alerta de perda de força */}
       {showForceAlert && (
-        <GameAlert sx={{ top: '120px' }} $isVisible={showForceAlert}>
+        <GameAlert sx={{ top: '120px' }} visible={showForceAlert} onClose={() => setShowForceAlert(false)}>
           Você perdeu 1 ponto de FORÇA!
         </GameAlert>
       )}
 
       {/* Alerta de ganho de sorte */}
       {showSorteAlert && (
-        <GameAlert sx={{ top: '180px' }} $isVisible={showSorteAlert}>
+        <GameAlert sx={{ top: '180px' }} visible={showSorteAlert} onClose={() => setShowSorteAlert(false)}>
           Você ganhou 1 ponto de SORTE!
         </GameAlert>
       )}

@@ -332,7 +332,7 @@ const Screen183: React.FC<Screen183Props> = ({ onGoToScreen, ficha, onUpdateFich
 
             {/* Alerta com resultado do teste de sorte */}
             {showLuckAlert && (
-                <GameAlert sx={{ top: '120px', zIndex: 1200 }} $isVisible={showLuckAlert}>
+                <GameAlert sx={{ top: '120px', zIndex: 1200 }} visible={showLuckAlert} onClose={() => setShowLuckAlert(false)}>
                     {luckResult}
                 </GameAlert>
             )}

@@ -332,7 +332,7 @@ const Screen301: React.FC<Screen301Props> = ({ onGoToScreen, ficha, onUpdateFich
   return (
     <Container data-screen="screen-301">
       {/* Alerta de foguetes usados */}
-      <GameAlert sx={{ top: '120px' }} $isVisible={showFoguetesAlert}>
+      <GameAlert sx={{ top: '120px' }} visible={showFoguetesAlert} onClose={() => setShowFoguetesAlert(false)}>
         🎆 {foguetesParaUsar} foguete(s) usado(s) para distrair os guardas!
       </GameAlert>
       

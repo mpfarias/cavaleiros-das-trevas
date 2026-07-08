@@ -199,7 +199,7 @@ const Screen199: React.FC<Screen199Props> = ({ onGoToScreen, ficha, onUpdateFich
       
       {/* Alerta de perda de arma */}
       {showWeaponAlert && (
-        <GameAlert sx={{ top: '120px' }} $isVisible={showWeaponAlert}>
+        <GameAlert sx={{ top: '120px' }} visible={showWeaponAlert} onClose={() => setShowWeaponAlert(false)}>
           ⚔️ {weaponLost ? `Você perdeu ${weaponLost}!` : 'Arma perdida!'}
         </GameAlert>
       )}

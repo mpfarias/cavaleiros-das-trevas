@@ -111,7 +111,7 @@ const Screen245: React.FC<Screen245Props> = ({ onGoToScreen, ficha, onUpdateFich
       // Redireciona para Game Over após 4 segundos
       setTimeout(() => {
         onGoToScreen(999); // Game Over genérico
-      }, 4000);
+      }, NOTIFICATION_CONFIG.autoHideDuration);
     }
   }, [ficha, onGoToScreen]);
 
@@ -317,7 +317,7 @@ const Screen245: React.FC<Screen245Props> = ({ onGoToScreen, ficha, onUpdateFich
 
       {/* Alerta com resultado do teste de perícia */}
       {showSkillAlert && (
-        <GameAlert sx={{ top: '120px', zIndex: 1200 }} $isVisible={showSkillAlert}>
+        <GameAlert sx={{ top: '120px', zIndex: 1200 }} visible={showSkillAlert} onClose={() => setShowSkillAlert(false)}>
           {skillResult}
         </GameAlert>
       )}

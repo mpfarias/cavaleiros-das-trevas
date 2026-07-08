@@ -195,14 +195,14 @@ const Screen57: React.FC<Screen57Props> = ({ onGoToScreen, ficha, onUpdateFicha 
 
       {/* Alerta de perda de moedas */}
       {showMoneyAlert && (
-        <GameAlert sx={{ top: '120px' }} $isVisible={showMoneyAlert}>
+        <GameAlert sx={{ top: '120px' }} visible={showMoneyAlert} onClose={() => setShowMoneyAlert(false)}>
           💰 Você perdeu {moedasPerdidas} moeda{moedasPerdidas !== 1 ? 's' : ''} de ouro!
         </GameAlert>
       )}
 
       {/* Alerta de perda de FORÇA */}
       {showForceAlert && (
-        <GameAlert sx={{ top: diceComplete ? '180px' : '120px' }} $isVisible={showForceAlert}>
+        <GameAlert sx={{ top: diceComplete ? '180px' : '120px' }} visible={showForceAlert} onClose={() => setShowForceAlert(false)}>
           Você perdeu {forceLost} ponto{forceLost !== 1 ? 's' : ''} de FORÇA!
         </GameAlert>
       )}

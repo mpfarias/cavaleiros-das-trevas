@@ -48,7 +48,7 @@ const Screen238: React.FC<Screen238Props> = ({ onGoToScreen, ficha, onUpdateFich
 
   return (
     <Container data-screen="screen-238">
-      <GameAlert sx={{ top: '120px' }} $isVisible={showForcaAlert}>
+      <GameAlert sx={{ top: '120px' }} visible={showForcaAlert} onClose={() => setShowForcaAlert(false)}>
         ⚔️ Você perdeu 1 ponto de FORÇA!
       </GameAlert>
 

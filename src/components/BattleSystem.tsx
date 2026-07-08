@@ -525,6 +525,7 @@ const BattleSystem = forwardRef<BattleSystemHandle, BattleSystemProps>(({
     if (!ficha?.sorte?.atual || ficha.sorte.atual <= 0) {
       setLuckResult('Você não tem sorte suficiente para testar!');
       setShowLuckAlert(true);
+      setTimeout(() => setShowLuckAlert(false), NOTIFICATION_CONFIG.autoHideDuration);
       return;
     }
 
@@ -890,13 +891,13 @@ const BattleSystem = forwardRef<BattleSystemHandle, BattleSystemProps>(({
 
       {/* Alertas */}
       {showLuckAlert && (
-        <GameAlert sx={{ top: '120px' }} $isVisible={showLuckAlert}>
+        <GameAlert sx={{ top: '120px' }} visible={showLuckAlert} onClose={() => setShowLuckAlert(false)}>
          {luckResult}
         </GameAlert>
       )}
 
       {showArmorBrokenAlert && (
-        <GameAlert sx={{ top: '180px' }} $isVisible={showArmorBrokenAlert}>
+        <GameAlert sx={{ top: '180px' }} visible={showArmorBrokenAlert} onClose={() => setShowArmorBrokenAlert(false)}>
           {armorBrokenMessage}
         </GameAlert>
       )}

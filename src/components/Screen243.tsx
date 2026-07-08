@@ -220,14 +220,14 @@ const Screen243: React.FC<Screen243Props> = ({ onGoToScreen, ficha, onUpdateFich
     if (!passou) {
       setTimeout(() => {
         onGoToScreen(199);
-      }, 4000);
+      }, NOTIFICATION_CONFIG.autoHideDuration);
     }
   };
 
   return (
     <Container data-screen="screen-243">
       {/* Alert de ouro ganho */}
-      <GameAlert sx={{ top: '120px' }} $isVisible={showGoldAlert}>
+      <GameAlert sx={{ top: '120px' }} visible={showGoldAlert} onClose={() => setShowGoldAlert(false)}>
         💰 Você ganhou 1 Moeda de Ouro!
       </GameAlert>
 

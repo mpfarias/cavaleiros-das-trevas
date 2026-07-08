@@ -440,14 +440,14 @@ const Screen82: React.FC<Screen82Props> = ({ onGoToScreen, ficha, onUpdateFicha 
     if (item.tipo === 'armadura') {
       setArmorNotice(getArmorAcquisitionNotice(item));
       setShowArmorNotice(true);
-      setTimeout(() => setShowArmorNotice(false), NOTIFICATION_CONFIG.autoHideDuration * 2.5);
+      setTimeout(() => setShowArmorNotice(false), NOTIFICATION_CONFIG.autoHideDuration);
       return;
     }
 
     if (item.tipo === 'arma') {
       setArmorNotice(getWeaponAcquisitionNotice(item, previousName));
       setShowArmorNotice(true);
-      setTimeout(() => setShowArmorNotice(false), NOTIFICATION_CONFIG.autoHideDuration * 2.5);
+      setTimeout(() => setShowArmorNotice(false), NOTIFICATION_CONFIG.autoHideDuration);
     }
   }, []);
 
@@ -617,18 +617,18 @@ const Screen82: React.FC<Screen82Props> = ({ onGoToScreen, ficha, onUpdateFicha 
       {/* Controle de Volume */}
       <VolumeControl />
              {/* Alerts de compra */}
-       <GameAlert sx={{ top: '120px' }} $isVisible={showPurchaseAlert}>
+       <GameAlert sx={{ top: '120px' }} visible={showPurchaseAlert} onClose={() => setShowPurchaseAlert(false)}>
          {purchaseInfo.quantity > 0 
            ? `Compra realizada com sucesso! ${purchaseInfo.itemName} x${purchaseInfo.quantity}`
            : `Você já possui ${purchaseInfo.itemName}! Só é permitido comprar uma unidade.`
          }
        </GameAlert>
       
-      <GameAlert sx={{ top: '180px' }} $isVisible={showMoneyAlert}>
+      <GameAlert sx={{ top: '180px' }} visible={showMoneyAlert} onClose={() => setShowMoneyAlert(false)}>
         Moedas gastas: {purchaseInfo.cost} | Restantes: {purchaseInfo.remaining}
       </GameAlert>
 
-      <GameAlert sx={{ top: '240px', maxWidth: 'min(560px, 92vw)' }} $isVisible={showArmorNotice}>
+      <GameAlert sx={{ top: '240px', maxWidth: 'min(560px, 92vw)' }} visible={showArmorNotice} onClose={() => setShowArmorNotice(false)}>
         {armorNotice}
       </GameAlert>
       

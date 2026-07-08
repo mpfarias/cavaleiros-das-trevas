@@ -522,6 +522,9 @@ export const SCREEN_THEMES: Record<number | string, ThemeName> = {
   // Tema Floresta (viagem / região do eremita)
   113: 'forest',
   194: 'forest',
+  177: 'forest',
+  92: 'forest',
+  274: 'forest',
 
   // Tema Floresta (João Verdesfolhas e caminho ao sul)
   11: 'forest',

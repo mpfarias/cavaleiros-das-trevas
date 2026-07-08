@@ -60,7 +60,7 @@ const Screen279: React.FC<Screen279Props> = ({ onGoToScreen, ficha, onUpdateFich
   return (
     <Container data-screen="screen-279">
       {/* Alert de dano */}
-      <GameAlert sx={{ top: '120px' }} $isVisible={showDamageAlert}>
+      <GameAlert sx={{ top: '120px' }} visible={showDamageAlert} onClose={() => setShowDamageAlert(false)}>
         ⚔️ Você perdeu 2 pontos de FORÇA!
       </GameAlert>
 

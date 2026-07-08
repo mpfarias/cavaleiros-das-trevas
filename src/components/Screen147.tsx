@@ -86,7 +86,7 @@ const Screen147: React.FC<Screen147Props> = ({ onGoToScreen, ficha, onUpdateFich
 
   return (
     <Container data-screen="screen-147">
-      <GameAlert sx={{ top: '120px' }} $isVisible={showItemAlert}>
+      <GameAlert sx={{ top: '120px' }} visible={showItemAlert} onClose={() => setShowItemAlert(false)}>
         📜 Você ganhou: O aviso de Hegmar!
       </GameAlert>
 

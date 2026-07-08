@@ -116,11 +116,11 @@ const Screen370: React.FC<Screen370Props> = ({ onGoToScreen, ficha, onUpdateFich
 
   return (
     <Container data-screen="screen-370">
-      <GameAlert sx={{ top: '120px' }} $isVisible={showItemAlert}>
+      <GameAlert sx={{ top: '120px' }} visible={showItemAlert} onClose={() => setShowItemAlert(false)}>
         📜 Você recebeu: Documento de Perdão Cívico!
       </GameAlert>
 
-      <GameAlert sx={{ top: showItemAlert ? '180px' : '120px' }} $isVisible={showSorteAlert}>
+      <GameAlert sx={{ top: showItemAlert ? '180px' : '120px' }} visible={showSorteAlert} onClose={() => setShowSorteAlert(false)}>
         🍀 +1 SORTE atual!
       </GameAlert>
 

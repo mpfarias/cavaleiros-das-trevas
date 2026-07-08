@@ -154,13 +154,13 @@ const Screen70: React.FC<Screen70Props> = ({ onGoToScreen, ficha, onUpdateFicha 
 
       {/* Alerts padrão */}
       {showForceAlert && (
-        <GameAlert sx={{ top: '120px' }} $isVisible={showForceAlert}>
+        <GameAlert sx={{ top: '120px' }} visible={showForceAlert} onClose={() => setShowForceAlert(false)}>
           Você perdeu 2 pontos de FORÇA!
         </GameAlert>
       )}
 
       {showWeaponAlert && (
-        <GameAlert sx={{ top: '180px' }} $isVisible={showWeaponAlert}>
+        <GameAlert sx={{ top: '180px' }} visible={showWeaponAlert} onClose={() => setShowWeaponAlert(false)}>
           Sua arma foi corroída! Você perdeu {weaponLost}.
         </GameAlert>
       )}

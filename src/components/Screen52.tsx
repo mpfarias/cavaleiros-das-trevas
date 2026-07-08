@@ -64,7 +64,7 @@ const Screen52: React.FC<Screen52Props> = ({ onGoToScreen, ficha, onUpdateFicha 
       />
 
       {showDamageAlert && (
-        <GameAlert sx={{ top: '120px' }} $isVisible={showDamageAlert}>
+        <GameAlert sx={{ top: '120px' }} visible={showDamageAlert} onClose={() => setShowDamageAlert(false)}>
           Você perdeu 2 pontos de FORÇA!
         </GameAlert>
       )}

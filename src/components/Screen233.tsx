@@ -197,7 +197,7 @@ const Screen233: React.FC<Screen233Props> = ({ onGoToScreen, ficha, onUpdateFich
     <Container data-screen="screen-233">
       {/* Alerta de Itens Perdidos */}
       {showItemsAlert && (
-        <GameAlert sx={{ top: '120px' }} $isVisible={showItemsAlert}>
+        <GameAlert sx={{ top: '120px' }} visible={showItemsAlert} onClose={() => setShowItemsAlert(false)}>
           💼 Todos os itens foram confiscados!
         </GameAlert>
       )}

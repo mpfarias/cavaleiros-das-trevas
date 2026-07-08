@@ -64,7 +64,7 @@ const Screen190: React.FC<Screen190Props> = ({ onGoToScreen, ficha, onUpdateFich
   return (
     <Container data-screen="screen-190">
       {/* Alert de dano */}
-      <GameAlert sx={{ top: '120px' }} $isVisible={showDamageAlert}>
+      <GameAlert sx={{ top: '120px' }} visible={showDamageAlert} onClose={() => setShowDamageAlert(false)}>
         ⚔️ Você perdeu 4 pontos de FORÇA!
       </GameAlert>
 

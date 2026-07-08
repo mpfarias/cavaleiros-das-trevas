@@ -123,7 +123,7 @@ const Screen102: React.FC<Screen102Props> = ({ onGoToScreen, ficha, onUpdateFich
   return (
     <Container data-screen="screen-102">
       {/* Alerta de SORTE ganha */}
-      <GameAlert sx={{ top: '120px' }} $isVisible={showSorteAlert}>
+      <GameAlert sx={{ top: '120px' }} visible={showSorteAlert} onClose={() => setShowSorteAlert(false)}>
         ✨ Você ganhou 2 pontos de SORTE!
       </GameAlert>
 

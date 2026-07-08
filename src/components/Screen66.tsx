@@ -488,14 +488,14 @@ const Screen66: React.FC<Screen66Props> = ({ onGoToScreen, ficha, onUpdateFicha 
       {/* Controle de Volume */}
       <VolumeControl />
       {/* Alerts de compra */}
-      <GameAlert sx={{ top: '120px' }} $isVisible={showPurchaseAlert}>
+      <GameAlert sx={{ top: '120px' }} visible={showPurchaseAlert} onClose={() => setShowPurchaseAlert(false)}>
         {purchaseInfo.quantity > 0 
           ? `Compra realizada com sucesso! ${purchaseInfo.itemName} x${purchaseInfo.quantity}`
           : `Você já possui ${purchaseInfo.itemName}! Só é permitido comprar uma unidade.`
         }
       </GameAlert>
       
-      <GameAlert sx={{ top: '180px' }} $isVisible={showMoneyAlert}>
+      <GameAlert sx={{ top: '180px' }} visible={showMoneyAlert} onClose={() => setShowMoneyAlert(false)}>
         Moedas gastas: {purchaseInfo.cost} | Restantes: {purchaseInfo.remaining}
       </GameAlert>
       

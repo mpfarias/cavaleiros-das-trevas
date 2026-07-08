@@ -310,7 +310,7 @@ const Screen394: React.FC<Screen394Props> = ({ onGoToScreen, ficha, onUpdateFich
 
       {/* Alerta com resultado do punhal */}
       {showDaggerAlert && (
-        <GameAlert sx={{ top: '120px', zIndex: 1200 }} $isVisible={showDaggerAlert}>
+        <GameAlert sx={{ top: '120px', zIndex: 1200 }} visible={showDaggerAlert} onClose={() => setShowDaggerAlert(false)}>
           {daggerResult}
         </GameAlert>
       )}

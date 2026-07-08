@@ -277,7 +277,7 @@ const Screen54: React.FC<Screen54Props> = ({ onGoToScreen, ficha, onUpdateFicha 
       {/* Controle de Volume */}
       <VolumeControl />
       {/* Alerta de moedas ganhas na aposta */}
-      <GameAlert sx={{ top: '120px' }} $isVisible={showMoneyAlert}>
+      <GameAlert sx={{ top: '120px' }} visible={showMoneyAlert} onClose={() => setShowMoneyAlert(false)}>
         💰 {moedasGanhas} moedas ganhas na aposta!
       </GameAlert>
       

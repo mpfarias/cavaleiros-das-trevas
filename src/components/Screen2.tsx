@@ -9,6 +9,7 @@ import PauseIcon from '@mui/icons-material/Pause';
 import type { Ficha } from '../types';
 import DiceRollModal3D from './ui/DiceRollModal3D';
 import { GameAlert } from './ui/GameAlert';
+import { NOTIFICATION_CONFIG } from '../constants/character';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -88,14 +89,14 @@ const Screen2: React.FC<Screen2Props> = ({ onGoToScreen, ficha }) => {
       setTimeout(() => {
         setShowSkillAlert(false);
         onGoToScreen(24);
-      }, 4000);
+      }, NOTIFICATION_CONFIG.autoHideDuration);
     } else {
       setSkillResult(`Você falhou no teste de Perícia! Dados: ${total}`);
       setShowSkillAlert(true);
       setTimeout(() => {
         setShowSkillAlert(false);
         onGoToScreen(131);
-      }, 4000);
+      }, NOTIFICATION_CONFIG.autoHideDuration);
     }
   };
 
@@ -167,7 +168,7 @@ const Screen2: React.FC<Screen2Props> = ({ onGoToScreen, ficha }) => {
       />
 
       {showSkillAlert && (
-        <GameAlert sx={{ top: '120px', zIndex: 1200 }} $isVisible={showSkillAlert}>
+        <GameAlert sx={{ top: '120px', zIndex: 1200 }} visible={showSkillAlert} onClose={() => setShowSkillAlert(false)}>
           {skillResult}
         </GameAlert>
       )}

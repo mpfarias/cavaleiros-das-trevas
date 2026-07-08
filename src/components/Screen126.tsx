@@ -133,7 +133,7 @@ const Screen126: React.FC<Screen126Props> = ({ onGoToScreen, ficha, onUpdateFich
     <Container data-screen="screen-126">
       {/* Alerta de Provisões Perdidas */}
       {showProvisionsAlert && (
-        <GameAlert sx={{ top: '120px' }} $isVisible={showProvisionsAlert}>
+        <GameAlert sx={{ top: '120px' }} visible={showProvisionsAlert} onClose={() => setShowProvisionsAlert(false)}>
           🍞 -2 Provisões perdidas na viagem!
         </GameAlert>
       )}

@@ -109,7 +109,7 @@ const Screen170: React.FC<Screen170Props> = ({ onGoToScreen, ficha, onUpdateFich
 
       {/* Alerta de perda de força */}
       {showForceAlert && (
-        <GameAlert sx={{ top: '120px' }} $isVisible={showForceAlert}>
+        <GameAlert sx={{ top: '120px' }} visible={showForceAlert} onClose={() => setShowForceAlert(false)}>
           Você perdeu 3 pontos de FORÇA!
         </GameAlert>
       )}

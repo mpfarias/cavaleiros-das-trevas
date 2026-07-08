@@ -256,11 +256,11 @@ const Screen222: React.FC<Screen222Props> = ({ onGoToScreen, ficha, onFichaChang
       {/* Controle de Volume */}
       <VolumeControl />
       {/* Alertas de recompensa */}
-      <GameAlert sx={{ top: '120px' }} $isVisible={showGoldAlert}>
+      <GameAlert sx={{ top: '120px' }} visible={showGoldAlert} onClose={() => setShowGoldAlert(false)}>
         🪙 +6 Moedas de Ouro adicionadas!
       </GameAlert>
       
-      <GameAlert sx={{ top: '180px' }} $isVisible={showDiceAlert}>
+      <GameAlert sx={{ top: '180px' }} visible={showDiceAlert} onClose={() => setShowDiceAlert(false)}>
         🎲 Dado Viciado coletado!
       </GameAlert>
 

@@ -132,7 +132,7 @@ const Screen110: React.FC<Screen110Props> = ({ onGoToScreen, ficha, onUpdateFich
     <Container data-screen="screen-110">
       {/* Alerta de Provisões */}
       {showProvisionsAlert && (
-        <GameAlert sx={{ top: '120px' }} $isVisible={showProvisionsAlert}>
+        <GameAlert sx={{ top: '120px' }} visible={showProvisionsAlert} onClose={() => setShowProvisionsAlert(false)}>
           🍞 +2 Provisões adicionadas à bolsa!
         </GameAlert>
       )}

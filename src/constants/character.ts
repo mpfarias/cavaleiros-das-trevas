@@ -12,7 +12,7 @@ export const DICE_FORMULAS = {
 } as const;
 
 export const NOTIFICATION_CONFIG = {
-  autoHideDuration: 4000,
+  autoHideDuration: 10000,
   transition: {
     enter: 300,
     exit: 300

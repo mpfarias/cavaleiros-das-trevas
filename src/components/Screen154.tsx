@@ -103,7 +103,7 @@ const Screen154: React.FC<Screen154Props> = ({ onGoToScreen, ficha, onUpdateFich
 
   return (
     <Container data-screen="screen-154">
-      <GameAlert sx={{ top: '120px' }} $isVisible={showForceAlert}>
+      <GameAlert sx={{ top: '120px' }} visible={showForceAlert} onClose={() => setShowForceAlert(false)}>
         ⚔️ Você perdeu 3 pontos de FORÇA!
       </GameAlert>
 

@@ -132,7 +132,7 @@ const Screen40: React.FC<Screen40Props> = ({ onGoToScreen, ficha, onUpdateFicha 
   return (
     <Container data-screen="screen-40">
       {/* Alert de item ganho */}
-      <GameAlert sx={{ top: '120px' }} $isVisible={showItemAlert}>
+      <GameAlert sx={{ top: '120px' }} visible={showItemAlert} onClose={() => setShowItemAlert(false)}>
         🗝️ Você ganhou: Chave Preta!
       </GameAlert>
 

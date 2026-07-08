@@ -128,7 +128,7 @@ const Screen166: React.FC<Screen166Props> = ({ onGoToScreen, ficha, onUpdateFich
   return (
     <Container data-screen="screen-166">
       {/* Alert de perda de sorte */}
-      <GameAlert sx={{ top: '120px' }} $isVisible={showLuckAlert}>
+      <GameAlert sx={{ top: '120px' }} visible={showLuckAlert} onClose={() => setShowLuckAlert(false)}>
         🍀 Você perdeu 1 ponto de SORTE!
       </GameAlert>
 

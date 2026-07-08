@@ -90,7 +90,7 @@ const Screen10: React.FC<Screen10Props> = ({ onGoToScreen, ficha, onUpdateFicha 
 
   return (
     <Container data-screen="screen-10">
-      <GameAlert sx={{ top: '120px' }} $isVisible={showItemAlert}>
+      <GameAlert sx={{ top: '120px' }} visible={showItemAlert} onClose={() => setShowItemAlert(false)}>
         🔮 Você ganhou: {ORBE_NOME}!
       </GameAlert>
 

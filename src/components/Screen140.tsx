@@ -213,11 +213,11 @@ const Screen140: React.FC<Screen140Props> = ({ onGoToScreen, ficha, onUpdateFich
       {/* Controle de Volume */}
       <VolumeControl />
       {/* Alertas de perda */}
-      <GameAlert sx={{ top: '120px' }} $isVisible={showForceAlert}>
+      <GameAlert sx={{ top: '120px' }} visible={showForceAlert} onClose={() => setShowForceAlert(false)}>
         ⚔️ -1 Ponto de Força perdido!
       </GameAlert>
       
-      <GameAlert sx={{ top: '180px' }} $isVisible={showMoneyAlert}>
+      <GameAlert sx={{ top: '180px' }} visible={showMoneyAlert} onClose={() => setShowMoneyAlert(false)}>
         💰 {moedasPerdidas > 0 ? `${moedasPerdidas} moedas perdidas!` : 'Moedas perdidas na aposta!'}
       </GameAlert>
 

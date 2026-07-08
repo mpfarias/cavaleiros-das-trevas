@@ -7,6 +7,8 @@ import Screen43 from '../components/Screen43';
 import Screen115 from '../components/Screen115';
 import Screen140 from '../components/Screen140';
 import Screen151 from '../components/Screen151';
+import Screen92 from '../components/Screen92';
+import Screen274 from '../components/Screen274';
 import Screen94 from '../components/Screen94';
 import Screen162 from '../components/Screen162';
 import Screen30 from '../components/Screen30';
@@ -51,6 +53,7 @@ import Screen145 from '../components/Screen145';
 import Screen190 from '../components/Screen190';
 import Screen193 from '../components/Screen193';
 import Screen194 from '../components/Screen194';
+import Screen177 from '../components/Screen177';
 import Screen203 from '../components/Screen203';
 import Screen205 from '../components/Screen205';
 import Screen219 from '../components/Screen219';
@@ -247,6 +250,18 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({
   if (screenId === 113) {
     return (
       <Screen113 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 92) {
+    return (
+      <Screen92 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 274) {
+    return (
+      <Screen274 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
     );
   }
 
@@ -515,6 +530,12 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({
   if (screenId === 194) {
     return (
       <Screen194 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 177) {
+    return (
+      <Screen177 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
     );
   }
 

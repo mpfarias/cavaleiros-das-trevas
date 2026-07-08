@@ -92,7 +92,7 @@ const Screen349: React.FC<Screen349Props> = ({ onGoToScreen, ficha, onUpdateFich
 
   return (
     <Container data-screen="screen-349">
-      <GameAlert sx={{ top: '120px' }} $isVisible={showForceAlert}>
+      <GameAlert sx={{ top: '120px' }} visible={showForceAlert} onClose={() => setShowForceAlert(false)}>
         ⚔️ Você ganhou 2 pontos de FORÇA!
       </GameAlert>
 
