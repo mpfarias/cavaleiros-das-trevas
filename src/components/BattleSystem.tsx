@@ -8,7 +8,8 @@ import { NOTIFICATION_CONFIG } from '../constants/character';
 import DiceRollModal3D from './ui/DiceRollModal3D';
 import GameOverScreen from './GameOverScreen';
 import type { Ficha } from '../types';
-import { getCombatPericia, hasEquippedWeapon } from '../utils/weapon';
+import { getAttackModifier, getCombatAttackPower, getCombatPericia, hasEquippedWeapon } from '../utils/weapon';
+import { getDesiredIncomingDamage, getPlayerHitDamage } from '../utils/combatDamage';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -155,6 +156,9 @@ interface BattleSystemProps {
   luckEffectOverride?: (params: { success: boolean; total: number; type: 'damage' | 'reduction' }) => string; // Resultado customizado da sorte
   disablePlayerForcaLoss?: boolean; // Não reduzir FORÇA do jogador
   ignorePlayerForcaDefeat?: boolean; // Ignorar derrota por FORÇA do jogador
+  /** Botão opcional exibido após cada turno (modal de resultado e entre turnos). */
+  abandonBattleLabel?: string;
+  onAbandonBattle?: () => void;
 }
 
 interface TurnResult {
@@ -198,7 +202,9 @@ const BattleSystem = forwardRef<BattleSystemHandle, BattleSystemProps>(({
   luckHelpTextOverride,
   luckEffectOverride,
   disablePlayerForcaLoss,
-  ignorePlayerForcaDefeat
+  ignorePlayerForcaDefeat,
+  abandonBattleLabel,
+  onAbandonBattle
 }, ref) => {
 
   const playClick = useClickSound(0.2);
@@ -233,8 +239,14 @@ const BattleSystem = forwardRef<BattleSystemHandle, BattleSystemProps>(({
   const [armorBrokenMessage, setArmorBrokenMessage] = useState('');
 
   const playerPericia = getCombatPericia(ficha);
+  const attackModifier = getAttackModifier(ficha);
   const isUnarmed = !hasEquippedWeapon(ficha);
   const playerForca = ficha?.forca?.atual || 0;
+
+  const formatPlayerPower = (roll: number, power: number) => {
+    const modText = attackModifier !== 0 ? ` ${attackModifier > 0 ? '+' : '−'} ${Math.abs(attackModifier)}` : '';
+    return `${roll} + ${playerPericia}${modText} = ${power}`;
+  };
 
   const applyIncomingDamageToPlayer = useCallback((
     workingFicha: Ficha,
@@ -343,7 +355,8 @@ const BattleSystem = forwardRef<BattleSystemHandle, BattleSystemProps>(({
       return;
     }
 
-    const playerPower = playerRoll + playerPericia;
+    const playerPower = getCombatAttackPower(playerRoll, ficha);
+    const weaponDamage = getPlayerHitDamage(ficha);
     const baseDamage = enemy.customDamage || 2;
     const hasMultipleAttacks = (enemy.attacksPerTurn && enemy.attacksPerTurn > 1) || false;
 
@@ -366,7 +379,7 @@ const BattleSystem = forwardRef<BattleSystemHandle, BattleSystemProps>(({
           enemyRoll: enemyRoll,
           enemyPower: enemyPower1,
           result: 'player_hit' as const,
-          damage: 2
+          damage: weaponDamage
         });
       } else if (enemyPower1 > playerPower) {
         const { ficha: updatedFicha, damageDealt } = applyIncomingDamageToPlayer(workingFicha, baseDamage, handleArmorBroken);
@@ -395,7 +408,7 @@ const BattleSystem = forwardRef<BattleSystemHandle, BattleSystemProps>(({
           enemyRoll: enemyRoll2,
           enemyPower: enemyPower2,
           result: 'player_hit' as const,
-          damage: 2
+          damage: weaponDamage
         });
       } else if (enemyPower2 > playerPower) {
         const { ficha: updatedFicha, damageDealt } = applyIncomingDamageToPlayer(workingFicha, baseDamage, handleArmorBroken);
@@ -416,16 +429,14 @@ const BattleSystem = forwardRef<BattleSystemHandle, BattleSystemProps>(({
         });
       }
 
+      const totalEnemyDamage = playerWonAtLeastOnce ? weaponDamage : 0;
       if (playerWonAtLeastOnce) {
-        setEnemyForca(prev => prev - 2);
+        setEnemyForca(prev => prev - weaponDamage);
       }
 
       if (totalPlayerDamage > 0) {
         onUpdateFicha(workingFicha);
       }
-
-      // Calcular dano total causado ao inimigo
-      const totalEnemyDamage = playerWonAtLeastOnce ? 2 : 0;
       
       // Determinar resultado geral
       let overallResult: TurnResult['result'];
@@ -470,8 +481,7 @@ const BattleSystem = forwardRef<BattleSystemHandle, BattleSystemProps>(({
 
       if (playerPower > enemyPower) {
         result = 'player_hit';
-        // Jogador sempre causa dano normal (2), customDamage é só para o inimigo
-        damage = 2;
+        damage = weaponDamage;
         setEnemyForca(prev => prev - damage);
       } else if (enemyPower > playerPower) {
         result = 'enemy_hit';
@@ -501,7 +511,7 @@ const BattleSystem = forwardRef<BattleSystemHandle, BattleSystemProps>(({
       setCurrentTurnResult(turnResult);
       setShowBattleResultModal(true);
     }
-  }, [enemyRoll, enemyRoll2, playerRoll, enemy.pericia, enemy.attacksPerTurn, enemy.customDamage, enemy.ignoreArmor, playerPericia, currentTurn, ficha, onUpdateFicha, applyIncomingDamageToPlayer, handleArmorBroken]);
+  }, [enemyRoll, enemyRoll2, playerRoll, enemy.pericia, enemy.attacksPerTurn, enemy.customDamage, currentTurn, ficha, onUpdateFicha, applyIncomingDamageToPlayer, handleArmorBroken]);
 
   const handleDiceComplete = useCallback((_dice: number[], total: number) => {
     if (dicePhase === 'enemy') {
@@ -551,76 +561,61 @@ const BattleSystem = forwardRef<BattleSystemHandle, BattleSystemProps>(({
     const luckFlags = luckTestType === 'damage'
       ? { playerLuck: true as const }
       : { enemyLuck: true as const };
-    
-    if (luckEffectOverride) {
-      const message = luckEffectOverride({ success: isSuccess, total, type: luckTestType });
-      setLuckResult(message);
-      setTurnHistory(prev => prev.map(turn => 
-        turn.turn === currentTurn ? { ...turn, ...luckFlags, luckTestApplied: true, luckTestSuccess: isSuccess } : turn
-      ));
-      setCurrentTurnResult(prev => (
-        prev && prev.turn === currentTurn ? { ...prev, ...luckFlags, luckTestApplied: true, luckTestSuccess: isSuccess } : prev
-      ));
-    } else if (luckTestType === 'damage') {
-      if (isSuccess) {
-        // Regra 2: Dano dobrado - ao invés de 2 pontos, o inimigo perde 4 pontos
-        // Como já perdeu 2 pontos no turno, aplicamos +2 pontos adicionais
-        setEnemyForca(prev => Math.max(0, prev - 2));
-        setLuckResult(`Sorte! Dados: ${total} - Dano dobrado! -2 FORÇA adicional do inimigo (Total: 4 pontos)`);
-        
-        // Atualizar o histórico com o dano final
-        setTurnHistory(prev => prev.map(turn => 
-          turn.turn === currentTurn ? { ...turn, ...luckFlags, finalDamage: 4, luckTestApplied: true, luckTestSuccess: true } : turn
-        ));
-        setCurrentTurnResult(prev => (
-          prev && prev.turn === currentTurn ? { ...prev, ...luckFlags, finalDamage: 4, luckTestApplied: true, luckTestSuccess: true } : prev
-        ));
-      } else {
-        // Regra 3: Se falhar no teste de sorte para dano, o inimigo perde apenas 1 ponto
-        // Como já perdeu 2 pontos no turno, revertemos +1 ponto
-        setEnemyForca(prev => Math.min(enemy.forca, prev + 1));
-        setLuckResult(`Você falhou no teste de Sorte! Dados: ${total} - Dano reduzido! Inimigo perde apenas 1 ponto de FORÇA`);
-        
-        // Atualizar o histórico com o dano final
-        setTurnHistory(prev => prev.map(turn => 
-          turn.turn === currentTurn ? { ...turn, ...luckFlags, finalDamage: 1, luckTestApplied: true, luckTestSuccess: false } : turn
-        ));
-        setCurrentTurnResult(prev => (
-          prev && prev.turn === currentTurn ? { ...prev, ...luckFlags, finalDamage: 1, luckTestApplied: true, luckTestSuccess: false } : prev
-        ));
+
+    let finalDamage = currentTurnResult?.damage ?? 0;
+    let defaultMessage = '';
+
+    if (luckTestType === 'damage') {
+      const alreadyDealt = currentTurnResult?.damage ?? getPlayerHitDamage(ficha);
+      const desiredDamage = getPlayerHitDamage(ficha, isSuccess);
+      const delta = desiredDamage - alreadyDealt;
+      finalDamage = desiredDamage;
+
+      if (delta !== 0) {
+        setEnemyForca(prev => Math.max(0, Math.min(enemy.forca, prev - delta)));
       }
+
+      defaultMessage = isSuccess
+        ? `Sorte! Dados: ${total} — Inimigo perde ${desiredDamage} pontos de FORÇA no total`
+        : `Você falhou no teste de Sorte! Dados: ${total} — Inimigo perde apenas ${desiredDamage} ponto${desiredDamage === 1 ? '' : 's'} de FORÇA`;
     } else {
-      if (isSuccess) {
-        // Regra 4: Se o teste de sorte para redução for bem-sucedido, o jogador perde apenas 1 ponto
-        // Como já perdeu 2 pontos no turno, recuperamos +1 ponto
-        const recoveredForca = Math.min(ficha.forca.inicial, playerForca + 1);
-        updatedFicha.forca.atual = recoveredForca;
+      const rawIncoming = enemy.customDamage || 2;
+      const alreadyDealt = currentTurnResult?.damage ?? getDesiredIncomingDamage(ficha, rawIncoming, { ignoreArmor: enemy.ignoreArmor });
+      const desiredDamage = getDesiredIncomingDamage(ficha, rawIncoming, {
+        ignoreArmor: enemy.ignoreArmor,
+        luckTestSuccess: isSuccess,
+      });
+      const delta = desiredDamage - alreadyDealt;
+      finalDamage = desiredDamage;
+
+      if (delta !== 0 && !disablePlayerForcaLoss) {
+        updatedFicha.forca.atual = Math.max(
+          0,
+          Math.min(ficha.forca.inicial, playerForca - delta),
+        );
         onUpdateFicha(updatedFicha);
-        setLuckResult(`Sorte! Dados: ${total} - Dano reduzido! +1 FORÇA recuperada (Total perdido: 1 ponto)`);
-        
-        // Atualizar o histórico com o dano final
-        setTurnHistory(prev => prev.map(turn => 
-          turn.turn === currentTurn ? { ...turn, ...luckFlags, finalDamage: 1, luckTestApplied: true, luckTestSuccess: true } : turn
-        ));
-        setCurrentTurnResult(prev => (
-          prev && prev.turn === currentTurn ? { ...prev, ...luckFlags, finalDamage: 1, luckTestApplied: true, luckTestSuccess: true } : prev
-        ));
-      } else {
-        // Regra 5: Se falhar no teste de sorte para redução, o jogador perde 3 pontos
-        // Como já perdeu 2 pontos no turno, aplicamos +1 ponto adicional
-        updatedFicha.forca.atual = Math.max(0, playerForca - 1);
-        onUpdateFicha(updatedFicha);
-        setLuckResult(`Você falhou no teste de Sorte! Dados: ${total} - Dano aumentado! +1 FORÇA perdida (Total perdido: 3 pontos)`);
-        
-        // Atualizar o histórico com o dano final
-        setTurnHistory(prev => prev.map(turn => 
-          turn.turn === currentTurn ? { ...turn, ...luckFlags, finalDamage: 3, luckTestApplied: true, luckTestSuccess: false } : turn
-        ));
-        setCurrentTurnResult(prev => (
-          prev && prev.turn === currentTurn ? { ...prev, ...luckFlags, finalDamage: 3, luckTestApplied: true, luckTestSuccess: false } : prev
-        ));
       }
+
+      const recovered = delta < 0 ? Math.abs(delta) : 0;
+      const extraLost = delta > 0 ? delta : 0;
+      defaultMessage = isSuccess
+        ? `Sorte! Dados: ${total} — Dano reduzido! ${recovered > 0 ? `+${recovered} FORÇA recuperada. ` : ''}Total perdido: ${desiredDamage} ponto${desiredDamage === 1 ? '' : 's'}`
+        : `Você falhou no teste de Sorte! Dados: ${total} — Dano aumentado! ${extraLost > 0 ? `+${extraLost} FORÇA perdida. ` : ''}Total perdido: ${desiredDamage} ponto${desiredDamage === 1 ? '' : 's'}`;
     }
+
+    // luckEffectOverride só personaliza a mensagem; o efeito mecânico acima sempre aplica
+    setLuckResult(
+      luckEffectOverride
+        ? luckEffectOverride({ success: isSuccess, total, type: luckTestType })
+        : defaultMessage
+    );
+
+    setTurnHistory(prev => prev.map(turn => 
+      turn.turn === currentTurn ? { ...turn, ...luckFlags, finalDamage, luckTestApplied: true, luckTestSuccess: isSuccess } : turn
+    ));
+    setCurrentTurnResult(prev => (
+      prev && prev.turn === currentTurn ? { ...prev, ...luckFlags, finalDamage, luckTestApplied: true, luckTestSuccess: isSuccess } : prev
+    ));
 
     setShowLuckDiceModal(false);
     setLuckTestType(null);
@@ -635,7 +630,7 @@ const BattleSystem = forwardRef<BattleSystemHandle, BattleSystemProps>(({
       setCurrentTurnResult(null);
       setDeferTurnResolve(false);
     }
-  }, [luckTestType, ficha, playerForca, onUpdateFicha, currentTurn, enemy.forca, luckEffectOverride, deferTurnResolve, onTurnResolved, currentTurnResult]);
+  }, [luckTestType, ficha, playerForca, onUpdateFicha, currentTurn, enemy.forca, enemy.customDamage, enemy.ignoreArmor, luckEffectOverride, deferTurnResolve, onTurnResolved, currentTurnResult, disablePlayerForcaLoss]);
 
   const getTurnResultText = (turn: TurnResult) => {
     if (getTurnResultTextOverride) {
@@ -765,7 +760,7 @@ const BattleSystem = forwardRef<BattleSystemHandle, BattleSystemProps>(({
             Você
           </Typography>
                      <Typography variant="body2" sx={{ color: '#d35656ff' }}>
-             PERÍCIA: {playerPericia}{isUnarmed ? ' (-1 sem arma)' : ''} | FORÇA: {playerForca}
+             PERÍCIA: {playerPericia}{isUnarmed ? ' (-1 sem arma)' : ''}{attackModifier !== 0 ? ` | ATAQUE: ${attackModifier > 0 ? '+' : ''}${attackModifier}` : ''} | FORÇA: {playerForca}
            </Typography>
         </Box>
       </StatusBox>
@@ -791,7 +786,7 @@ const BattleSystem = forwardRef<BattleSystemHandle, BattleSystemProps>(({
               {turn.multipleResults && turn.multipleResults.length > 0 ? (
                 <>
                   <Typography variant="body2" sx={{ color: '#d35656ff', fontSize: '12px', marginTop: '4px' }}>
-                    Você: {turn.playerRoll} + {playerPericia} = {turn.playerPower}
+                    Você: {formatPlayerPower(turn.playerRoll, turn.playerPower)}
                   </Typography>
                   {turn.multipleResults.map((attack, idx) => (
                     <Typography key={idx} variant="body2" sx={{ color: '#d35656ff', fontSize: '11px', marginLeft: '8px' }}>
@@ -801,7 +796,7 @@ const BattleSystem = forwardRef<BattleSystemHandle, BattleSystemProps>(({
                 </>
               ) : (
                 <Typography variant="body2" sx={{ color: '#d35656ff', fontSize: '12px' }}>
-                  Você: {turn.playerRoll} + {playerPericia} = {turn.playerPower} | 
+                  Você: {formatPlayerPower(turn.playerRoll, turn.playerPower)} | 
                   {enemy.nome}: {turn.enemyRoll} + {enemy.pericia} = {turn.enemyPower}
                 </Typography>
               )}
@@ -834,7 +829,7 @@ const BattleSystem = forwardRef<BattleSystemHandle, BattleSystemProps>(({
 
       {/* Botão de próximo turno */}
       {battleState === 'battle' && (
-        <Box sx={{ textAlign: 'center' }}>
+        <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center' }}>
                      <Button
              onClick={nextTurn}
              disabled={isTurnInteractionBlocked}
@@ -870,6 +865,33 @@ const BattleSystem = forwardRef<BattleSystemHandle, BattleSystemProps>(({
            >
             Próximo Turno
           </Button>
+
+          {abandonBattleLabel && onAbandonBattle && turnHistory.length > 0 && (
+            <Button
+              onClick={() => {
+                playClick();
+                onAbandonBattle();
+              }}
+              disabled={isTurnInteractionBlocked}
+              variant="outlined"
+              sx={{
+                padding: '12px 24px',
+                border: '2px solid #8B4513',
+                color: '#8B4513',
+                borderRadius: '12px',
+                fontSize: '16px',
+                fontFamily: '"Cinzel", serif',
+                fontWeight: 600,
+                '&:hover': {
+                  background: 'rgba(139,69,19,0.1)',
+                  borderColor: '#B31212',
+                  color: '#B31212',
+                },
+              }}
+            >
+              {abandonBattleLabel}
+            </Button>
+          )}
         </Box>
       )}
 
@@ -967,7 +989,7 @@ const BattleSystem = forwardRef<BattleSystemHandle, BattleSystemProps>(({
                 fontWeight: 'bold',
                 marginBottom: '8px'
               }}>
-                {playerRoll} + {playerPericia} = {playerRoll! + playerPericia}
+                {formatPlayerPower(playerRoll!, playerRoll! + playerPericia + attackModifier)}
               </Typography>
             </Box>
 
@@ -1005,7 +1027,7 @@ const BattleSystem = forwardRef<BattleSystemHandle, BattleSystemProps>(({
                     fontWeight: 'bold',
                     color: '#8B4513'
                   }}>
-                    Você: {currentTurnResult.playerRoll} + {playerPericia} = {currentTurnResult.playerPower}
+                    Você: {formatPlayerPower(currentTurnResult.playerRoll, currentTurnResult.playerPower)}
                   </Typography>
                   
                   {currentTurnResult.multipleResults.map((attackResult, index) => (
@@ -1064,7 +1086,7 @@ const BattleSystem = forwardRef<BattleSystemHandle, BattleSystemProps>(({
                       {enemy.nome}: {currentTurnResult.enemyRoll} + {enemy.pericia} = {currentTurnResult.enemyPower}
                     </Typography>
                     <Typography variant="body1" sx={{ color: '#4CAF50', fontWeight: 'bold' }}>
-                      Você: {currentTurnResult.playerRoll} + {playerPericia} = {currentTurnResult.playerPower}
+                      Você: {formatPlayerPower(currentTurnResult.playerRoll, currentTurnResult.playerPower)}
                     </Typography>
                   </Box>
                   
@@ -1108,6 +1130,7 @@ const BattleSystem = forwardRef<BattleSystemHandle, BattleSystemProps>(({
                    sx={{
                      background: 'linear-gradient(135deg, rgba(179,18,18,0.9) 0%, rgba(139,0,0,0.8) 100%)',
                      borderColor: '#8B4513',
+                     marginBottom: abandonBattleLabel && onAbandonBattle ? '12px' : 0,
                      '&:hover': {
                        background: 'linear-gradient(135deg, rgba(139,0,0,0.9) 0%, rgba(179,18,18,0.8) 100%)'
                      }
@@ -1115,14 +1138,44 @@ const BattleSystem = forwardRef<BattleSystemHandle, BattleSystemProps>(({
                  >
                    Ok
                  </ModalButton>
+                 {abandonBattleLabel && onAbandonBattle && (
+                   <ModalButton
+                     onClick={() => {
+                       playClick();
+                       setShowBattleResultModal(false);
+                       onAbandonBattle();
+                     }}
+                     sx={{
+                       background: 'linear-gradient(135deg, rgba(139,69,19,0.85) 0%, rgba(100,50,20,0.8) 100%)',
+                       borderColor: '#8B4513',
+                     }}
+                   >
+                     {abandonBattleLabel}
+                   </ModalButton>
+                 )}
               </Box>
             )}
 
             {!canShowLuckButton(currentTurnResult) && (
-              <Box sx={{ textAlign: 'center' }}>
+              <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center' }}>
                 <ModalButton onClick={handleBattleResultModalClose}>
                   Continuar
                 </ModalButton>
+                {abandonBattleLabel && onAbandonBattle && (
+                  <ModalButton
+                    onClick={() => {
+                      playClick();
+                      setShowBattleResultModal(false);
+                      onAbandonBattle();
+                    }}
+                    sx={{
+                      background: 'linear-gradient(135deg, rgba(139,69,19,0.85) 0%, rgba(100,50,20,0.8) 100%)',
+                      borderColor: '#8B4513',
+                    }}
+                  >
+                    {abandonBattleLabel}
+                  </ModalButton>
+                )}
               </Box>
             )}
           </BattleModal>

@@ -4,9 +4,11 @@ import { styled, keyframes } from '@mui/material/styles';
 import { useAudio } from '../hooks/useAudio';
 import { useClickSound } from '../hooks/useClickSound';
 import VolumeControl from './ui/VolumeControl';
+import ImageModal from './ui/ImageModal';
 import BattleSystem, { type BattleSystemHandle } from './BattleSystem';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
+import carcereiroImg from '../assets/images/personagens/carcereiro.png';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -105,6 +107,7 @@ const Screen26: React.FC<Screen26Props> = ({ onGoToScreen, ficha, onUpdateFicha 
   const [battleState, setBattleState] = useState<'intro' | 'battle' | 'victory' | 'defeat'>('intro');
   const battleSystemRef = useRef<BattleSystemHandle | null>(null);
   const [showBattleInfoModal, setShowBattleInfoModal] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
 
   // Estabilizar o callback onUpdateFicha para evitar re-renderizações do BattleSystem
   const stableOnUpdateFicha = useCallback((updatedFicha: any) => {
@@ -166,7 +169,7 @@ const Screen26: React.FC<Screen26Props> = ({ onGoToScreen, ficha, onUpdateFicha 
     nome: 'Carcereiro',
     pericia: 8,
     forca: 7,
-    imagem: '/src/assets/images/personagens/carcereiro.png'
+    imagem: carcereiroImg
   };
 
   return (
@@ -231,7 +234,12 @@ const Screen26: React.FC<Screen26Props> = ({ onGoToScreen, ficha, onUpdateFicha 
                     maxWidth: '300px',
                     height: 'auto',
                     borderRadius: '8px',
-                    border: '2px solid #8B4513'
+                    border: '2px solid #8B4513',
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => {
+                    playClick();
+                    setShowImageModal(true);
                   }}
                 />
               </Box>
@@ -503,8 +511,15 @@ const Screen26: React.FC<Screen26Props> = ({ onGoToScreen, ficha, onUpdateFicha 
             </Box>
           </>
         )}
-        </>
-      );
-    };
+
+      <ImageModal
+        open={showImageModal}
+        onClose={() => setShowImageModal(false)}
+        imageSrc={carcereiroImg}
+        imageAlt="Carcereiro"
+      />
+    </>
+  );
+};
 
 export default Screen26;

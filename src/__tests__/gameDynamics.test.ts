@@ -55,13 +55,8 @@ describe('Dinâmica do Jogo - Cenários Reais', () => {
       const fichaComArma = adicionarItem(ficha, espada);
       const dano = result.current.calculateWeaponDamage(espada, fichaComArma);
 
-      // Dano total: 5 (base) + 15 (força) = 20
-      expect(dano).toBe(20);
-
-      // Verifica se o dano é suficiente para combates iniciais
-      // (inimigos iniciais geralmente têm HP entre 10-25)
-      expect(dano).toBeGreaterThanOrEqual(10);
-      expect(dano).toBeLessThanOrEqual(30);
+      // Dano base da arma (damageType = atributo alvo, não soma FORÇA)
+      expect(dano).toBe(5);
     });
 
     it('deve exigir estratégia para derrotar inimigos mais fortes', () => {
@@ -80,8 +75,7 @@ describe('Dinâmica do Jogo - Cenários Reais', () => {
       const fichaComArma = adicionarItem(ficha, espadaBasica);
       const danoBasico = result.current.calculateWeaponDamage(espadaBasica, fichaComArma);
 
-      // Dano básico: 3 + 18 = 21
-      expect(danoBasico).toBe(21);
+      expect(danoBasico).toBe(3);
 
       // Agora com arma melhor
       const espadaMelhor = createMockItem({
@@ -92,8 +86,7 @@ describe('Dinâmica do Jogo - Cenários Reais', () => {
       const fichaComArmaMelhor = adicionarItem(ficha, espadaMelhor);
       const danoMelhor = result.current.calculateWeaponDamage(espadaMelhor, fichaComArmaMelhor);
 
-      // Dano melhor: 8 + 18 = 26
-      expect(danoMelhor).toBe(26);
+      expect(danoMelhor).toBe(8);
 
       // Verifica se a melhoria faz diferença significativa
       expect(danoMelhor - danoBasico).toBeGreaterThanOrEqual(3);
@@ -311,8 +304,9 @@ describe('Dinâmica do Jogo - Cenários Reais', () => {
 
       // Verifica se a melhoria é significativa mas não quebra o jogo
       const diferenca = danoAvancado - danoBasico;
-      expect(diferenca).toBeGreaterThanOrEqual(5); // Melhoria significativa
-      expect(diferenca).toBeLessThanOrEqual(15); // Não quebra o jogo
+      expect(diferenca).toBe(7);
+      expect(diferenca).toBeGreaterThanOrEqual(5);
+      expect(diferenca).toBeLessThanOrEqual(15);
     });
   });
 

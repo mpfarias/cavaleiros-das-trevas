@@ -1,0 +1,37 @@
+---
+description: Apostas, game over, provisões, modificadores e outros sistemas
+globs: src/components/Screen*.tsx,src/GamePath/ScreenRouter.tsx,src/App.tsx,src/hooks/useItemEffects.ts,src/components/GameOverScreen.tsx
+alwaysApply: false
+---
+
+# Outros sistemas
+
+## Apostas Bartolph
+
+- Flag `cavaleiro:aceitouBartolph`; entrada tipicamente `/game/86`
+- Screen94: aposta ouro, 1d6 ≥ 3 vence; grava `cavaleiro:apostaBartolph`
+- Telas 43/140/175 leem a aposta para perder/recuperar ouro
+- Screen222: recuperar ouro + dado viciado
+
+## Modificadores de itens
+
+`useItemEffects` → soma `efeitos.attributes` → aplicado em todo `handleFichaChange` (`validarBolsa` → `applyModifiersToAttributes`).
+
+## Provisões
+
+- Tipo `provisao` na bolsa (empilha); ganho/perda por tela
+- **Não** há “usar provisão para curar” no inventário — cura de FORÇA é efeito de tela (cap em `inicial`)
+
+## Game Over
+
+- IDs: `DEATH_MESSAGES` no router — **131, 346, 365, 999**
+- Combate/falhas críticas → `onGoToScreen(999)`
+- Restart: `GameOverScreen` limpa LS + volta `/sheet`
+- `cavaleiro:checkpoint` só é limpo no reset — save real = ficha + `lastScreen`
+
+## Save / mapa
+
+- Save arquivo: `SaveGameButton` → JSON `{ ficha, lastScreen, savedAt, version }`
+- Mapa: `MapScreen` → Royal `/royal`; posição em `cavaleiro:screenId` / `lastScreen`
+---
+

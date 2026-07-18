@@ -51,20 +51,9 @@ export const useItemEffects = () => {
     };
   }, [calculateActiveModifiers]);
 
-  // Calcula o dano de uma arma baseado nos efeitos
-  const calculateWeaponDamage = useCallback((weapon: Item, ficha: Ficha) => {
-    if (!weapon.efeitos?.combat?.damage) return 0;
-
-    const baseDamage = weapon.efeitos.combat.damage;
-    const damageType = weapon.efeitos.combat.damageType;
-    
-    if (damageType === 'forca') {
-      return baseDamage + ficha.forca.atual;
-    } else if (damageType === 'sorte') {
-      return baseDamage + ficha.sorte.atual;
-    }
-    
-    return baseDamage;
+  // Calcula o dano de uma arma (damageType = atributo alvo, não bônus)
+  const calculateWeaponDamage = useCallback((weapon: Item, _ficha: Ficha) => {
+    return weapon.efeitos?.combat?.damage ?? 0;
   }, []);
 
   // Aplica dano a um atributo (para combate)

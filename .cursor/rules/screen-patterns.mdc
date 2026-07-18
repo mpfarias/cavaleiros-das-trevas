@@ -1,0 +1,46 @@
+---
+description: Padrão obrigatório para telas Screen*.tsx do gamebook
+globs: src/components/Screen*.tsx
+alwaysApply: false
+---
+
+# Padrão de ScreenN.tsx
+
+Usar o template moderno (ex.: Screen231), **não** copiar styled DEFAULT inline.
+
+```tsx
+const ScreenN: React.FC<Props> = ({ onGoToScreen, ficha, onUpdateFicha }) => {
+  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(N);
+  const playClick = useClickSound(0.2);
+  const theme = useScreenTheme(N);
+  const { Container, CardWrap, NarrativeText, ChoiceButton } = useMemo(
+    () => createThemedComponents(theme),
+    [theme],
+  );
+
+  return (
+    <Container data-screen={`screen-${N}`}>
+      <VolumeControl />
+      {/* play/pause fixo bottom-right */}
+      <CardWrap>
+        <CardContent sx={{ padding: '40px' }}>
+          <NarrativeText>...</NarrativeText>
+          <ChoiceButton onClick={() => { playClick(); onGoToScreen(X); }}>
+            Texto da escolha
+          </ChoiceButton>
+        </CardContent>
+      </CardWrap>
+    </Container>
+  );
+};
+```
+
+## Regras
+
+- Props: `onGoToScreen`, `ficha`, `onUpdateFicha` (prefixar `_` se não usados)
+- Escolhas: sempre `playClick()` antes de navegar
+- Combate: `BattleSystem` + fases intro/battle/victory quando necessário
+- Feedback: `GameAlert` + `NOTIFICATION_CONFIG.autoHideDuration`
+- Não reinventar tema/styled locais; usar `useScreenTheme` + `createThemedComponents`
+---
+

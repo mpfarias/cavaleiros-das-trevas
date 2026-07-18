@@ -304,7 +304,7 @@ const Screen82: React.FC<Screen82Props> = ({ onGoToScreen, ficha, onUpdateFicha 
        image: cotaMalhaImg,
        effects: {
          combat: 'Perde apenas 1 ponto de FORÇA (0 se sucesso em Sorte, 2 se falhar)',
-         attributes: '+1 ponto em testes de Perícia',
+         attributes: '+1 no resultado de Testes de Perícia (fora do combate)',
          durability: 10
        },
        detailedEffects: {
@@ -313,9 +313,8 @@ const Screen82: React.FC<Screen82Props> = ({ onGoToScreen, ficha, onUpdateFicha 
            damageType: 'forca',
            damageCondition: '0 se sucesso em Sorte, 2 se falhar'
          },
-         attributes: {
-           pericia: 1
-         },
+         // Penalidade de Teste de Perícia (+1 no resultado dos dados) é narrativa/por tela —
+         // NÃO usar attributes.pericia aqui (isso aumentaria a perícia e facilitaria o teste).
          durability: 10
        }
      },

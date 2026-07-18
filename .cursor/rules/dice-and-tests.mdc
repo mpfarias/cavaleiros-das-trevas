@@ -1,0 +1,47 @@
+---
+description: Dados e testes de atributo (perícia, sorte, força)
+globs: src/components/Screen*.tsx,src/hooks/useDiceRoller.ts,src/components/ui/DiceRollModal*.tsx,src/components/character/AttributeCard.tsx,src/constants/character.ts
+alwaysApply: false
+---
+
+# Dados e testes
+
+Base Fighting Fantasy: sucesso quando `total <= atributo.atual`.
+
+## Rolagem
+
+| Contexto | Como |
+|---|---|
+| Criação de ficha | `useDiceRoller` + `DiceRollModal3D` com `bonus` (`DICE_FORMULAS`) |
+| Testes in-game | Só `DiceRollModal3D` (física 3D); comparar no `onComplete` |
+
+Fórmulas criação: perícia/sorte `1d6+6` · força/ouro `2d6+12`. Limites: perícia/sorte 0–12, força 0–24.
+
+```tsx
+<DiceRollModal3D open={open} numDice={2} onComplete={(dice, total) => {
+  const success = total <= ficha.pericia.atual; // ou sorte/força
+  onGoToScreen(success ? A : B);
+}} />
+```
+
+## Teste de Sorte
+
+- 2d6 ≤ `sorte.atual` (valor **antes** do gasto)
+- Sempre gastar 1: `onAdjustSorte(-1)` (ou mutar ficha)
+- Telas com prop: 38, 102, 115, 134, 211, 301 (+ outras sem prop)
+
+## Teste de Perícia
+
+- 2d6 ≤ `pericia.atual` — **não** gasta perícia
+- Ex.: Screen110, 52, 100, 154, 243, 245
+
+## Força
+
+- FORÇA = HP de combate; não há padrão reutilizável de “teste de força”
+- Perdas/ganhos de FORÇA são efeitos de tela ou combate
+
+## 1d6 (eventos/apostas)
+
+Telas narrativas/apostas (ex. 94 Bartolph: ≥3 vence). Não confundir com teste de atributo.
+---
+

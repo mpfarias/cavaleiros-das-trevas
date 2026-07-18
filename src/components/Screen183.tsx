@@ -6,6 +6,7 @@ import { useClickSound } from '../hooks/useClickSound';
 import { useScreenTheme } from '../hooks/useScreenTheme';
 import { createThemedComponents } from './common/ScreenThemedComponents';
 import VolumeControl from './ui/VolumeControl';
+import ImageModal from './ui/ImageModal';
 import BattleSystem, { type BattleSystemHandle } from './BattleSystem';
 import DiceRollModal3D from './ui/DiceRollModal3D';
 import { GameAlert } from './ui/GameAlert';
@@ -43,6 +44,7 @@ const Screen183: React.FC<Screen183Props> = ({ onGoToScreen, ficha, onUpdateFich
     const [showLuckDiceModal, setShowLuckDiceModal] = useState(false);
     const [showLuckAlert, setShowLuckAlert] = useState(false);
     const [luckResult, setLuckResult] = useState<string>('');
+    const [showImageModal, setShowImageModal] = useState(false);
 
     const stableOnUpdateFicha = useCallback((updatedFicha: any) => {
         onUpdateFicha(updatedFicha);
@@ -125,6 +127,9 @@ const Screen183: React.FC<Screen183Props> = ({ onGoToScreen, ficha, onUpdateFich
                         battleSystemRef.current.startBattle();
                     } else if (attempts < 10) {
                         setTimeout(() => waitForBattleSystem(attempts + 1), 100);
+                    } else {
+                        console.error('BattleSystem não foi inicializado corretamente');
+                        setBattleState('intro');
                     }
                 };
 
@@ -230,7 +235,12 @@ const Screen183: React.FC<Screen183Props> = ({ onGoToScreen, ficha, onUpdateFich
                                             height: 'auto',
                                             borderRadius: '8px',
                                             border: theme.hoverImage.border,
-                                            boxShadow: theme.hoverImage.boxShadow
+                                            boxShadow: theme.hoverImage.boxShadow,
+                                            cursor: 'pointer',
+                                        }}
+                                        onClick={() => {
+                                            playClick();
+                                            setShowImageModal(true);
                                         }}
                                     />
                                 </Box>
@@ -433,6 +443,13 @@ const Screen183: React.FC<Screen183Props> = ({ onGoToScreen, ficha, onUpdateFich
                     </Box>
                 </DialogContent>
             </Dialog>
+
+            <ImageModal
+                open={showImageModal}
+                onClose={() => setShowImageModal(false)}
+                imageSrc={cavaleiroImg}
+                imageAlt="Quarto Cavaleiro das Trevas"
+            />
         </>
     );
 };

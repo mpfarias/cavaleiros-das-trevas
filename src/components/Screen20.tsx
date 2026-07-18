@@ -1,10 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Box, CardContent, IconButton, Tooltip, Typography, Button } from '@mui/material';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
 import { useScreenTheme } from '../hooks/useScreenTheme';
 import { createThemedComponents } from './common/ScreenThemedComponents';
 import VolumeControl from './ui/VolumeControl';
+import ImageModal from './ui/ImageModal';
 import BattleSystem, { type BattleSystemHandle } from './BattleSystem';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
@@ -26,7 +27,7 @@ type Guard = {
 };
 
 const Screen20: React.FC<Screen20Props> = ({ onGoToScreen, ficha, onUpdateFicha }) => {
-  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(20);
+  const { currentGroup, isPlaying, togglePlay, forceGroupChange } = useAudioGroup(20);
   const playClick = useClickSound(0.2);
   const theme = useScreenTheme(20);
   const { Container, CardWrap, NarrativeText, ChoiceButton } = useMemo(
@@ -35,7 +36,7 @@ const Screen20: React.FC<Screen20Props> = ({ onGoToScreen, ficha, onUpdateFicha 
   );
 
   const battleSystemRef = useRef<BattleSystemHandle | null>(null);
-  const [battlePhase, setBattlePhase] = useState<'intro' | 'enemySelection' | 'guardIntro' | 'battle' | 'victory' | 'defeat'>('intro');
+  const [battlePhase, setBattlePhase] = useState<'intro' | 'enemySelection' | 'guardIntro' | 'battle' | 'victory'>('intro');
   const [battleKey, setBattleKey] = useState(0);
   const [currentGuard, setCurrentGuard] = useState<Guard | null>(null);
   const [guards, setGuards] = useState<Guard[]>([
@@ -45,19 +46,16 @@ const Screen20: React.FC<Screen20Props> = ({ onGoToScreen, ficha, onUpdateFicha 
   const [turnCount, setTurnCount] = useState(0);
   const turnCountRef = useRef(0);
   const lastResolvedTurnRef = useRef<string | null>(null);
-
-  const activeGuards = useMemo(
-    () => guards.filter(guard => !guard.disarmed),
-    [guards]
-  );
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [modalImage, setModalImage] = useState<{ src: string; alt: string } | null>(null);
 
   const remainingAttacks = 6 - turnCount;
 
-  useEffect(() => {
-    if (battlePhase === 'defeat') {
-      onGoToScreen(199);
-    }
-  }, [battlePhase, onGoToScreen]);
+  const openGuardImage = useCallback((src: string, alt: string) => {
+    playClick();
+    setModalImage({ src, alt });
+    setShowImageModal(true);
+  }, [playClick]);
 
   const handleStartBattle = () => {
     playClick();
@@ -72,6 +70,7 @@ const Screen20: React.FC<Screen20Props> = ({ onGoToScreen, ficha, onUpdateFicha 
 
   const handleStartGuardBattle = () => {
     playClick();
+    forceGroupChange('battle');
     setBattlePhase('battle');
 
     const waitForBattleSystem = (attempts = 0) => {
@@ -86,10 +85,6 @@ const Screen20: React.FC<Screen20Props> = ({ onGoToScreen, ficha, onUpdateFicha 
     };
 
     setTimeout(() => waitForBattleSystem(), 150);
-  };
-
-  const handleDefeat = () => {
-    setBattlePhase('defeat');
   };
 
   const handleTurnResolved = useCallback((turnResult: { playerPower: number; enemyPower: number; luckTestApplied?: boolean; luckTestSuccess?: boolean }) => {
@@ -120,7 +115,8 @@ const Screen20: React.FC<Screen20Props> = ({ onGoToScreen, ficha, onUpdateFicha 
       if (allDisarmed && totalTurns <= 6) {
         setBattlePhase('victory');
       } else if (totalTurns >= 6 && !allDisarmed) {
-        setBattlePhase('defeat');
+        // Tempo esgotado → prisão (não é morte por FORÇA)
+        onGoToScreen(199);
       } else if (disarm) {
         setBattlePhase('enemySelection');
         setCurrentGuard(null);
@@ -129,7 +125,7 @@ const Screen20: React.FC<Screen20Props> = ({ onGoToScreen, ficha, onUpdateFicha 
 
       return next;
     });
-  }, [currentGuard]);
+  }, [currentGuard, onGoToScreen]);
 
   return (
     <Container data-screen="screen-20">
@@ -273,8 +269,13 @@ const Screen20: React.FC<Screen20Props> = ({ onGoToScreen, ficha, onUpdateFicha 
                         height: 'auto',
                         borderRadius: '8px',
                         border: theme.hoverImage.border,
-                        boxShadow: theme.hoverImage.boxShadow
+                        boxShadow: theme.hoverImage.boxShadow,
+                        cursor: 'pointer',
                       }}
+                      onClick={() => openGuardImage(
+                        currentGuard.id === 'guard1' ? guarda01Img : guarda02Img,
+                        currentGuard.nome,
+                      )}
                     />
                   </Box>
 
@@ -298,10 +299,13 @@ const Screen20: React.FC<Screen20Props> = ({ onGoToScreen, ficha, onUpdateFicha 
                     imagem: currentGuard.id === 'guard1' ? guarda01Img : guarda02Img
                   }}
                   ignoreEnemyForcaVictory
-                  ignorePlayerForcaDefeat
-                  disablePlayerForcaLoss
-                  hideDamageText
                   getTurnResultTextOverride={(turn) => {
+                    if (turn.result === 'enemy_hit') {
+                      return `O guarda acertou! Você perde ${turn.finalDamage ?? turn.damage} ponto${(turn.finalDamage ?? turn.damage) === 1 ? '' : 's'} de FORÇA.`;
+                    }
+                    if (turn.result === 'dodge') {
+                      return 'Ambos desviaram!';
+                    }
                     const bonus = turn.luckTestApplied && turn.luckTestSuccess ? 2 : 0;
                     const disarm = (turn.playerPower + bonus) >= (turn.enemyPower + 3);
                     return disarm
@@ -309,28 +313,47 @@ const Screen20: React.FC<Screen20Props> = ({ onGoToScreen, ficha, onUpdateFicha 
                       : 'Você não conseguiu desarmar o guarda, tente novamente.';
                   }}
                   getTurnResultColorOverride={(turn) => {
+                    if (turn.result === 'enemy_hit') return '#B31212';
+                    if (turn.result === 'dodge') return '#FF9800';
                     const bonus = turn.luckTestApplied && turn.luckTestSuccess ? 2 : 0;
                     const disarm = (turn.playerPower + bonus) >= (turn.enemyPower + 3);
                     return disarm ? '#4CAF50' : '#B31212';
                   }}
-                  luckHelpTextOverride="Teste sua sorte para somar +2 ao seu ataque."
-                  luckEffectOverride={({ success, total }) => (
-                    success
-                      ? `Sorte! Dados: ${total} - +2 pontos no seu ataque.`
-                      : `Você falhou no teste de Sorte! Dados: ${total} - Sem bônus.`
-                  )}
+                  luckHelpTextOverride="Teste sua sorte: se você acertou, some +2 ao ataque para desarmar; se foi atingido, reduza o dano recebido."
+                  luckEffectOverride={({ success, total, type }) => {
+                    if (type === 'reduction') {
+                      return success
+                        ? `Sorte! Dados: ${total} — Dano recebido reduzido.`
+                        : `Você falhou no teste de Sorte! Dados: ${total} — Dano recebido aumentado.`;
+                    }
+                    return success
+                      ? `Sorte! Dados: ${total} - +2 pontos no seu ataque para desarmar.`
+                      : `Você falhou no teste de Sorte! Dados: ${total} - Sem bônus no desarme.`;
+                  }}
                   onTurnResolved={handleTurnResolved}
                   ficha={ficha}
                   onUpdateFicha={onUpdateFicha}
                   onVictory={() => {}}
-                  onDefeat={handleDefeat}
-                  onGoToScreen={() => onGoToScreen(199)}
+                  onDefeat={() => {}}
+                  onGoToScreen={onGoToScreen}
                 />
               )}
             </>
           )}
         </CardContent>
       </CardWrap>
+
+      {modalImage && (
+        <ImageModal
+          open={showImageModal}
+          onClose={() => {
+            setShowImageModal(false);
+            setModalImage(null);
+          }}
+          imageSrc={modalImage.src}
+          imageAlt={modalImage.alt}
+        />
+      )}
     </Container>
   );
 };

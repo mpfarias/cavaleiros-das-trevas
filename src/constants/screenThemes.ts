@@ -502,6 +502,7 @@ export const SCREEN_THEMES: Record<number | string, ThemeName> = {
   
   // Tema Cavaleiros das Trevas
   8: 'dark-knights',
+  72: 'dark-knights',
   145: 'dark-knights',
   183: 'dark-knights',
   190: 'dark-knights',
@@ -509,6 +510,7 @@ export const SCREEN_THEMES: Record<number | string, ThemeName> = {
   259: 'dark-knights',
   279: 'dark-knights',
   306: 'dark-knights',
+  324: 'dark-knights',
   335: 'dark-knights',
   394: 'dark-knights',
   
@@ -518,6 +520,7 @@ export const SCREEN_THEMES: Record<number | string, ThemeName> = {
   147: 'wizard-room',
   193: 'wizard-room',
   312: 'wizard-room',
+  257: 'wizard-room',
 
   // Tema Floresta (viagem / região do eremita)
   113: 'forest',
@@ -530,6 +533,7 @@ export const SCREEN_THEMES: Record<number | string, ThemeName> = {
   11: 'forest',
   382: 'forest',
   398: 'forest',
+  284: 'forest',
 
   // Cabana do eremita — tema padrão marrom (349 não listada de propósito)
 

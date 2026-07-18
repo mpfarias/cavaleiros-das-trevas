@@ -4,6 +4,7 @@ import { styled, keyframes } from '@mui/material/styles';
 import { useAudio } from '../hooks/useAudio';
 import { useClickSound } from '../hooks/useClickSound';
 import VolumeControl from './ui/VolumeControl';
+import ImageModal from './ui/ImageModal';
 import BattleSystem, { type BattleSystemHandle } from './BattleSystem';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
@@ -106,6 +107,7 @@ const Screen181: React.FC<Screen181Props> = ({ onGoToScreen, ficha, onUpdateFich
   const [battleState, setBattleState] = useState<'intro' | 'battle' | 'victory'>('intro');
   const battleSystemRef = useRef<BattleSystemHandle | null>(null);
   const [showBattleInfoModal, setShowBattleInfoModal] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
 
   const stableOnUpdateFicha = useCallback((updatedFicha: Ficha) => {
     onUpdateFicha(updatedFicha);
@@ -214,7 +216,12 @@ const Screen181: React.FC<Screen181Props> = ({ onGoToScreen, ficha, onUpdateFich
                       maxWidth: '300px',
                       height: 'auto',
                       borderRadius: '8px',
-                      border: '2px solid #8B4513'
+                      border: '2px solid #8B4513',
+                      cursor: 'pointer',
+                    }}
+                    onClick={() => {
+                      playClick();
+                      setShowImageModal(true);
                     }}
                   />
                 </Box>
@@ -374,6 +381,13 @@ const Screen181: React.FC<Screen181Props> = ({ onGoToScreen, ficha, onUpdateFich
           </Box>
         </>
       )}
+
+      <ImageModal
+        open={showImageModal}
+        onClose={() => setShowImageModal(false)}
+        imageSrc={oradorImg}
+        imageAlt="Agitador"
+      />
     </>
   );
 };

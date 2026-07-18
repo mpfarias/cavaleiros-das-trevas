@@ -1,0 +1,39 @@
+---
+description: Temas visuais por tela e grupos de áudio BGM
+globs: src/constants/screenThemes.ts,src/hooks/useAudioGroup.ts,src/hooks/useScreenTheme.ts,src/components/common/ScreenThemedComponents.tsx,src/components/Screen*.tsx
+alwaysApply: false
+---
+
+# Temas e áudio
+
+## Dois níveis de tema
+
+1. **MUI global** (`App.tsx`): dark, Spectral/Cinzel, acentos `#B31212` / `#B67B03` — Home, ficha, overlays
+2. **Por tela**: `src/constants/screenThemes.ts` → `getScreenTheme(id)` / `useScreenTheme(id)`
+
+## Temas disponíveis
+
+`default` · `temple` · `sewers` · `prison` · `dark-knights` · `wizard-room` · `forest`
+
+Cada `ScreenTheme` define: `container`, `cardWrap`, `narrativeText`, `choiceButton`, `locationLink`, `hoverImage`.
+
+## Aplicar tema
+
+```tsx
+const theme = useScreenTheme(screenId);
+const { Container, CardWrap, NarrativeText, ChoiceButton } = useMemo(
+  () => createThemedComponents(theme),
+  [theme],
+);
+```
+
+Registrar ID em `SCREEN_THEMES`. Não hardcodar cores de tema na tela.
+
+## Áudio
+
+- `useAudioGroup(screenId)` mapeia ID → grupo em `SCREEN_AUDIO_GROUPS`
+- Grupos: `tavern`, `battle`, `sewers`, `forest`, `creepy`, `temple`, `prison`, `wizard-room`, etc.
+- Combates podem forçar track via `changeTrack(bgm-battle)`
+- SFX: `useClickSound`, `useBagSound`, `useDiceSound`, `useCoinsSound`
+---
+

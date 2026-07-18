@@ -4,9 +4,12 @@ import { styled, keyframes } from '@mui/material/styles';
 import { useAudio } from '../hooks/useAudio';
 import { useClickSound } from '../hooks/useClickSound';
 import VolumeControl from './ui/VolumeControl';
+import ImageModal from './ui/ImageModal';
 import BattleSystem, { type BattleSystemHandle } from './BattleSystem';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
+import type { Ficha } from '../types';
+import homemOrcImg from '../assets/images/personagens/homem-orc.png';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -92,8 +95,8 @@ const ChoiceButton = styled('button')({
 
 interface Screen272Props {
   onGoToScreen: (screenId: number) => void;
-  ficha: any;
-  onUpdateFicha: (ficha: any) => void;
+  ficha: Ficha;
+  onUpdateFicha: (ficha: Ficha) => void;
 }
 
 const Screen272: React.FC<Screen272Props> = ({ onGoToScreen, ficha, onUpdateFicha }) => {
@@ -105,9 +108,12 @@ const Screen272: React.FC<Screen272Props> = ({ onGoToScreen, ficha, onUpdateFich
   const [battleState, setBattleState] = useState<'intro' | 'battle' | 'victory' | 'defeat'>('intro');
   const battleSystemRef = useRef<BattleSystemHandle | null>(null);
   const [showBattleInfoModal, setShowBattleInfoModal] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const forcaAtBattleStartRef = useRef(ficha.forca.atual);
+  const [tookDamageInBattle, setTookDamageInBattle] = useState(false);
 
   // Estabilizar o callback onUpdateFicha para evitar re-renderizações do BattleSystem
-  const stableOnUpdateFicha = useCallback((updatedFicha: any) => {
+  const stableOnUpdateFicha = useCallback((updatedFicha: Ficha) => {
     onUpdateFicha(updatedFicha);
   }, [onUpdateFicha]);
 
@@ -125,11 +131,25 @@ const Screen272: React.FC<Screen272Props> = ({ onGoToScreen, ficha, onUpdateFich
     initializeBattleAudio();
   }, [changeTrack, tryStartMusic]);
 
+  useEffect(() => {
+    if (battleState !== 'victory') return;
+
+    const destination = tookDamageInBattle ? 4 : 40;
+    const timer = setTimeout(() => {
+      onGoToScreen(destination);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [battleState, tookDamageInBattle, onGoToScreen]);
+
   const handleVictory = () => {
+    setTookDamageInBattle(ficha.forca.atual < forcaAtBattleStartRef.current);
     setBattleState('victory');
   };
 
   const handleStartBattle = () => {
+    playClick();
+    forcaAtBattleStartRef.current = ficha.forca.atual;
     setBattleState('battle');
     
     // Função recursiva para verificar se o BattleSystem está pronto
@@ -150,8 +170,7 @@ const Screen272: React.FC<Screen272Props> = ({ onGoToScreen, ficha, onUpdateFich
   };
 
   const handleDefeat = () => {
-    // Em caso de derrota, atualizar o estado para mostrar GameOverScreen
-    setBattleState('defeat');
+    // BattleSystem já navega para 999 via onGoToScreen
   };
 
   const handleShowBattleInfo = () => {
@@ -166,7 +185,7 @@ const Screen272: React.FC<Screen272Props> = ({ onGoToScreen, ficha, onUpdateFich
     nome: 'Homem-Orc',
     pericia: 8,
     forca: 8,
-    imagem: '/src/assets/images/personagens/homem-orc.png'
+    imagem: homemOrcImg
   };
 
   return (
@@ -237,7 +256,12 @@ const Screen272: React.FC<Screen272Props> = ({ onGoToScreen, ficha, onUpdateFich
                     maxWidth: '300px',
                     height: 'auto',
                     borderRadius: '8px',
-                    border: '2px solid #8B4513'
+                    border: '2px solid #8B4513',
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => {
+                    playClick();
+                    setShowImageModal(true);
                   }}
                 />
               </Box>
@@ -308,48 +332,27 @@ const Screen272: React.FC<Screen272Props> = ({ onGoToScreen, ficha, onUpdateFich
                 Você derrotou o Homem-Orc! Verificando seu estado...
               </Typography>
 
-              {(() => {
-                // Verificar se o jogador tomou dano
-                const danoOriginal = ficha.forca.inicial;
-                const forcaAtual = ficha.forca.atual;
-                const tomouDano = forcaAtual < danoOriginal;
-                
-                
-                if (tomouDano) {
-                  // Vitória com dano - vai para tela 4
-                  setTimeout(() => {
-                    onGoToScreen(4);
-                  }, 2000);
-                  return (
-                    <Typography variant="body1" sx={{ 
-                      textAlign: 'center', 
-                      color: '#F44336',
-                      marginBottom: '32px'
-                    }}>
-                      Você tomou dano na batalha. Será redirecionado para se recuperar...
-                    </Typography>
-                  );
-                } else {
-                  // Vitória sem dano - vai para tela 40
-                  setTimeout(() => {
-                    onGoToScreen(40);
-                  }, 2000);
-                  return (
-                    <Typography variant="body1" sx={{ 
-                      textAlign: 'center', 
-                      color: '#4CAF50',
-                      marginBottom: '32px'
-                    }}>
-                      Vitória perfeita! Continuando sua jornada...
-                    </Typography>
-                  );
-                }
-              })()}
+              <Typography variant="body1" sx={{ 
+                textAlign: 'center', 
+                color: tookDamageInBattle ? '#F44336' : '#4CAF50',
+                marginBottom: '32px'
+              }}>
+                {tookDamageInBattle
+                  ? 'Você tomou dano na batalha. Será redirecionado para se recuperar...'
+                  : 'Vitória perfeita! Continuando sua jornada...'}
+              </Typography>
             </Box>
           )}
         </CardContent>
               </CardWrap>
           </Container>
+
+      <ImageModal
+        open={showImageModal}
+        onClose={() => setShowImageModal(false)}
+        imageSrc={homemOrcImg}
+        imageAlt="Homem-Orc"
+      />
 
         {/* Modal de informações sobre o sistema de batalha */}
         {showBattleInfoModal && (

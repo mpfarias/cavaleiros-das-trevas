@@ -152,7 +152,7 @@ describe('useItemEffects', () => {
 
       const dano = result.current.calculateWeaponDamage(arma, ficha);
 
-      expect(dano).toBe(23); // 5 (dano base) + 18 (força atual)
+      expect(dano).toBe(5); // apenas o dano base da arma
     });
 
     it('deve retornar 0 para itens sem efeitos de combate', () => {

@@ -1,0 +1,48 @@
+---
+description: Ficha, inventário e padrões de ganhos/perdas
+globs: src/types/**,src/utils/inventory.ts,src/utils/weapon.ts,src/utils/armor.ts,src/constants/character.ts,src/components/Screen*.tsx,src/App.tsx,src/components/BattleSystem.tsx
+alwaysApply: false
+---
+
+# Ficha e recompensas
+
+## Modelo (`src/types`)
+
+- Atributos: `pericia`, `forca` (HP), `sorte` — cada um `{ inicial, atual }`
+- Inventário: `bolsa: Item[]` — `arma | armadura | ouro | provisao | equipamento`
+- `modificadoresAtivos` + `flags` tipadas; flags ad hoc extras em `cavaleiro:*` no LS
+- Validar com `FichaSchema` (Zod)
+
+## Inventário (`utils/inventory.ts`)
+
+Preferir: `adicionarItem`, `removerItem`, `atualizarQuantidade`, `totalOuro`, `validarBolsa`.
+Ouro/provisão empilham; arma/armadura substituem a anterior.
+
+## Ganhos / perdas (por tela)
+
+Não há motor central de rewards — cada `ScreenN` aplica e chama `onUpdateFicha`.
+
+**Anti-dupla aplicação** (obrigatório em mount):
+
+```tsx
+const rewardsAppliedRef = useRef(false);
+useEffect(() => {
+  if (rewardsAppliedRef.current) return;
+  rewardsAppliedRef.current = true;
+  // mutar cópia da ficha → onUpdateFicha(...)
+}, [ficha, onUpdateFicha]);
+```
+
+## Regras numéricas
+
+- Cura/ganho de atributo: `Math.min(ficha.X.inicial, ficha.X.atual + n)`
+- Perda: `Math.max(0, ficha.X.atual - n)`
+- FORÇA atual = vida; 0 → game over (IDs especiais no router)
+- SORTE gasta em testes via `onAdjustSorte`
+- Combate: `BattleSystem` + `useCombat` / `useItemEffects`; sem arma → −1 perícia
+
+## Feedback
+
+Avisar com `GameAlert` (“+2 Moedas”, “−6 FORÇA”, etc.) após aplicar o efeito.
+---
+

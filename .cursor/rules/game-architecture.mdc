@@ -1,0 +1,41 @@
+---
+description: Arquitetura geral do gamebook Cavaleiros das Trevas
+alwaysApply: true
+---
+
+# Arquitetura do jogo
+
+Gamebook narrativo em React (Vite) + MUI 7 + Emotion. Sem Redux/Zustand.
+
+## Rotas (`App.tsx`)
+
+- `/` Home · `/sheet` ficha · `/intro` cinemática · `/map` mapa · `/royal` cidade · `/game/:id` aventura
+
+## Estado
+
+- Ficha vive em `App` (`useState`) + `localStorage` (`cavaleiro:ficha`, `cavaleiro:screenId`, `cavaleiro:lastScreen`)
+- Único Context: áudio (`AudioProvider` / `useAudio`)
+- `ScreenRouter` lê a ficha do localStorage ao trocar de tela e passa props às `ScreenN`
+
+## Fluxo de update
+
+`onUpdateFicha` → `validarBolsa` → `applyModifiersToAttributes` → localStorage → setState
+
+## Nova tela
+
+1. Criar `src/components/ScreenN.tsx`
+2. Registrar em `ScreenRouter.tsx` (`if (screenId === N)`)
+3. Mapear tema em `SCREEN_THEMES` e áudio em `SCREEN_AUDIO_GROUPS` (se aplicável)
+
+## Sistemas de mecânica (ver rules dedicadas)
+
+- Dados/testes → `dice-and-tests.mdc` (2d6 ≤ atributo; sorte gasta 1)
+- Combate → `battle-system.mdc` (`BattleSystem`: 2d6+perícia, dano base 2)
+- Apostas/GO/provisões → `other-game-systems.mdc`
+
+## Idioma e stack
+
+- Narrativa/UI em português; fontes Spectral (corpo) e Cinzel (títulos/botões)
+- Prefixo LS: `cavaleiro:*` · props padrão: `onGoToScreen`, `ficha`, `onUpdateFicha`
+---
+

@@ -6,6 +6,7 @@ import { useClickSound } from '../hooks/useClickSound';
 import { useScreenTheme } from '../hooks/useScreenTheme';
 import { createThemedComponents } from './common/ScreenThemedComponents';
 import VolumeControl from './ui/VolumeControl';
+import ImageModal from './ui/ImageModal';
 import BattleSystem, { type BattleSystemHandle } from './BattleSystem';
 import DiceRollModal3D from './ui/DiceRollModal3D';
 import { GameAlert } from './ui/GameAlert';
@@ -38,6 +39,7 @@ const Screen245: React.FC<Screen245Props> = ({ onGoToScreen, ficha, onUpdateFich
   const [battleState, setBattleState] = useState<'intro' | 'skill-test' | 'battle' | 'victory'>('intro');
   const battleSystemRef = useRef<BattleSystemHandle | null>(null);
   const [showBattleInfoModal, setShowBattleInfoModal] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
   
   // Estados para o teste de perícia inicial
   const [showSkillDiceModal, setShowSkillDiceModal] = useState(false);
@@ -97,6 +99,9 @@ const Screen245: React.FC<Screen245Props> = ({ onGoToScreen, ficha, onUpdateFich
               battleSystemRef.current.startBattle();
             } else if (attempts < 10) {
               setTimeout(() => waitForBattleSystem(attempts + 1), 100);
+            } else {
+              console.error('BattleSystem não foi inicializado corretamente');
+              setBattleState('intro');
             }
           };
           
@@ -215,7 +220,13 @@ const Screen245: React.FC<Screen245Props> = ({ onGoToScreen, ficha, onUpdateFich
                     maxWidth: '300px',
                     height: 'auto',
                     borderRadius: '8px',
-                    border: '2px solid #8B4513'
+                    border: theme.hoverImage.border,
+                    boxShadow: theme.hoverImage.boxShadow,
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => {
+                    playClick();
+                    setShowImageModal(true);
                   }}
                 />
               </Box>
@@ -416,6 +427,13 @@ const Screen245: React.FC<Screen245Props> = ({ onGoToScreen, ficha, onUpdateFich
           </Box>
         </DialogContent>
       </Dialog>
+
+      <ImageModal
+        open={showImageModal}
+        onClose={() => setShowImageModal(false)}
+        imageSrc={cavaleiroImg}
+        imageAlt="Quinto Cavaleiro das Trevas"
+      />
     </>
   );
 };

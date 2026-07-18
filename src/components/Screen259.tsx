@@ -6,6 +6,7 @@ import { useClickSound } from '../hooks/useClickSound';
 import { useScreenTheme } from '../hooks/useScreenTheme';
 import { createThemedComponents } from './common/ScreenThemedComponents';
 import VolumeControl from './ui/VolumeControl';
+import ImageModal from './ui/ImageModal';
 import BattleSystem, { type BattleSystemHandle } from './BattleSystem';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
@@ -35,6 +36,7 @@ const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFich
   const [battleState, setBattleState] = useState<'intro' | 'battle' | 'victory'>('intro');
   const battleSystemRef = useRef<BattleSystemHandle | null>(null);
   const [showBattleInfoModal, setShowBattleInfoModal] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
 
   const stableOnUpdateFicha = useCallback((updatedFicha: any) => {
     onUpdateFicha(updatedFicha);
@@ -174,7 +176,12 @@ const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFich
                     height: 'auto',
                     borderRadius: '8px',
                     border: theme.hoverImage.border,
-                    boxShadow: theme.hoverImage.boxShadow
+                    boxShadow: theme.hoverImage.boxShadow,
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => {
+                    playClick();
+                    setShowImageModal(true);
                   }}
                 />
               </Box>
@@ -338,6 +345,13 @@ const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFich
           </Box>
         </DialogContent>
       </Dialog>
+
+      <ImageModal
+        open={showImageModal}
+        onClose={() => setShowImageModal(false)}
+        imageSrc={cavaleiroImg}
+        imageAlt="Terceiro Cavaleiro das Trevas"
+      />
     </>
   );
 };

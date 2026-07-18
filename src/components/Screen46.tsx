@@ -4,6 +4,7 @@ import { styled, keyframes } from '@mui/material/styles';
 import { useAudio } from '../hooks/useAudio';
 import { useClickSound } from '../hooks/useClickSound';
 import VolumeControl from './ui/VolumeControl';
+import ImageModal from './ui/ImageModal';
 import BattleSystem, { type BattleSystemHandle } from './BattleSystem';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
@@ -107,6 +108,9 @@ const Screen46: React.FC<Screen46Props> = ({ onGoToScreen, ficha, onUpdateFicha 
   const MAX_TURNS = 5;
   const battleSystemRef = useRef<BattleSystemHandle | null>(null);
   const [showBattleInfoModal, setShowBattleInfoModal] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const prisonRedirectedRef = useRef(false);
+  const victoryAchievedRef = useRef(false);
 
   const stableOnUpdateFicha = useCallback((updatedFicha: any) => {
     onUpdateFicha(updatedFicha);
@@ -126,34 +130,16 @@ const Screen46: React.FC<Screen46Props> = ({ onGoToScreen, ficha, onUpdateFicha 
     initializeBattleAudio();
   }, [changeTrack, tryStartMusic]);
 
-  // Monitorar turnos durante a batalha
-  useEffect(() => {
-    if (battleState === 'battle' && battleSystemRef.current) {
-      const checkTurns = setInterval(() => {
-        const battleSystem = battleSystemRef.current;
-        if (battleSystem && battleSystem.currentTurn !== undefined) {
-          setCurrentTurn(battleSystem.currentTurn);
-          
-          // Se atingiu 5 turnos e ainda está em batalha
-          if (battleSystem.currentTurn >= MAX_TURNS) {
-            setTimeout(() => {
-              if (battleState === 'battle') {
-                onGoToScreen(199);
-              }
-            }, 1000);
-          }
-        }
-      }, 500);
-
-      return () => clearInterval(checkTurns);
-    }
-  }, [battleState, onGoToScreen]);
-
   const handleVictory = () => {
+    victoryAchievedRef.current = true;
     setBattleState('victory');
   };
 
   const handleStartBattle = () => {
+    playClick();
+    prisonRedirectedRef.current = false;
+    victoryAchievedRef.current = false;
+    setCurrentTurn(0);
     setBattleState('battle');
     
     const waitForBattleSystem = (attempts = 0) => {
@@ -171,9 +157,22 @@ const Screen46: React.FC<Screen46Props> = ({ onGoToScreen, ficha, onUpdateFicha 
   };
 
   const handleDefeat = () => {
-    // Derrota também leva à prisão
-    onGoToScreen(199);
+    // Morte por FORÇA → game over normal (BattleSystem já chama onGoToScreen(999))
   };
+
+  const handleTurnResolved = useCallback((turnResult: { turn: number }) => {
+    setCurrentTurn(turnResult.turn);
+
+    // Após 5 turnos sem vitória → prisão (espera a animação de vitória, se houver)
+    if (turnResult.turn >= MAX_TURNS && !prisonRedirectedRef.current) {
+      setTimeout(() => {
+        if (!victoryAchievedRef.current && !prisonRedirectedRef.current) {
+          prisonRedirectedRef.current = true;
+          onGoToScreen(199);
+        }
+      }, 3000);
+    }
+  }, [onGoToScreen]);
 
   const handleShowBattleInfo = () => {
     setShowBattleInfoModal(true);
@@ -261,7 +260,12 @@ const Screen46: React.FC<Screen46Props> = ({ onGoToScreen, ficha, onUpdateFicha 
                     maxWidth: '300px',
                     height: 'auto',
                     borderRadius: '8px',
-                    border: '2px solid #8B4513'
+                    border: '2px solid #8B4513',
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => {
+                    playClick();
+                    setShowImageModal(true);
                   }}
                 />
               </Box>
@@ -301,15 +305,21 @@ const Screen46: React.FC<Screen46Props> = ({ onGoToScreen, ficha, onUpdateFicha 
           )}
 
           {battleState === 'battle' && (
-            <BattleSystem
+            <>
+              <Typography sx={{ marginBottom: '12px', color: '#8B4513', fontWeight: 600, textAlign: 'center' }}>
+                Turno {currentTurn || 1} de {MAX_TURNS}
+              </Typography>
+              <BattleSystem
               enemy={enemy}
               ficha={ficha}
               onUpdateFicha={stableOnUpdateFicha}
               onVictory={handleVictory}
               onDefeat={handleDefeat}
               onGoToScreen={onGoToScreen}
+              onTurnResolved={handleTurnResolved}
               ref={battleSystemRef}
             />
+            </>
           )}
 
           {battleState === 'victory' && (
@@ -427,6 +437,13 @@ const Screen46: React.FC<Screen46Props> = ({ onGoToScreen, ficha, onUpdateFicha 
           </Box>
         </DialogContent>
       </Dialog>
+
+      <ImageModal
+        open={showImageModal}
+        onClose={() => setShowImageModal(false)}
+        imageSrc={guardaImg}
+        imageAlt="Guarda"
+      />
     </>
   );
 };

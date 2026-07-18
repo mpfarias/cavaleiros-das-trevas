@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAudio } from './useAudio';
 
 // Imports dos arquivos de áudio
@@ -171,9 +171,13 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   11: 'forest',                 // João Verdesfolhas (rota /game/11) - forest.mp3
   382: 'forest',                // Desafio de João Verdesfolhas (rota /game/382) - forest.mp3
   398: 'forest',                // Seguir o caminho - João Verdesfolhas (rota /game/398) - forest.mp3
+  231: 'arabic',                // Loucura em Royal Lendle - viela (rota /game/231) - bgm-arabic.mp3
   349: 'eremita',               // Cabana do eremita Hammicus (rota /game/349) - bgm-eremita.mp3
+  314: 'eremita',               // Filho morto-vivo - cabana de Hammicus (rota /game/314) - bgm-eremita.mp3
+  330: 'eremita',               // Impedir Hammicus de abrir a porta (rota /game/330) - bgm-eremita.mp3
   335: 'creepy',                // Vitória sobre Cavaleiro das Trevas (rota /game/335) - bgm-creepy.mp3
   72: 'hiding',                 // Perseguição reiniciada pelos Cavaleiros (rota /game/72) - bgm-hiding.mp3
+  324: 'hiding',                // Capa de Camaleão - fuga dos Cavaleiros (rota /game/324) - bgm-hiding.mp3
   166: 'chase',                 // Casa da velhinha - Fuga dos guardas (rota /game/166) - bgm-running.mp3
   277: 'chase',                 // Casa da velhinha - Fuga dos guardas com sorte (rota /game/277) - bgm-running.mp3
   360: 'chase',                 // Fuga dos guardas pela rua (rota /game/360) - bgm-running.mp3
@@ -196,17 +200,21 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   33: 'tattoo',                 // Loja de tatuagens - Rogmondo (rota /game/33) - bgm-tatoo.mp3
   143: 'tattoo',                // Rogmondo - guardas invadem (rota /game/143) - bgm-tatoo.mp3
   270: 'tattoo',                // Rogmondo pergunta o que você faz aqui (rota /game/270) - bgm-tatoo.mp3
+  236: 'battle',                // Bransell - loja de Rogmondo (rota /game/236) - bgm-battle.mp3
+  284: 'battle',                // Mulher Sorridente - Gornt (rota /game/284) - bgm-battle.mp3
   10: 'wizard-room',           // Orbe Armadilha da Mente - Santuário de Hegmar (rota /game/10) - bgm-wizard-room.mp3
   105: 'wizard-room',           // Santuário de Hegmar (rota /game/105) - bgm-wizard-room.mp3
   147: 'wizard-room',           // Documento na escrivaninha - Hegmar (rota /game/147) - bgm-wizard-room.mp3
   193: 'wizard-room',           // Armadilha do caixão - Santuário de Hegmar (rota /game/193) - bgm-wizard-room.mp3
   312: 'wizard-room',           // Bola de cristal - teste de Sorte (rota /game/312) - bgm-wizard-room.mp3
+  257: 'wizard-room',           // Morte: Orbe Armadilha da Mente (rota /game/257) - bgm-wizard-room.mp3
 };
 
 export const useAudioGroup = (screenId: number | string) => {
   const { changeTrack, tryStartMusic, isPlaying, togglePlay, currentTrack } = useAudio();
   const [currentGroup, setCurrentGroup] = useState<AudioGroup | null>(null);
   const [userPaused, setUserPaused] = useState(false);
+  const forcedGroupRef = useRef<AudioGroup | null>(null);
 
   // Determina o grupo de áudio para a tela atual
   const getAudioGroup = useCallback((id: number | string): AudioGroup | null => {
@@ -245,7 +253,8 @@ export const useAudioGroup = (screenId: number | string) => {
 
   // Efeito principal para gerenciar áudio do grupo
   useEffect(() => {
-    const groupId = getAudioGroup(screenId);
+    // Grupo forçado (ex.: chase → battle no meio da tela) tem prioridade
+    const groupId = forcedGroupRef.current ?? getAudioGroup(screenId);
     
     if (!groupId) {
       return;
@@ -274,6 +283,11 @@ export const useAudioGroup = (screenId: number | string) => {
     };
   }, [screenId, getAudioGroup, shouldContinueMusic, initializeGroupAudio, currentTrack, isPlaying]);
 
+  // Reset do override ao trocar de tela
+  useEffect(() => {
+    forcedGroupRef.current = null;
+  }, [screenId]);
+
   // Função customizada que marca quando o usuário pausa manualmente
   const handleTogglePlay = useCallback(() => {
     if (isPlaying) {
@@ -296,6 +310,7 @@ export const useAudioGroup = (screenId: number | string) => {
     // Função para forçar mudança de grupo (útil para transições)
     forceGroupChange: (groupId: AudioGroup) => {
       setUserPaused(false); // Reset da marca quando força mudança
+      forcedGroupRef.current = groupId;
       initializeGroupAudio(groupId);
     }
   };

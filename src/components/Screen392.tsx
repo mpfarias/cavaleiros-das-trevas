@@ -5,6 +5,7 @@ import { useClickSound } from '../hooks/useClickSound';
 import { useScreenTheme } from '../hooks/useScreenTheme';
 import { createThemedComponents } from './common/ScreenThemedComponents';
 import VolumeControl from './ui/VolumeControl';
+import ImageModal from './ui/ImageModal';
 import BattleSystem, { type BattleSystemHandle } from './BattleSystem';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
@@ -44,11 +45,11 @@ const Screen392: React.FC<Screen392Props> = ({ onGoToScreen, ficha, onUpdateFich
     pericia: 8,
     disarmed: false,
   });
-  const [guardDisarmed, setGuardDisarmed] = useState(false);
   const [turnCount, setTurnCount] = useState(0);
   const turnCountRef = useRef(0);
   const lastResolvedTurnRef = useRef<string | null>(null);
   const [defeatMessageShown, setDefeatMessageShown] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
 
   const remainingAttacks = MAX_ATTACKS - turnCount;
 
@@ -84,11 +85,6 @@ const Screen392: React.FC<Screen392Props> = ({ onGoToScreen, ficha, onUpdateFich
     setTimeout(() => waitForBattleSystem(), 150);
   };
 
-  const handleDefeat = useCallback(() => {
-    setDefeatMessageShown(true);
-    setBattlePhase('defeat');
-  }, []);
-
   const handleTurnResolved = useCallback((turnResult: { playerPower: number; enemyPower: number; luckTestApplied?: boolean; luckTestSuccess?: boolean }) => {
     if (typeof turnResult.playerPower !== 'number' || typeof turnResult.enemyPower !== 'number') {
       return;
@@ -108,7 +104,6 @@ const Screen392: React.FC<Screen392Props> = ({ onGoToScreen, ficha, onUpdateFich
     const disarm = (turnResult.playerPower + bonus) >= (turnResult.enemyPower + 3);
 
     if (disarm) {
-      setGuardDisarmed(true);
       setBattlePhase('victory');
     } else if (totalTurns >= MAX_ATTACKS) {
       setDefeatMessageShown(true);
@@ -243,7 +238,12 @@ const Screen392: React.FC<Screen392Props> = ({ onGoToScreen, ficha, onUpdateFich
                         height: 'auto',
                         borderRadius: '8px',
                         border: theme.hoverImage.border,
-                        boxShadow: theme.hoverImage.boxShadow
+                        boxShadow: theme.hoverImage.boxShadow,
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => {
+                        playClick();
+                        setShowImageModal(true);
                       }}
                     />
                   </Box>
@@ -268,10 +268,13 @@ const Screen392: React.FC<Screen392Props> = ({ onGoToScreen, ficha, onUpdateFich
                     imagem: guarda01Img
                   }}
                   ignoreEnemyForcaVictory
-                  ignorePlayerForcaDefeat
-                  disablePlayerForcaLoss
-                  hideDamageText
                   getTurnResultTextOverride={(turn) => {
+                    if (turn.result === 'enemy_hit') {
+                      return `O guarda acertou! Você perde ${turn.finalDamage ?? turn.damage} ponto${(turn.finalDamage ?? turn.damage) === 1 ? '' : 's'} de FORÇA.`;
+                    }
+                    if (turn.result === 'dodge') {
+                      return 'Ambos desviaram!';
+                    }
                     const bonus = turn.luckTestApplied && turn.luckTestSuccess ? 2 : 0;
                     const disarm = (turn.playerPower + bonus) >= (turn.enemyPower + 3);
                     return disarm
@@ -279,28 +282,42 @@ const Screen392: React.FC<Screen392Props> = ({ onGoToScreen, ficha, onUpdateFich
                       : 'Você não conseguiu desarmar o guarda, tente novamente.';
                   }}
                   getTurnResultColorOverride={(turn) => {
+                    if (turn.result === 'enemy_hit') return '#B31212';
+                    if (turn.result === 'dodge') return '#FF9800';
                     const bonus = turn.luckTestApplied && turn.luckTestSuccess ? 2 : 0;
                     const disarm = (turn.playerPower + bonus) >= (turn.enemyPower + 3);
                     return disarm ? '#4CAF50' : '#B31212';
                   }}
-                  luckHelpTextOverride="Teste sua sorte para somar +2 ao seu ataque."
-                  luckEffectOverride={({ success, total }) => (
-                    success
-                      ? `Sorte! Dados: ${total} - +2 pontos no seu ataque.`
-                      : `Você falhou no teste de Sorte! Dados: ${total} - Sem bônus.`
-                  )}
+                  luckHelpTextOverride="Teste sua sorte: se você acertou, some +2 ao ataque para desarmar; se foi atingido, reduza o dano recebido."
+                  luckEffectOverride={({ success, total, type }) => {
+                    if (type === 'reduction') {
+                      return success
+                        ? `Sorte! Dados: ${total} — Dano recebido reduzido.`
+                        : `Você falhou no teste de Sorte! Dados: ${total} — Dano recebido aumentado.`;
+                    }
+                    return success
+                      ? `Sorte! Dados: ${total} - +2 pontos no seu ataque para desarmar.`
+                      : `Você falhou no teste de Sorte! Dados: ${total} - Sem bônus no desarme.`;
+                  }}
                   onTurnResolved={handleTurnResolved}
                   ficha={ficha}
                   onUpdateFicha={onUpdateFicha}
                   onVictory={() => {}}
-                  onDefeat={handleDefeat}
-                  onGoToScreen={() => onGoToScreen(199)}
+                  onDefeat={() => {}}
+                  onGoToScreen={onGoToScreen}
                 />
               )}
             </>
           )}
         </CardContent>
       </CardWrap>
+
+      <ImageModal
+        open={showImageModal}
+        onClose={() => setShowImageModal(false)}
+        imageSrc={guarda01Img}
+        imageAlt={guard.nome}
+      />
     </Container>
   );
 };

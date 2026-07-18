@@ -1,0 +1,53 @@
+---
+description: Sistema de batalha BattleSystem e regras de combate
+globs: src/components/BattleSystem.tsx,src/hooks/useCombat.ts,src/hooks/useItemEffects.ts,src/utils/weapon.ts,src/utils/armor.ts,src/utils/combatDamage.ts,src/components/Screen*.tsx
+alwaysApply: false
+---
+
+# Combate (`BattleSystem`)
+
+## Fluxo na tela
+
+Fases típicas: `intro` → `battle` → `victory`. Ref: `battleSystemRef.startBattle()`.
+
+```tsx
+<BattleSystem
+  ref={battleSystemRef}
+  enemy={{ nome, pericia, forca, imagem }}
+  ficha={ficha}
+  onUpdateFicha={onUpdateFicha}
+  onVictory={() => setPhase('victory')}
+  onDefeat={() => onGoToScreen(999)}
+  onGoToScreen={onGoToScreen}
+/>
+```
+
+## Regras por turno
+
+1. Inimigo rola 2d6 (se `attacksPerTurn > 1`, segundo 2d6)
+2. Jogador rola 2d6
+3. Poder = rolagem + perícia de combate + `ataque` da arma (`getCombatAttackPower`)
+4. Sem arma → −1 perícia (`UNARMED_PERICIA_PENALTY`)
+5. Maior poder acerta; empate = esquiva
+6. Dano ao inimigo: `getPlayerHitDamage` (padrão 2; Machado 4; sorte aplica `damageCondition`)
+7. Dano ao jogador: `customDamage || 2`; armadura substitui via `applyDamageWithArmor` / `getDesiredIncomingDamage`
+
+Vitória: `enemyForca <= 0` → `onVictory()`. Derrota: `playerForca <= 0` → `onGoToScreen(999)`.
+
+## Teste de sorte no combate
+
+Opcional pós-hit: 2d6 ≤ sorte (pré-gasto), consome 1.
+- `damage`: ajusta para o dano final da arma (ex. espada 4/1, Machado 6/2)
+- `reduction`: ajusta dano recebido (sem armadura 1/3; cota 0/2)
+Desligar: `disableLuckTest`.
+
+## Utils
+
+- `utils/combatDamage.ts` — dano de arma/armadura e sorte
+- `utils/weapon.ts` — `getCombatPericia`, `getAttackModifier`, `getCombatAttackPower`
+- `damageType` = atributo alvo (FORÇA), **não** soma FORÇA ao dano
+
+## Overrides comuns
+
+`ignoreArmor` · `customDamage` · `attacksPerTurn` · `luckEffectOverride` · `ignoreEnemyForcaVictory` · `MAX_ATTACKS` · `abandonBattleLabel` / `onAbandonBattle` (opção após cada turno, ex.: tela 330)
+---
