@@ -460,11 +460,7 @@ function AppContent() {
               position: 'absolute',
               inset: 0,
               backgroundColor: 'black',
-              backgroundImage: `image-set(
-                url('/images/img01.avif') type('image/avif') 1x,
-                url('/images/img01.webp') type('image/webp') 1x,
-                url('/images/img01.png') type('image/png') 1x
-              )`,
+              backgroundImage: `url('/images/img01.png')`,
               backgroundRepeat: 'no-repeat',
               backgroundPosition: 'center',
               backgroundSize: 'cover',

@@ -157,8 +157,8 @@ const Home: React.FC<HomeProps> = ({ onStart, onLoadGame }) => {
           }}
         >
           Sob a lua sem brilho, um sussurro percorre os campos encharcados.
-          Falam de um cavaleiro sombrio, vindo das trevas, condenado a rondar a noite e a cobrar dívidas antigas.
-          Alguns juram tê‑lo visto. Poucos voltaram para contar.
+          Falam de cavaleiros sombrios, vindos das trevas, condenados a rondar a noite e a cobrar dívidas antigas.
+          Alguns juram tê‑los visto. Poucos voltaram para contar.
         </Typography>
 
         <Button
