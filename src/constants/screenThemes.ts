@@ -526,8 +526,10 @@ export const SCREEN_THEMES: Record<number | string, ThemeName> = {
   113: 'forest',
   194: 'forest',
   177: 'forest',
+  373: 'forest',
   92: 'forest',
   274: 'forest',
+  330: 'forest',
 
   // Tema Floresta (João Verdesfolhas e caminho ao sul)
   11: 'forest',
@@ -535,7 +537,7 @@ export const SCREEN_THEMES: Record<number | string, ThemeName> = {
   398: 'forest',
   284: 'forest',
 
-  // Cabana do eremita — tema padrão marrom (349 não listada de propósito)
+  // Cabana do eremita — tema padrão marrom (349 e 314 não listadas de propósito)
 
   // Todas as outras telas usam o tema padrão (não precisa listar todas)
 };

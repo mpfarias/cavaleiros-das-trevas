@@ -233,6 +233,9 @@ const Screen301: React.FC<Screen301Props> = ({ onGoToScreen, ficha, onUpdateFich
   // Verificar se está escondido no carrinho de lixo (vem da tela 126)
   const estaNoCarrinhoLixo = localStorage.getItem('cavaleiro:noCarrinhoLixo') === 'true';
 
+  // Após se esconder com Rogmondo (396): Woad não está mais no encalço
+  const veioDoEsconderijoTattoo = Boolean(ficha.flags?.visitedMarketFromTattoo);
+
   // Verificar se tem Foguetes
   const temFoguetes = ficha.bolsa.some(item => 
     item.nome.toLowerCase().includes('foguete')
@@ -382,18 +385,44 @@ const Screen301: React.FC<Screen301Props> = ({ onGoToScreen, ficha, onUpdateFich
             A Porta Leste de Royal Lendle se ergue diante de você.
             <br/><br/>
             É formada por duas enormes portas de aço reforçado. A muralha da qual faz parte é tão larga que abriga túneis e vigias em seu interior.
-            <br/><br/>
-            Para sua surpresa, <LocationLink
-              onMouseEnter={handleQuinsberryHover}
-              onMouseLeave={handleQuinsberryLeave}
-              onMouseMove={handleQuinsberryMove}
-              onClick={handleQuinsberryClick}
-            >Quinsberry</LocationLink> e cinco de seus lacaios montam guarda, à espreita.
+            {veioDoEsconderijoTattoo ? (
+              <>
+                <br/><br/>
+                Os homens de Woad não estão mais à vista. Graças ao esconderijo de Rogmondo, o caminho parece livre.
+              </>
+            ) : (
+              <>
+                <br/><br/>
+                Para sua surpresa, <LocationLink
+                  onMouseEnter={handleQuinsberryHover}
+                  onMouseLeave={handleQuinsberryLeave}
+                  onMouseMove={handleQuinsberryMove}
+                  onClick={handleQuinsberryClick}
+                >Quinsberry</LocationLink> e cinco de seus lacaios montam guarda, à espreita.
+              </>
+            )}
           </NarrativeText>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
+            {/* Fluxo pós-Rogmondo (396): sem encontro com Quinsberry */}
+            {veioDoEsconderijoTattoo && (
+              <ChoiceButton onClick={() => {
+                playClick();
+                onUpdateFicha({
+                  ...ficha,
+                  flags: {
+                    ...ficha.flags,
+                    visitedMarketFromTattoo: false,
+                  },
+                });
+                onGoToScreen(145);
+              }}>
+                Seguir adiante
+              </ChoiceButton>
+            )}
+
             {/* Opção condicional: Se tem Documento de Perdão Cívico OU está no carrinho de lixo */}
-            {(temDocumentoPerdao || estaNoCarrinhoLixo) && (
+            {!veioDoEsconderijoTattoo && (temDocumentoPerdao || estaNoCarrinhoLixo) && (
               <ChoiceButton onClick={() => {
                 playClick();
                 // Limpar flag do carrinho de lixo se estava usando
@@ -407,7 +436,7 @@ const Screen301: React.FC<Screen301Props> = ({ onGoToScreen, ficha, onUpdateFich
             )}
 
             {/* Se não tem documento E não está no carrinho de lixo, precisa fazer teste de sorte */}
-            {!temDocumentoPerdao && !estaNoCarrinhoLixo && (
+            {!veioDoEsconderijoTattoo && !temDocumentoPerdao && !estaNoCarrinhoLixo && (
               <>
                 {/* Mostrar seletor de foguetes se tiver */}
                 {temFoguetes && (

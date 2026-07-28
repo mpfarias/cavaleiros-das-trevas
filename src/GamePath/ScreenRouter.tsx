@@ -54,16 +54,20 @@ import Screen190 from '../components/Screen190';
 import Screen193 from '../components/Screen193';
 import Screen194 from '../components/Screen194';
 import Screen177 from '../components/Screen177';
+import Screen373 from '../components/Screen373';
 import Screen203 from '../components/Screen203';
+import Screen344 from '../components/Screen344';
 import Screen205 from '../components/Screen205';
 import Screen219 from '../components/Screen219';
 import Screen238 from '../components/Screen238';
 import Screen250 from '../components/Screen250';
 import Screen270 from '../components/Screen270';
+import Screen396 from '../components/Screen396';
 import Screen236 from '../components/Screen236';
 import Screen284 from '../components/Screen284';
 import Screen6 from '../components/Screen6';
 import Screen289 from '../components/Screen289';
+import Screen341 from '../components/Screen341';
 import Screen10 from '../components/Screen10';
 import Screen312 from '../components/Screen312';
 import Screen257 from '../components/Screen257';
@@ -546,9 +550,21 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({
     );
   }
 
+  if (screenId === 373) {
+    return (
+      <Screen373 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
   if (screenId === 203) {
     return (
       <Screen203 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 344) {
+    return (
+      <Screen344 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
     );
   }
 
@@ -582,6 +598,12 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({
     );
   }
 
+  if (screenId === 396) {
+    return (
+      <Screen396 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
   if (screenId === 236) {
     return (
       <Screen236 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
@@ -603,6 +625,12 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({
   if (screenId === 289) {
     return (
       <Screen289 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 341) {
+    return (
+      <Screen341 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
     );
   }
 

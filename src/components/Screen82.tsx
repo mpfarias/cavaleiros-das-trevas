@@ -183,7 +183,22 @@ const Screen82: React.FC<Screen82Props> = ({ onGoToScreen, ficha, onUpdateFicha 
   const { currentGroup, isPlaying, togglePlay } = useAudioGroup(30);
   
   // Restrições quando veio dos esgotos (apenas navegação, mercado segue normal)
-  const fromSewers = Boolean((ficha as any)?.flags?.visitedMarketFromSewers);
+  const fromSewers = Boolean(ficha?.flags?.visitedMarketFromSewers);
+  // Após se esconder com Rogmondo (396): não oferecer saída que leva a Woad
+  const fromTattoo = Boolean(ficha?.flags?.visitedMarketFromTattoo);
+
+  const clearTattooFlagAndGo = (screenId: number) => {
+    if (fromTattoo) {
+      onUpdateFicha({
+        ...ficha,
+        flags: {
+          ...ficha.flags,
+          visitedMarketFromTattoo: false,
+        },
+      });
+    }
+    onGoToScreen(screenId);
+  };
 
   // Hook para gerenciar efeitos dos itens
   const { applyModifiersToAttributes } = useItemEffects();
@@ -743,7 +758,19 @@ const Screen82: React.FC<Screen82Props> = ({ onGoToScreen, ficha, onUpdateFicha 
 
           {/* Botões de navegação */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {fromSewers ? (
+            {fromTattoo ? (
+              <>
+                <ChoiceButton onClick={() => { onGoToScreen(66); }}>
+                  Visitar a parte Oeste
+                </ChoiceButton>
+                <ChoiceButton onClick={() => clearTattooFlagAndGo(272)}>
+                  Sair pelo Portão Sul
+                </ChoiceButton>
+                <ChoiceButton onClick={() => { onGoToScreen(301); }}>
+                  Sair pelo Portão Leste
+                </ChoiceButton>
+              </>
+            ) : fromSewers ? (
               <>
                 <ChoiceButton onClick={() => { onGoToScreen(66); }}>
                   Visitar a parte Oeste

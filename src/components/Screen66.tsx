@@ -168,7 +168,21 @@ interface MarketItem {
 }
 
 const Screen66: React.FC<Screen66Props> = ({ onGoToScreen, ficha, onUpdateFicha }) => {
-  const fromSewers = Boolean((ficha as any)?.flags?.visitedMarketFromSewers);
+  const fromSewers = Boolean(ficha?.flags?.visitedMarketFromSewers);
+  const fromTattoo = Boolean(ficha?.flags?.visitedMarketFromTattoo);
+
+  const clearTattooFlagAndGo = (screenId: number) => {
+    if (fromTattoo) {
+      onUpdateFicha({
+        ...ficha,
+        flags: {
+          ...ficha.flags,
+          visitedMarketFromTattoo: false,
+        },
+      });
+    }
+    onGoToScreen(screenId);
+  };
   // Usa o sistema de grupos de áudio - automaticamente gerencia música do grupo 'parte-oeste'
   const { currentGroup, isPlaying, togglePlay } = useAudioGroup(30);
   
@@ -611,7 +625,19 @@ const Screen66: React.FC<Screen66Props> = ({ onGoToScreen, ficha, onUpdateFicha 
 
           {/* Botões de navegação */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {fromSewers ? (
+            {fromTattoo ? (
+              <>
+                <ChoiceButton onClick={() => { onGoToScreen(82); }}>
+                  Visitar o lado Leste do mercado
+                </ChoiceButton>
+                <ChoiceButton onClick={() => clearTattooFlagAndGo(272)}>
+                  Sair pelo Portão Sul
+                </ChoiceButton>
+                <ChoiceButton onClick={() => { onGoToScreen(301); }}>
+                  Sair pelo Portão Leste
+                </ChoiceButton>
+              </>
+            ) : fromSewers ? (
               <>
                 <ChoiceButton onClick={() => { onGoToScreen(82); }}>
                   Visitar a parte leste do mercado

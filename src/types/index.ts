@@ -52,6 +52,8 @@ export interface Ficha {
   modificadoresAtivos: ActiveModifiers;
   flags?: {
     visitedMarketFromSewers?: boolean;
+    /** Após esconder-se com Rogmondo (396): mercado sem opção que leva a Woad */
+    visitedMarketFromTattoo?: boolean;
   };
 }
 
@@ -106,7 +108,8 @@ export const FichaSchema = z.object({
     ataque: 0,
   }),
   flags: z.object({
-    visitedMarketFromSewers: z.boolean().optional()
+    visitedMarketFromSewers: z.boolean().optional(),
+    visitedMarketFromTattoo: z.boolean().optional(),
   }).partial().optional(),
 }).strict()
 
