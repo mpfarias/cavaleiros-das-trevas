@@ -54,6 +54,10 @@ export interface Ficha {
     visitedMarketFromSewers?: boolean;
     /** Após esconder-se com Rogmondo (396): mercado sem opção que leva a Woad */
     visitedMarketFromTattoo?: boolean;
+    /** Resultado persistido da única utilização do Poço do Feiticeiro (tela 58). */
+    wizardWellResult?: number;
+    /** Ensinamento de Hammicus recebido na tela 76 e recompensa já aplicada. */
+    hammicusTeachingReceived?: boolean;
   };
 }
 
@@ -110,6 +114,8 @@ export const FichaSchema = z.object({
   flags: z.object({
     visitedMarketFromSewers: z.boolean().optional(),
     visitedMarketFromTattoo: z.boolean().optional(),
+    wizardWellResult: z.number().int().min(1).max(6).optional(),
+    hammicusTeachingReceived: z.boolean().optional(),
   }).partial().optional(),
 }).strict()
 

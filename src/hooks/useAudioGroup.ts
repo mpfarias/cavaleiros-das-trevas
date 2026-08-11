@@ -167,16 +167,21 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   113: 'map',                   // Ponte/Poço do Feiticeiro (rota /game/113) - herdado de 102
   194: 'map',                   // Bandido na nascente - Poço do Feiticeiro (rota /game/194) - nature-sound-map.mp3
   177: 'map',                   // Enganar o bandido - Poço do Feiticeiro (rota /game/177) - nature-sound-map.mp3
+  128: 'map',                   // Orbe Armadilha da Mente no bandido (rota /game/128) - nature-sound-map.mp3
   373: 'map',                   // Oferecer ouro ao bandido - Poço do Feiticeiro (rota /game/373) - nature-sound-map.mp3
+  44: 'map',                    // Estrada de Weirtown após eremita (rota /game/44) - nature-sound-map.mp3
+  58: 'map',                    // Água mágica do Poço do Feiticeiro (rota /game/58) - nature-sound-map.mp3
   203: 'arabic',                // Queda do cavalo - ruas de Royal Lendle (rota /game/203) - bgm-arabic.mp3
   344: 'arabic',                // Traição do velho - prisão (rota /game/344) - bgm-arabic.mp3
   11: 'forest',                 // João Verdesfolhas (rota /game/11) - forest.mp3
   382: 'forest',                // Desafio de João Verdesfolhas (rota /game/382) - forest.mp3
   398: 'forest',                // Seguir o caminho - João Verdesfolhas (rota /game/398) - forest.mp3
   231: 'arabic',                // Loucura em Royal Lendle - viela (rota /game/231) - bgm-arabic.mp3
+  129: 'arabic',                // Assaltante na viela (rota /game/129) - bgm-arabic.mp3 / battle ao atacar
   349: 'eremita',               // Cabana do eremita Hammicus (rota /game/349) - bgm-eremita.mp3
   314: 'eremita',               // Filho morto-vivo - cabana de Hammicus (rota /game/314) - bgm-eremita.mp3
   330: 'eremita',               // Impedir Hammicus de abrir a porta (rota /game/330) - bgm-eremita.mp3
+  76: 'eremita',                // Ensinamento de Hammicus (rota /game/76) - bgm-eremita.mp3
   335: 'creepy',                // Vitória sobre Cavaleiro das Trevas (rota /game/335) - bgm-creepy.mp3
   72: 'hiding',                 // Perseguição reiniciada pelos Cavaleiros (rota /game/72) - bgm-hiding.mp3
   324: 'hiding',                // Capa de Camaleão - fuga dos Cavaleiros (rota /game/324) - bgm-hiding.mp3
@@ -205,6 +210,7 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   396: 'tattoo',                // Rogmondo esconde você dos homens de Woad (rota /game/396) - bgm-tatoo.mp3
   236: 'battle',                // Bransell - loja de Rogmondo (rota /game/236) - bgm-battle.mp3
   284: 'battle',                // Mulher Sorridente - Gornt (rota /game/284) - bgm-battle.mp3
+  376: 'dramatic',              // Corpo desaparece após Mulher Sorridente (rota /game/376) - bgm-dramatic.mp3
   10: 'wizard-room',           // Orbe Armadilha da Mente - Santuário de Hegmar (rota /game/10) - bgm-wizard-room.mp3
   105: 'wizard-room',           // Santuário de Hegmar (rota /game/105) - bgm-wizard-room.mp3
   147: 'wizard-room',           // Documento na escrivaninha - Hegmar (rota /game/147) - bgm-wizard-room.mp3

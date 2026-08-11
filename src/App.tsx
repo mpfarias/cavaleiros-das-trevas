@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CssBaseline, Box } from '@mui/material';
 import { Routes, Route, Navigate, useNavigate, useLocation, useInRouterContext, BrowserRouter } from 'react-router-dom';
@@ -19,6 +19,11 @@ import { totalOuro, validarBolsa } from './utils/inventory';
 import { useItemEffects } from './hooks/useItemEffects';
 import { useBagSound } from './hooks/useBagSound';
 import SaveGameButton from './components/SaveGameButton';
+import {
+  collectProgressSnapshot,
+  isProgressSyncEnabled,
+  saveRemoteProgress,
+} from './services/redramBridge';
 
 const darkTheme = createTheme({
   palette: {
@@ -195,6 +200,22 @@ function AppContent() {
 
   const [globalInventoryOpen, setGlobalInventoryOpen] = useState(false);
   const showGlobalStatus = !['/', '/sheet', '/intro'].includes(location.pathname);
+  // Espelha o progresso local na conta, com debounce para evitar excesso de requisições.
+  // A retomada é sempre explícita: o jogo inicia na tela inicial, nunca restaura sozinho.
+  useEffect(() => {
+    if (!isProgressSyncEnabled() || !ficha.nome) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      const snapshot = collectProgressSnapshot(ficha);
+      void saveRemoteProgress(snapshot).catch((error) => {
+        console.warn('[RedRAM] Falha no autosave remoto; progresso local preservado.', error);
+      });
+    }, 800);
+
+    return () => window.clearTimeout(timeout);
+  }, [ficha, location.pathname]);
 
   // 📍 Sistema de rastreamento de tela atual e redirecionamento para jogos salvos
   useEffect(() => {
@@ -300,7 +321,7 @@ function AppContent() {
     navigate('/sheet');
   };
 
-  const handleLoadGame = (saveData: { ficha: Ficha; lastScreen?: string }) => {
+  const handleLoadGame = (saveData: { ficha: unknown; lastScreen?: string; version?: string }) => {
     const validated = FichaSchema.safeParse(saveData.ficha);
     if (!validated.success) {
       alert('Arquivo de save inválido ou corrompido.');

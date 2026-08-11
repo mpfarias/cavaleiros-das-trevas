@@ -11,6 +11,7 @@ import BattleSystem, { type BattleSystemHandle } from './BattleSystem';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import cavaleiroImg from '../assets/images/personagens/cavaleiro03.png';
+import { getDarkKnightVictoryScreen } from '../utils/darkKnightVictory';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -57,9 +58,9 @@ const Screen259: React.FC<Screen259Props> = ({ onGoToScreen, ficha, onUpdateFich
 
   const handleVictory = () => {
     setBattleState('victory');
-    // Redireciona para tela 335 após 2 segundos
+    const nextScreen = getDarkKnightVictoryScreen(ficha);
     setTimeout(() => {
-      onGoToScreen(335);
+      onGoToScreen(nextScreen);
     }, 2000);
   };
 

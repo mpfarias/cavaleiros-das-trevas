@@ -105,6 +105,12 @@ import Screen72 from '../components/Screen72';
 import Screen324 from '../components/Screen324';
 import Screen4 from '../components/Screen4';
 import Screen40 from '../components/Screen40';
+import Screen44 from '../components/Screen44';
+import Screen58 from '../components/Screen58';
+import Screen76 from '../components/Screen76';
+import Screen128 from '../components/Screen128';
+import Screen129 from '../components/Screen129';
+import Screen376 from '../components/Screen376';
 import Screen375 from '../components/Screen375';
 import Screen317 from '../components/Screen317';
 import Screen70 from '../components/Screen70';
@@ -249,6 +255,42 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({
   if (screenId === 43) {
     return (
       <Screen43 onGoToScreen={goToScreen} ficha={ficha} />
+    );
+  }
+
+  if (screenId === 44) {
+    return (
+      <Screen44 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 58) {
+    return (
+      <Screen58 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 76) {
+    return (
+      <Screen76 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 128) {
+    return (
+      <Screen128 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 129) {
+    return (
+      <Screen129 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 376) {
+    return (
+      <Screen376 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
     );
   }
 

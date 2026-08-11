@@ -523,7 +523,10 @@ export const SCREEN_THEMES: Record<number | string, ThemeName> = {
   257: 'wizard-room',
 
   // Tema Floresta (viagem / região do eremita)
+  44: 'forest',
+  58: 'forest',
   113: 'forest',
+  128: 'forest',
   194: 'forest',
   177: 'forest',
   373: 'forest',
@@ -536,6 +539,7 @@ export const SCREEN_THEMES: Record<number | string, ThemeName> = {
   382: 'forest',
   398: 'forest',
   284: 'forest',
+  376: 'forest',
 
   // Cabana do eremita — tema padrão marrom (349 e 314 não listadas de propósito)
 

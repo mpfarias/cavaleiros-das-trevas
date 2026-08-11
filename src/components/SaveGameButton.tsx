@@ -15,6 +15,11 @@ import {
 import SaveIcon from '@mui/icons-material/Save';
 import type { Ficha } from '../types';
 import { useClickSound } from '../hooks/useClickSound';
+import {
+  collectProgressSnapshot,
+  isProgressSyncEnabled,
+  saveRemoteProgress,
+} from '../services/redramBridge';
 
 interface SaveGameButtonProps {
   ficha: Ficha;
@@ -24,6 +29,7 @@ const SaveGameButton: React.FC<SaveGameButtonProps> = ({ ficha }) => {
   const [open, setOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [savedToCloud, setSavedToCloud] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const playClick = useClickSound(0.2);
 
@@ -37,17 +43,21 @@ const SaveGameButton: React.FC<SaveGameButtonProps> = ({ ficha }) => {
     setSaveError(null);
     
     try {
+      const saveData = collectProgressSnapshot(ficha);
+      let cloudSaved = false;
+
+      if (isProgressSyncEnabled()) {
+        try {
+          await saveRemoteProgress(saveData);
+          cloudSaved = true;
+        } catch (error) {
+          console.warn('[RedRAM] Backup remoto indisponível:', error);
+        }
+      }
+
       // Criar nome do arquivo com timestamp
       const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
       const fileName = `cavaleiro-trevas-${timestamp}.json`;
-      
-      // Preparar dados para salvar
-      const saveData = {
-        ficha,
-        lastScreen: window.location.pathname,
-        savedAt: new Date().toISOString(),
-        version: '1.0.0'
-      };
 
       // Criar blob e download
       const blob = new Blob([JSON.stringify(saveData, null, 2)], {
@@ -63,10 +73,12 @@ const SaveGameButton: React.FC<SaveGameButtonProps> = ({ ficha }) => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
       
+      setSavedToCloud(cloudSaved);
       setSaveSuccess(true);
       setTimeout(() => {
         setOpen(false);
         setSaveSuccess(false);
+        setSavedToCloud(false);
       }, 2000);
       
     } catch (error) {
@@ -82,6 +94,7 @@ const SaveGameButton: React.FC<SaveGameButtonProps> = ({ ficha }) => {
       setOpen(false);
       setSaveError(null);
       setSaveSuccess(false);
+      setSavedToCloud(false);
     }
   };
 
@@ -158,7 +171,9 @@ const SaveGameButton: React.FC<SaveGameButtonProps> = ({ ficha }) => {
           <Box sx={{ py: 2 }}>
             {saveSuccess ? (
               <Alert severity="success" sx={{ mb: 2 }}>
-                Jogo salvo com sucesso! O arquivo foi baixado para seu computador.
+                {savedToCloud
+                  ? 'Progresso salvo na sua conta RedRAM e backup baixado.'
+                  : 'Backup do jogo baixado para seu computador.'}
               </Alert>
             ) : (
               <>
