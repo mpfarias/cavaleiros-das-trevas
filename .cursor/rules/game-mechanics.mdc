@@ -1,0 +1,400 @@
+---
+description: Sistemas mecânicos canônicos do gamebook (itens, atributos, combate, testes, lojas, prisão, flags, persistência)
+globs: src/components/Screen*.tsx,src/components/BattleSystem.tsx,src/hooks/useCombat.ts,src/utils/**/*.ts,src/GamePath/ScreenRouter.tsx,src/App.tsx
+alwaysApply: true
+---
+
+# Sistemas mecânicos do jogo
+
+Fonte de verdade para implementar telas. Não há motor central de rewards: cada `ScreenN` aplica efeitos e chama `onUpdateFicha`.
+
+## Princípios gerais
+
+- Atributos: `pericia`, `forca` (HP), `sorte` — cada um `{ inicial, atual }`
+- Inventário: `ficha.bolsa: Item[]` — tipos `arma | armadura | ouro | provisao | equipamento`
+- Persistência: `onUpdateFicha` → `validarBolsa` → modificadores de itens → `localStorage` (`cavaleiro:ficha`)
+- Feedback: `GameAlert` + `NOTIFICATION_CONFIG.autoHideDuration`
+- Anti-dupla aplicação em mount (obrigatório):
+
+```tsx
+const rewardsAppliedRef = useRef(false);
+useEffect(() => {
+  if (rewardsAppliedRef.current) return;
+  rewardsAppliedRef.current = true;
+  // mutar cópia da ficha → onUpdateFicha(...)
+}, [ficha, onUpdateFicha]);
+```
+
+---
+
+## 1. Ganho de itens
+
+Preferir `adicionarItem(ficha, item)` em `utils/inventory.ts`.
+
+| Tipo | Comportamento |
+|------|----------------|
+| `ouro` / `provisao` | Empilha por `nome` (soma `quantidade`) |
+| `arma` / `armadura` | Substitui a anterior (só 1 de cada) |
+| `equipamento` | Adiciona novo item (id único) |
+
+```tsx
+const item: Item = {
+  id: 'aviso-hegmar', // id estável quando for único no jogo
+  nome: 'O aviso de Hegmar',
+  tipo: 'equipamento',
+  descricao: '...',
+  adquiridoEm: 'Santuário de Hegmar',
+};
+if (!ficha.bolsa.some(i => i.id === item.id)) {
+  onUpdateFicha({ ...ficha, bolsa: [...ficha.bolsa, item] });
+}
+```
+
+Ouro: somar em item `tipo === 'ouro'` ou `adicionarItem` com `quantidade`.
+Armadura: `adicionarItem` → `prepareArmorItem` (inicializa `durabilidadeAtual`).
+Alertas: `📜 Você recebeu: …` / `⚔️ … equipada` / `🛡️ …`.
+
+Refs: Screen147, Screen370, Screen82/66 (loja).
+
+---
+
+## 2. Perda de itens
+
+```tsx
+const novaBolsa = ficha.bolsa.filter(
+  item => !(item.id === 'candeia-azeite' || item.nome?.toLowerCase().includes('candeia'))
+);
+onUpdateFicha({ ...ficha, bolsa: novaBolsa });
+
+// Reduzir ouro/provisão
+const moedas = ficha.bolsa.find(i => i.tipo === 'ouro');
+if (moedas) {
+  const q = Math.max(0, (moedas.quantidade || 0) - custo);
+  // q === 0 → remover; senão atualizar quantidade
+}
+```
+
+Helpers: `removerItem`, `atualizarQuantidade` (n≤0 remove).
+Armadura quebrada em combate: `applyDamageWithArmor` remove quando `durabilidadeAtual` = 0.
+Confisco total: `bolsa: []` (Screen208, Screen233).
+Refs: Screen170, Screen140/94, Screen126, Screen301, Screen70 (arma + dano).
+
+---
+
+## 3. Recuperação de skill (atributos)
+
+Cap em `inicial`:
+
+```tsx
+atual: Math.min(ficha.X.inicial, ficha.X.atual + n)
+```
+
+| Atributo | Uso típico |
+|----------|------------|
+| FORÇA | Cura / descanso (HP) |
+| SORTE | Recompensa; poção que restaura ao inicial |
+| PERÍCIA | Raro (Poço face 6) |
+
+Refs: Screen58, Screen370, Screen349, Screen76, Screen18.
+Não confundir com `modificadoresAtivos` via `useItemEffects` (§12).
+
+---
+
+## 4. Perda de skill (atributos)
+
+Piso em 0 (exceto mínimos narrativos, ex. Screen140 força mín. 1):
+
+```tsx
+atual: Math.max(0, ficha.X.atual - n)
+```
+
+| Atributo | Quando |
+|----------|--------|
+| FORÇA | Dano narrativo, combate, armadilhas |
+| SORTE | Teste gasta 1 (`onAdjustSorte(-1)`); perdas narrativas |
+| PERÍCIA | Maldições / eventos (Screen193) |
+
+Dano narrativo de FORÇA: `playDamageScream()` + `GameAlert`.
+FORÇA = 0 → GO (§9).
+
+Refs: Screen154, Screen170, Screen166, Screen193, Screen279.
+
+---
+
+## 5. Combate (1 inimigo)
+
+`BattleSystem` + `useCombat` / `weapon` / `combatDamage` / `armor`.
+
+Fases: `intro` → `battle` → `victory` (ou derrota → GO).
+
+```tsx
+<BattleSystem
+  ref={battleSystemRef}
+  enemy={{ nome, pericia, forca, imagem }}
+  ficha={ficha}
+  onUpdateFicha={onUpdateFicha}
+  onVictory={() => setPhase('victory')}
+  onDefeat={() => onGoToScreen(999)}
+  onGoToScreen={onGoToScreen}
+/>
+// Após setPhase('battle'): battleSystemRef.current.startBattle()
+```
+
+### Regras por turno
+
+1. Inimigo 2d6 (se `attacksPerTurn > 1`, segunda rolagem)
+2. Jogador 2d6
+3. Poder = rolagem + `getCombatPericia` + `getAttackModifier`
+4. Sem arma → −1 perícia (`UNARMED_PERICIA_PENALTY`)
+5. Maior poder acerta; empate = esquiva
+6. Dano ao inimigo: `getPlayerHitDamage` (padrão 2)
+7. Dano ao jogador: `customDamage || 2`; armadura via `applyDamageWithArmor`
+
+### Teste de sorte no combate
+
+Pós-hit opcional: 2d6 ≤ sorte pré-gasto, consome 1.
+- `damage`: ajusta dano causado · `reduction`: ajusta dano recebido
+Desligar: `disableLuckTest` / `hideLuckButton`.
+
+### Props úteis
+
+`customDamage` · `ignoreArmor` · `attacksPerTurn` · `disableLuckTest` · `ignoreEnemyForcaVictory` · `ignorePlayerForcaDefeat` · `disablePlayerForcaLoss` · `abandonBattleLabel` / `onAbandonBattle` · `onTurnResolved` · `beforeTurnStart` · `luckEffectOverride`
+
+Áudio: `changeTrack('/src/assets/sounds/bgm-battle.mp3')`.
+Refs: Screen26, Screen245, Screen183, Screen284, Screen330.
+
+---
+
+## 6. Combate contra vários inimigos
+
+### A) Sequencial com seleção
+
+Estado `intro | enemySelection | battle | victory` + `enemies[]` com `{ id, nome, pericia, forca, defeated, imagem }`.
+Escolhe vivo → batalha → marca `defeated` → se restam vivos, volta à seleção; senão `victory`. Derrota → 999.
+Refs: Screen286, Screen205.
+
+### B) Múltiplos ataques/turno
+
+```tsx
+const enemy = { nome, pericia, forca, imagem, attacksPerTurn: 2 };
+```
+
+Ref: Screen8. Não montar vários `BattleSystem` em paralelo.
+
+---
+
+## 7. Vitória
+
+`enemyForca <= 0` → `onVictory()` (salvo `ignoreEnemyForcaVictory`).
+Na tela: fase victory → recompensas opcionais → navegar.
+
+Condicional CDT: `getDarkKnightVictoryScreen(ficha)` — Hammicus → 223; senão → 335 (`darkKnightVictory.ts`).
+Vitória sem matar: `ignoreEnemyForcaVictory` + lógica própria (§15).
+
+---
+
+## 8. Derrota (em combate)
+
+`playerForca <= 0` → `onDefeat()` → `onGoToScreen(999)` (ou `GameOverScreen` embutido).
+**Não** continuar com FORÇA 0.
+Abandonar: `onAbandonBattle` pode ir a outra tela (fuga), não necessariamente GO (Screen330).
+
+---
+
+## 9. Game over
+
+| ID | Uso |
+|----|-----|
+| **999** | Genérico (combate / falha crítica) |
+| **131** | Precipício |
+| **346** | Massacre Estreito de Magyár |
+| **365** | Slygore nos esgotos |
+
+`DEATH_MESSAGES` no `ScreenRouter` → `GameOverScreen`.
+Restart (`App.handleGameOverRestart`): ficha vazia, limpa LS core, `/sheet`.
+Telas sem validação completa: `208`, `999`.
+
+---
+
+## 10. Testes de dado (fora do combate)
+
+Sucesso: `total <= atributo.atual`. UI: `DiceRollModal3D`.
+
+| Tipo | Regra | Consome? |
+|------|-------|----------|
+| Perícia | 2d6 ≤ `pericia.atual` | Não |
+| Sorte | 2d6 ≤ `sorte.atual` (pré-gasto) | Sim, 1 (`onAdjustSorte(-1)`) |
+| 1d6 evento | Comparar com limiar narrativo | Depende da tela |
+
+Criação de ficha: `useDiceRoller` + bônus (`DICE_FORMULAS`: perícia/sorte `1d6+6`, força/ouro `2d6+12`).
+Refs perícia: 110, 52, 100, 154, 243, 245 · sorte: 38, 102, 115, 134, 211, 301 · 1d6: 94, 58, 225.
+
+Detalhes extras: `dice-and-tests.mdc`.
+
+---
+
+## 11. Apostas e jogos de ouro
+
+### Bartolph
+
+- Fork: LS `cavaleiro:aceitouBartolph` (entrada tip. `/game/86`)
+- Screen94 (e similares): aposta ouro, 1d6 ≥ 3 vence; grava `cavaleiro:apostaBartolph`
+- Telas 43/140/175 leem a aposta para perder/recuperar
+- Screen222: recupera ouro + dado viciado
+- Rastros: `cavaleiro:veioDaTela43`, `veioDaTela115` → contexto em 140
+
+### Praça (moedas × 1d6)
+
+Screen225: gasta N moedas; sucesso se `1d6 <= N`. Persiste `cavaleiro:moedasUsadas225` para feedback (57/389).
+
+---
+
+## 12. Modificadores de itens e combate de equipamento
+
+`useItemEffects` soma `efeitos.attributes` → `modificadoresAtivos` em todo `handleFichaChange`.
+
+| Peça | Efeito típico |
+|------|----------------|
+| Arma | `efeitos.combat.damage` / `damageCondition`; `attributes.ataque` (ex. Machado −1) |
+| Armadura | `efeitos.combat.damage` = dano recebido fixo; `durability` + `durabilidadeAtual` |
+| Sem arma | −1 perícia em combate |
+
+Utils: `weapon.ts`, `armor.ts`, `combatDamage.ts`.
+
+---
+
+## 13. Lojas de mercado
+
+Telas **66** (oeste) e **82** (leste): catálogo com `price`, quantidade, `maxQuantity`.
+
+Fluxo: checar ouro → bloquear duplicata (`maxQuantity: 1`) → se arma/armadura existente, modal de **substituição** → debitar ouro → `adicionarItem` / `prepareArmorItem` → `GameAlert`.
+Flags de origem alteram opções: `visitedMarketFromSewers`, `visitedMarketFromTattoo` (§19).
+
+---
+
+## 14. Gating e consumo narrativo de itens
+
+**Gating:** mostrar/esconder escolhas com `ficha.bolsa.some(...)`.
+Exemplos: broche (11), foguete/candeia (70/375), documento de perdão (301), dado viciado (351), capa (72/324), candeia cura (4).
+
+**Consumo:** remover ou reduzir quantidade ao agir/entrar.
+Exemplos: poção corrosiva (7), candeia (170), foguetes no teste (301), provisões (126).
+
+### Foguetes no teste de sorte (301)
+
+Cada foguete gasto: `resultadoFinal = total - foguetesUsados`; depois remove da bolsa. Comparar `resultadoFinal <= sorte.atual` (sorte já gasta 1).
+
+---
+
+## 15. Combates especiais
+
+### Limite de turnos → prisão (não GO)
+
+`onTurnResolved`: se turnos ≥ N sem vitória → `onGoToScreen(199)` (prisão).
+Ref: Screen46 (5 turnos).
+
+### Desarme
+
+`ignoreEnemyForcaVictory` + vitória se poder do jogador ≥ inimigo+3 (ou regra da tela). Limite de ataques pode mandar à prisão.
+Refs: Screen20 (guardas), Screen392 (`MAX_ATTACKS`).
+
+### Punhal pré-turno
+
+`beforeTurnStart`: abre 1d6; 5–6 → −2 FORÇA **ignorando armadura e sorte**; 1–4 erra; depois o turno normal.
+Ref: Screen394.
+
+### Abandonar batalha
+
+`abandonBattleLabel` + `onAbandonBattle` → outra tela narrativa.
+Ref: Screen330.
+
+---
+
+## 16. Prisão e confisco
+
+Pipeline típico: captura (ex. após limite de turnos) → **199** → confisco `bolsa: []` em **208** → fuga (7, 74, …).
+Tema/áudio: `prison`. Screen208 isenta validação de ficha completa no router.
+
+---
+
+## 17. Eventos one-shot (flags tipadas)
+
+Em `ficha.flags` (`types/index.ts`):
+
+| Flag | Sistema |
+|------|---------|
+| `wizardWellResult` (1–6) | Poço do Feiticeiro — 1 uso; tabela de bônus (Screen58) |
+| `hammicusTeachingReceived` | +1 sorte (76); altera vitória CDT (§7) |
+| `visitedMarketFromSewers` | Mercado pós-esgotos (317 → 66/82) |
+| `visitedMarketFromTattoo` | Mercado pós-tatuagem (396); afeta 301 |
+
+Sempre persistir via `onUpdateFicha` e checar flag antes de reaplicar.
+
+---
+
+## 18. Provisões
+
+Tipo `provisao` na bolsa (empilha). Ganho/perda por tela.
+**Não** há “usar provisão para curar” no modal de inventário — cura de FORÇA é efeito de tela (cap em `inicial`).
+
+---
+
+## 19. Flags e chaves `localStorage` ad hoc
+
+Prefixo `cavaleiro:`.
+
+| Chave | Uso |
+|-------|-----|
+| `ficha` / `screenId` / `lastScreen` | Core + resume |
+| `volume` | Volume do áudio |
+| `checkpoint` | Snapshot RedRAM; limpo no reset (sem writer de gameplay) |
+| `aceitouBartolph` | Fork taverna vs mercado |
+| `apostaBartolph` | Valor da aposta |
+| `veioDaTela43` / `veioDaTela115` | Contexto perda em 140 |
+| `noCarrinhoLixo` | Esconderijo 126 → lido em 301 |
+| `moedasUsadas225` | Feedback pós-teste 225 |
+
+Preferir `ficha.flags` tipadas para estado narrativo duradouro; LS solto só para rastros entre telas próximas.
+
+---
+
+## 20. Persistência, rotas e shell
+
+| Sistema | Onde |
+|---------|------|
+| Criação de ficha | `/sheet` — `CharacterSheet`, `useCharacterValidation` |
+| Intro | `/intro` — `IntroCinematic` |
+| Mapa | `/map` — `MapScreen` → Royal |
+| Hub cidade | `/royal` — `RoyalLendleScreen` (+ inventário) |
+| Aventura | `/game/:id` — `ScreenRouter` |
+| Save progresso | `SaveGameButton` — JSON `{ ficha, lastScreen, savedAt, version }` |
+| Save ficha (criação) | `useFileOperations` — export/import só da ficha |
+| Continuar | `App` lê `lastScreen`; `handleLoadGame` |
+| Gate router | Bloqueia sem ficha válida; exceções 208/999 |
+| RedRAM | `services/redramBridge.ts` — sync iframe se `VITE_REDRAM_SYNC` |
+
+Temas/áudio por tela: `theme-and-audio.mdc` (`SCREEN_THEMES`, `SCREEN_AUDIO_GROUPS`, SFX hooks).
+
+---
+
+## 21. UI de suporte (não são mecânicas, mas padrão obrigatório)
+
+- `InventoryModal` — visualização da bolsa (abas/efeitos)
+- `ImageModal` + `LocationLink` / hover — preview de personagens/locais
+- `VolumeControl` — persiste `cavaleiro:volume`
+- `GameAlert` / `NOTIFICATION_CONFIG` — feedback de efeitos
+- SFX: `useClickSound`, `useDiceSound`, `useCoinsSound`, `useBombSound`, `useDamageScreamSound`
+
+---
+
+## Checklist ao criar tela com mecânica
+
+1. [ ] Efeito uma vez (`useRef`) ou só no clique
+2. [ ] Cap `Math.min(inicial,…)` / piso `Math.max(0,…)`
+3. [ ] `GameAlert` para ganho/perda perceptível
+4. [ ] Combate: fases + `startBattle` + `onVictory`/`onDefeat`
+5. [ ] Multi-inimigo: padrão A ou B; especiais: §15
+6. [ ] Item gating/consumo: checar bolsa e remover se necessário
+7. [ ] Flag one-shot / LS ad hoc documentado se cruzar telas
+8. [ ] Morte: ID em `DEATH_MESSAGES` ou 999; prisão ≠ GO
+9. [ ] Registrar no `ScreenRouter` + tema/áudio

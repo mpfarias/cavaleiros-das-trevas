@@ -12,6 +12,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import type { Ficha } from '../types';
 import quinsberryImg from '../assets/images/personagens/quinsberry.png';
+import royalLendleImg from '../assets/images/locais/royal-lendle.png';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -196,34 +197,33 @@ const Screen301: React.FC<Screen301Props> = ({ onGoToScreen, ficha, onUpdateFich
   const [teveSorte, setTeveSorte] = useState(false);
   const [diceResult, setDiceResult] = useState<{ dice: number[], total: number } | null>(null);
   const [hoverImage, setHoverImage] = useState<{ src: string; x: number; y: number } | null>(null);
-  const [showImageModal, setShowImageModal] = useState(false);
+  const [modalImage, setModalImage] = useState<{ src: string; alt: string } | null>(null);
 
-  // Handlers para Quinsberry
-  const handleQuinsberryHover = useCallback((event: React.MouseEvent) => {
-    setHoverImage({
-      src: quinsberryImg,
-      x: event.clientX + 20,
-      y: event.clientY - 20
-    });
-  }, []);
+  const createHoverHandlers = useCallback((src: string) => ({
+    onMouseEnter: (event: React.MouseEvent) => {
+      setHoverImage({
+        src,
+        x: event.clientX + 20,
+        y: event.clientY - 20
+      });
+    },
+    onMouseLeave: () => setHoverImage(null),
+    onMouseMove: (event: React.MouseEvent) => {
+      setHoverImage(prev => prev ? {
+        ...prev,
+        x: event.clientX + 20,
+        y: event.clientY - 20
+      } : null);
+    },
+  }), []);
 
-  const handleQuinsberryLeave = useCallback(() => {
-    setHoverImage(null);
-  }, []);
-
-  const handleQuinsberryMove = useCallback((event: React.MouseEvent) => {
-    setHoverImage(prev => prev ? {
-      ...prev,
-      x: event.clientX + 20,
-      y: event.clientY - 20
-    } : null);
-  }, []);
-
-  const handleQuinsberryClick = useCallback(() => {
+  const handleImageClick = useCallback((src: string, alt: string) => {
     playClick();
-    setShowImageModal(true);
+    setModalImage({ src, alt });
   }, [playClick]);
 
+  const quinsberryHandlers = createHoverHandlers(quinsberryImg);
+  const royalLendleHandlers = createHoverHandlers(royalLendleImg);
   // Verificar se tem Documento de Perdão Cívico
   const temDocumentoPerdao = ficha.bolsa.some(item => 
     item.nome.toLowerCase().includes('documento') && 
@@ -382,7 +382,14 @@ const Screen301: React.FC<Screen301Props> = ({ onGoToScreen, ficha, onUpdateFich
       <CardWrap>
         <CardContent sx={{ padding: '40px' }}>
           <NarrativeText>
-            A Porta Leste de Royal Lendle se ergue diante de você.
+            A Porta Leste de{' '}
+            <LocationLink
+              {...royalLendleHandlers}
+              onClick={() => handleImageClick(royalLendleImg, 'Royal Lendle')}
+            >
+              Royal Lendle
+            </LocationLink>
+            {' '}se ergue diante de você.
             <br/><br/>
             É formada por duas enormes portas de aço reforçado. A muralha da qual faz parte é tão larga que abriga túneis e vigias em seu interior.
             {veioDoEsconderijoTattoo ? (
@@ -394,10 +401,8 @@ const Screen301: React.FC<Screen301Props> = ({ onGoToScreen, ficha, onUpdateFich
               <>
                 <br/><br/>
                 Para sua surpresa, <LocationLink
-                  onMouseEnter={handleQuinsberryHover}
-                  onMouseLeave={handleQuinsberryLeave}
-                  onMouseMove={handleQuinsberryMove}
-                  onClick={handleQuinsberryClick}
+                  {...quinsberryHandlers}
+                  onClick={() => handleImageClick(quinsberryImg, 'Quinsberry Woad')}
                 >Quinsberry</LocationLink> e cinco de seus lacaios montam guarda, à espreita.
               </>
             )}
@@ -621,10 +626,10 @@ const Screen301: React.FC<Screen301Props> = ({ onGoToScreen, ficha, onUpdateFich
 
       {/* Image Modal */}
       <ImageModal
-        open={showImageModal}
-        onClose={() => setShowImageModal(false)}
-        imageSrc={quinsberryImg}
-        imageAlt="Quinsberry Woad"
+        open={Boolean(modalImage)}
+        onClose={() => setModalImage(null)}
+        imageSrc={modalImage?.src || ''}
+        imageAlt={modalImage?.alt || ''}
       />
     </Container>
   );

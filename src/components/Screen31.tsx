@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { Box, CardContent, IconButton, Tooltip } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
 import { useScreenTheme } from '../hooks/useScreenTheme';
@@ -9,26 +10,39 @@ import ImageModal from './ui/ImageModal';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import type { Ficha } from '../types';
-import joaoVerduraImg from '../assets/images/personagens/joao-verdura.png';
 import gorntImg from '../assets/images/locais/gornt.png';
+import ennianImg from '../assets/images/personagens/ennian.png';
 
-interface Screen398Props {
+interface Screen31Props {
   onGoToScreen: (screenId: number) => void;
   ficha: Ficha;
   onUpdateFicha: (ficha: Ficha) => void;
 }
 
-const Screen398: React.FC<Screen398Props> = ({ onGoToScreen, ficha: _ficha, onUpdateFicha: _onUpdateFicha }) => {
-  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(398);
+const Screen31: React.FC<Screen31Props> = ({ onGoToScreen, ficha: _ficha, onUpdateFicha: _onUpdateFicha }) => {
+  const { currentGroup, isPlaying, togglePlay } = useAudioGroup(31);
   const playClick = useClickSound(0.2);
-  const theme = useScreenTheme(398);
+  const theme = useScreenTheme(31);
   const { Container, CardWrap, NarrativeText, ChoiceButton, LocationLink, HoverImage } = useMemo(
     () => createThemedComponents(theme),
-    [theme]
+    [theme],
   );
 
   const [hoverImage, setHoverImage] = useState<{ src: string; x: number; y: number } | null>(null);
   const [modalImage, setModalImage] = useState<{ src: string; alt: string } | null>(null);
+
+  const DeathButton = useMemo(
+    () => styled(ChoiceButton)({
+      background: 'linear-gradient(135deg, rgba(139,0,0,0.9) 0%, rgba(70,0,0,0.8) 100%)',
+      borderColor: '#8B0000',
+      textAlign: 'center',
+      '&:hover': {
+        background: 'linear-gradient(135deg, rgba(179,0,0,0.9) 0%, rgba(100,0,0,0.8) 100%)',
+        borderColor: '#FF0000',
+      },
+    }),
+    [ChoiceButton],
+  );
 
   const createHoverHandlers = useCallback((src: string) => ({
     onMouseEnter: (event: React.MouseEvent) => {
@@ -53,20 +67,16 @@ const Screen398: React.FC<Screen398Props> = ({ onGoToScreen, ficha: _ficha, onUp
     setModalImage({ src, alt });
   }, [playClick]);
 
-  const joaoHandlers = createHoverHandlers(joaoVerduraImg);
+  const ennianHandlers = createHoverHandlers(ennianImg);
   const gorntHandlers = createHoverHandlers(gorntImg);
 
-  const joaoLink = (children: React.ReactNode) => (
-    <LocationLink
-      {...joaoHandlers}
-      onClick={() => handleImageClick(joaoVerduraImg, 'João Verdesfolhas')}
-    >
-      {children}
-    </LocationLink>
-  );
+  const handleGameOver = () => {
+    playClick();
+    onGoToScreen(999);
+  };
 
   return (
-    <Container data-screen="screen-398">
+    <Container data-screen="screen-31">
       <VolumeControl />
 
       <Box
@@ -95,8 +105,8 @@ const Screen398: React.FC<Screen398Props> = ({ onGoToScreen, ficha: _ficha, onUp
                   borderColor: 'rgba(255,255,255,0.3)',
                 } : {},
                 '&:disabled': {
-                  cursor: 'not-allowed'
-                }
+                  cursor: 'not-allowed',
+                },
               }}
             >
               {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
@@ -108,41 +118,41 @@ const Screen398: React.FC<Screen398Props> = ({ onGoToScreen, ficha: _ficha, onUp
       <CardWrap>
         <CardContent sx={{ padding: '40px' }}>
           <NarrativeText>
-            — Tempos difíceis esperam por você — continua a figura enigmática. — Mas, por bondade, o Deus dos Chifres lhe concede a chance de encontrar o Homem dos Números... ou o livro dele. Sem um dos dois, você está perdido.
+            Mãos poderosas agarram você e o lançam ao chão.
             <br /><br />
-            Dito isso, o rosto de {joaoLink('João Verdesfolhas')} desaparece.
-            <br /><br />
-            Você decide seguir o caminho dos elementos, representados por {joaoLink('João Verdesfolhas')}, tornando-se um paladino da Terra-Mãe na luta contra os malignos Cavaleiros das Trevas.
-            <br /><br />
+            Caído de costas, olha para cima e vê{' '}
+            <LocationLink
+              {...ennianHandlers}
+              onClick={() => handleImageClick(ennianImg, 'Ennian')}
+            >
+              Ennian
+            </LocationLink>
+            , o Prefeito de{' '}
             <LocationLink
               {...gorntHandlers}
               onClick={() => handleImageClick(gorntImg, 'Gornt')}
             >
               Gornt
             </LocationLink>
-            {' '}fica muito mais ao sul do que o mapa faz parecer, e já é noite quando você alcança as muralhas da cidade.
+            .
             <br /><br />
-            Ao atravessar o Portão Norte, você ouve uma grande confusão e sente um forte cheiro de fumaça. Não há ninguém vigiando a entrada: nem guardas, nem qualquer outra autoridade.
+            Ele sorri.
             <br /><br />
-            Enquanto pensa no que fazer, vê um homem sair correndo de uma casa, gritando:
+            — Não se preocupe. Você não vai sentir nada... e, em breve, será um de nós.
             <br /><br />
-            — Vá embora! Você não é minha mulher!
+            Ao dizer isso, sua mão se transforma em uma massa viscosa, semelhante a uma ventosa.
             <br /><br />
-            Logo atrás dele surge uma jovem, que o agarra pelos pulsos e sorri.
+            Ela envolve seu rosto.
             <br /><br />
-            — Claro que sou sua mulher, seu tolo. Quem mais eu poderia ser? Agora pare de resistir e volte para casa.
+            A escuridão toma conta da sua mente.
             <br /><br />
-            O homem tenta se desvencilhar, e os dois começam a lutar.
+            Você jamais despertará desse sono.
           </NarrativeText>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
-            <ChoiceButton onClick={() => { playClick(); onGoToScreen(284); }}>
-              Decidir ajudá-lo
-            </ChoiceButton>
-
-            <ChoiceButton onClick={() => { playClick(); onGoToScreen(231); }}>
-              Não se envolver e seguir para o centro da cidade
-            </ChoiceButton>
+            <DeathButton onClick={handleGameOver}>
+              Fim da aventura
+            </DeathButton>
           </Box>
         </CardContent>
       </CardWrap>
@@ -168,4 +178,4 @@ const Screen398: React.FC<Screen398Props> = ({ onGoToScreen, ficha: _ficha, onUp
   );
 };
 
-export default Screen398;
+export default Screen31;

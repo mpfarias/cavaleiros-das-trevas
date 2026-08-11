@@ -12,6 +12,7 @@ import PauseIcon from '@mui/icons-material/Pause';
 import type { Ficha, Item } from '../types';
 import { NOTIFICATION_CONFIG } from '../constants/character';
 import pergaminhoHegmarImg from '../assets/images/pergaminho-hengmar.png';
+import royalLendleImg from '../assets/images/locais/royal-lendle.png';
 
 interface Screen147Props {
   onGoToScreen: (screenId: number) => void;
@@ -28,35 +29,35 @@ const Screen147: React.FC<Screen147Props> = ({ onGoToScreen, ficha, onUpdateFich
     [theme]
   );
   const [hoverImage, setHoverImage] = useState<{ src: string; x: number; y: number } | null>(null);
-  const [showImageModal, setShowImageModal] = useState(false);
+  const [modalImage, setModalImage] = useState<{ src: string; alt: string } | null>(null);
   const [showItemAlert, setShowItemAlert] = useState(false);
   const itemAddedRef = useRef(false);
 
-  const handleDocumentoHover = useCallback((event: React.MouseEvent) => {
-    setHoverImage({
-      src: pergaminhoHegmarImg,
-      x: event.clientX + 20,
-      y: event.clientY - 20
-    });
-  }, []);
+  const createHoverHandlers = useCallback((src: string) => ({
+    onMouseEnter: (event: React.MouseEvent) => {
+      setHoverImage({
+        src,
+        x: event.clientX + 20,
+        y: event.clientY - 20
+      });
+    },
+    onMouseLeave: () => setHoverImage(null),
+    onMouseMove: (event: React.MouseEvent) => {
+      setHoverImage(prev => prev ? {
+        ...prev,
+        x: event.clientX + 20,
+        y: event.clientY - 20
+      } : null);
+    },
+  }), []);
 
-  const handleDocumentoLeave = useCallback(() => {
-    setHoverImage(null);
-  }, []);
-
-  const handleDocumentoMove = useCallback((event: React.MouseEvent) => {
-    setHoverImage(prev => prev ? {
-      ...prev,
-      x: event.clientX + 20,
-      y: event.clientY - 20
-    } : null);
-  }, []);
-
-  const handleDocumentoClick = useCallback(() => {
+  const handleImageClick = useCallback((src: string, alt: string) => {
     playClick();
-    setShowImageModal(true);
+    setModalImage({ src, alt });
   }, [playClick]);
 
+  const documentoHandlers = createHoverHandlers(pergaminhoHegmarImg);
+  const royalLendleHandlers = createHoverHandlers(royalLendleImg);
   useEffect(() => {
     if (itemAddedRef.current) return;
     const jaTemItem = ficha.bolsa.some(
@@ -133,16 +134,21 @@ const Screen147: React.FC<Screen147Props> = ({ onGoToScreen, ficha, onUpdateFich
           <NarrativeText>
             Sobre a escrivaninha você encontra um{' '}
             <LocationLink
-              onMouseEnter={handleDocumentoHover}
-              onMouseLeave={handleDocumentoLeave}
-              onMouseMove={handleDocumentoMove}
-              onClick={handleDocumentoClick}
+              {...documentoHandlers}
+              onClick={() => handleImageClick(pergaminhoHegmarImg, 'O aviso de Hegmar')}
             >
               documento recém-escrito
             </LocationLink>
             {' '}— a tinta ainda está fresca. Você lê o texto, escrito com caligrafia elaborada e carregada de tensão:
             <br/><br/>
-            O Circo dos Sonhos chegou a Royal Lendle. Esse grupo, aparentemente inofensivo, passou o último ano espalhando o mal de aldeia em aldeia por toda Gallantaria — sem perceber que venho observando cada passo, aguardando o momento certo para agir. O plano deles é bem elaborado. Tenho esperança de desmascará-los em breve. Espere! A porta se abriu e entra—
+            O Circo dos Sonhos chegou a{' '}
+            <LocationLink
+              {...royalLendleHandlers}
+              onClick={() => handleImageClick(royalLendleImg, 'Royal Lendle')}
+            >
+              Royal Lendle
+            </LocationLink>
+            . Esse grupo, aparentemente inofensivo, passou o último ano espalhando o mal de aldeia em aldeia por toda Gallantaria — sem perceber que venho observando cada passo, aguardando o momento certo para agir. O plano deles é bem elaborado. Tenho esperança de desmascará-los em breve. Espere! A porta se abriu e entra—
             <br/><br/>
             O texto termina abruptamente.
             <br/><br/>
@@ -167,15 +173,15 @@ const Screen147: React.FC<Screen147Props> = ({ onGoToScreen, ficha, onUpdateFich
 
       {hoverImage && (
         <HoverImage sx={{ left: hoverImage.x, top: hoverImage.y }}>
-          <img src={hoverImage.src} alt="O aviso de Hegmar" />
+          <img src={hoverImage.src} alt="" />
         </HoverImage>
       )}
 
       <ImageModal
-        open={showImageModal}
-        onClose={() => setShowImageModal(false)}
-        imageSrc={pergaminhoHegmarImg}
-        imageAlt="O aviso de Hegmar"
+        open={Boolean(modalImage)}
+        onClose={() => setModalImage(null)}
+        imageSrc={modalImage?.src || ''}
+        imageAlt={modalImage?.alt || ''}
       />
     </Container>
   );

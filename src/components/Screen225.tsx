@@ -11,6 +11,7 @@ import DiceRollModal3D from './ui/DiceRollModal3D';
 import type { Ficha } from '../types';
 import { atualizarQuantidade } from '../utils/inventory';
 import pracaMasonicImg from '../assets/images/locais/praca_masonic.png';
+import royalLendleImg from '../assets/images/locais/royal-lendle.png';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -183,7 +184,7 @@ const Screen225: React.FC<Screen225Props> = ({ onGoToScreen, ficha, onUpdateFich
   const [showDiceModal, setShowDiceModal] = useState(false);
   const [coinsToUse, setCoinsToUse] = useState<number>(0);
   const [hoverImage, setHoverImage] = useState<{ src: string; x: number; y: number } | null>(null);
-  const [showImageModal, setShowImageModal] = useState(false);
+  const [modalImage, setModalImage] = useState<{ src: string; alt: string } | null>(null);
 
   // Calcular moedas disponíveis
   const availableGold = ficha.bolsa
@@ -258,31 +259,31 @@ const Screen225: React.FC<Screen225Props> = ({ onGoToScreen, ficha, onUpdateFich
     onGoToScreen(199);
   };
 
-  const handleLocationHover = useCallback((event: React.MouseEvent) => {
-    setHoverImage({
-      src: pracaMasonicImg,
-      x: event.clientX + 20,
-      y: event.clientY - 20
-    });
-  }, []);
+  const createHoverHandlers = useCallback((src: string) => ({
+    onMouseEnter: (event: React.MouseEvent) => {
+      setHoverImage({
+        src,
+        x: event.clientX + 20,
+        y: event.clientY - 20
+      });
+    },
+    onMouseLeave: () => setHoverImage(null),
+    onMouseMove: (event: React.MouseEvent) => {
+      setHoverImage(prev => prev ? {
+        ...prev,
+        x: event.clientX + 20,
+        y: event.clientY - 20
+      } : null);
+    },
+  }), []);
 
-  const handleLocationLeave = useCallback(() => {
-    setHoverImage(null);
-  }, []);
-
-  const handleLocationMove = useCallback((event: React.MouseEvent) => {
-    setHoverImage(prev => prev ? {
-      ...prev,
-      x: event.clientX + 20,
-      y: event.clientY - 20
-    } : null);
-  }, []);
-
-  const handleLocationClick = useCallback(() => {
+  const handleImageClick = useCallback((src: string, alt: string) => {
     playClick();
-    setShowImageModal(true);
+    setModalImage({ src, alt });
   }, [playClick]);
 
+  const pracaHandlers = createHoverHandlers(pracaMasonicImg);
+  const royalLendleHandlers = createHoverHandlers(royalLendleImg);
   return (
     <Container data-screen="screen-225">
       <VolumeControl />
@@ -387,12 +388,17 @@ const Screen225: React.FC<Screen225Props> = ({ onGoToScreen, ficha, onUpdateFich
       <CardWrap>
         <CardContent sx={{ padding: '40px' }}>
           <NarrativeText>
-            Você acaba de entrar em uma das maiores atrações turísticas de Royal Lendle — a{' '}
+            Você acaba de entrar em uma das maiores atrações turísticas de{' '}
             <LocationLink
-              onMouseEnter={handleLocationHover}
-              onMouseLeave={handleLocationLeave}
-              onMouseMove={handleLocationMove}
-              onClick={handleLocationClick}
+              {...royalLendleHandlers}
+              onClick={() => handleImageClick(royalLendleImg, 'Royal Lendle')}
+            >
+              Royal Lendle
+            </LocationLink>
+            {' '}— a{' '}
+            <LocationLink
+              {...pracaHandlers}
+              onClick={() => handleImageClick(pracaMasonicImg, 'Praça Masonic')}
             >
               Praça Masonic
             </LocationLink>
@@ -422,16 +428,16 @@ const Screen225: React.FC<Screen225Props> = ({ onGoToScreen, ficha, onUpdateFich
             top: hoverImage.y
           }}
         >
-          <img src={hoverImage.src} alt="Praça Masonic" />
+          <img src={hoverImage.src} alt="" />
         </HoverImage>
       )}
 
       {/* Image Modal */}
       <ImageModal
-        open={showImageModal}
-        onClose={() => setShowImageModal(false)}
-        imageSrc={pracaMasonicImg}
-        imageAlt="Praça Masonic"
+        open={Boolean(modalImage)}
+        onClose={() => setModalImage(null)}
+        imageSrc={modalImage?.src || ''}
+        imageAlt={modalImage?.alt || ''}
       />
     </Container>
   );

@@ -6,6 +6,8 @@ alwaysApply: false
 
 # Combate (`BattleSystem`)
 
+Detalhes canônicos (1 inimigo, multi-inimigo, vitória/derrota): **`game-mechanics.mdc`**.
+
 ## Fluxo na tela
 
 Fases típicas: `intro` → `battle` → `victory`. Ref: `battleSystemRef.startBattle()`.

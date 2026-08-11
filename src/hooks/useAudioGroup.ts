@@ -178,6 +178,7 @@ export const SCREEN_AUDIO_GROUPS: Record<number | string, AudioGroup> = {
   398: 'forest',                // Seguir o caminho - João Verdesfolhas (rota /game/398) - forest.mp3
   231: 'arabic',                // Loucura em Royal Lendle - viela (rota /game/231) - bgm-arabic.mp3
   129: 'arabic',                // Assaltante na viela (rota /game/129) - bgm-arabic.mp3 / battle ao atacar
+  31: 'arabic',                  // Ennian - morte após viela (rota /game/31) - bgm-arabic.mp3
   349: 'eremita',               // Cabana do eremita Hammicus (rota /game/349) - bgm-eremita.mp3
   314: 'eremita',               // Filho morto-vivo - cabana de Hammicus (rota /game/314) - bgm-eremita.mp3
   330: 'eremita',               // Impedir Hammicus de abrir a porta (rota /game/330) - bgm-eremita.mp3

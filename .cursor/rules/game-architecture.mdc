@@ -29,8 +29,9 @@ Gamebook narrativo em React (Vite) + MUI 7 + Emotion. Sem Redux/Zustand.
 
 ## Sistemas de mecânica (ver rules dedicadas)
 
+- **Canônico completo** → `game-mechanics.mdc` (itens, atributos, combate 1/N, vitória, derrota, GO)
 - Dados/testes → `dice-and-tests.mdc` (2d6 ≤ atributo; sorte gasta 1)
-- Combate → `battle-system.mdc` (`BattleSystem`: 2d6+perícia, dano base 2)
+- Combate (resumo) → `battle-system.mdc`
 - Apostas/GO/provisões → `other-game-systems.mdc`
 
 ## Idioma e stack

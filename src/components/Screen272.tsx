@@ -10,10 +10,16 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import type { Ficha } from '../types';
 import homemOrcImg from '../assets/images/personagens/homem-orc.png';
+import royalLendleImg from '../assets/images/locais/royal-lendle.png';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
+`;
+
+const fadeInImage = keyframes`
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
 `;
 
 const Container = styled(Box)({
@@ -93,6 +99,32 @@ const ChoiceButton = styled('button')({
   }
 });
 
+const HoverImage = styled(Box)({
+  position: 'fixed',
+  zIndex: 1500,
+  pointerEvents: 'none',
+  animation: `${fadeInImage} 0.3s ease-out`,
+  '& img': {
+    maxWidth: '400px',
+    maxHeight: '400px',
+    borderRadius: '12px',
+    border: '3px solid #8B4513',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+    backgroundColor: 'transparent'
+  }
+});
+
+const LocationLink = styled('span')({
+  color: '#8B4513',
+  textDecoration: 'underline',
+  cursor: 'pointer',
+  fontWeight: 600,
+  transition: 'color 0.2s ease',
+  '&:hover': {
+    color: '#A0522D'
+  }
+});
+
 interface Screen272Props {
   onGoToScreen: (screenId: number) => void;
   ficha: Ficha;
@@ -108,9 +140,35 @@ const Screen272: React.FC<Screen272Props> = ({ onGoToScreen, ficha, onUpdateFich
   const [battleState, setBattleState] = useState<'intro' | 'battle' | 'victory' | 'defeat'>('intro');
   const battleSystemRef = useRef<BattleSystemHandle | null>(null);
   const [showBattleInfoModal, setShowBattleInfoModal] = useState(false);
-  const [showImageModal, setShowImageModal] = useState(false);
+  const [hoverImage, setHoverImage] = useState<{ src: string; x: number; y: number } | null>(null);
+  const [modalImage, setModalImage] = useState<{ src: string; alt: string } | null>(null);
   const forcaAtBattleStartRef = useRef(ficha.forca.atual);
   const [tookDamageInBattle, setTookDamageInBattle] = useState(false);
+
+  const createHoverHandlers = useCallback((src: string) => ({
+    onMouseEnter: (event: React.MouseEvent) => {
+      setHoverImage({
+        src,
+        x: event.clientX + 20,
+        y: event.clientY - 20
+      });
+    },
+    onMouseLeave: () => setHoverImage(null),
+    onMouseMove: (event: React.MouseEvent) => {
+      setHoverImage(prev => prev ? {
+        ...prev,
+        x: event.clientX + 20,
+        y: event.clientY - 20
+      } : null);
+    },
+  }), []);
+
+  const handleImageClick = useCallback((src: string, alt: string) => {
+    playClick();
+    setModalImage({ src, alt });
+  }, [playClick]);
+
+  const royalLendleHandlers = createHoverHandlers(royalLendleImg);
 
   // Estabilizar o callback onUpdateFicha para evitar re-renderizações do BattleSystem
   const stableOnUpdateFicha = useCallback((updatedFicha: Ficha) => {
@@ -231,7 +289,14 @@ const Screen272: React.FC<Screen272Props> = ({ onGoToScreen, ficha, onUpdateFich
           {battleState === 'intro' && (
             <>
               <NarrativeText>
-                Você perdeu muito tempo em Royal Lendle, mas finalmente avista a Porta Sul.
+                Você perdeu muito tempo em{' '}
+                <LocationLink
+                  {...royalLendleHandlers}
+                  onClick={() => handleImageClick(royalLendleImg, 'Royal Lendle')}
+                >
+                  Royal Lendle
+                </LocationLink>
+                , mas finalmente avista a Porta Sul.
                 <br/><br/>
                 É uma estrutura maciça, com duas portas de aço reforçado, erguida no meio de uma muralha tão larga que possui túneis e vigias.
                 <br/><br/>
@@ -260,8 +325,7 @@ const Screen272: React.FC<Screen272Props> = ({ onGoToScreen, ficha, onUpdateFich
                     cursor: 'pointer',
                   }}
                   onClick={() => {
-                    playClick();
-                    setShowImageModal(true);
+                    handleImageClick(homemOrcImg, 'Homem-Orc');
                   }}
                 />
               </Box>
@@ -347,11 +411,22 @@ const Screen272: React.FC<Screen272Props> = ({ onGoToScreen, ficha, onUpdateFich
               </CardWrap>
           </Container>
 
+      {hoverImage && (
+        <HoverImage
+          sx={{
+            left: hoverImage.x,
+            top: hoverImage.y
+          }}
+        >
+          <img src={hoverImage.src} alt="" />
+        </HoverImage>
+      )}
+
       <ImageModal
-        open={showImageModal}
-        onClose={() => setShowImageModal(false)}
-        imageSrc={homemOrcImg}
-        imageAlt="Homem-Orc"
+        open={Boolean(modalImage)}
+        onClose={() => setModalImage(null)}
+        imageSrc={modalImage?.src || ''}
+        imageAlt={modalImage?.alt || ''}
       />
 
         {/* Modal de informações sobre o sistema de batalha */}

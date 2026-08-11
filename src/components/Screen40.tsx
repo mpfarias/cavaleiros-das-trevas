@@ -1,18 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Box, Card, CardContent, Typography, IconButton, Tooltip } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
 import VolumeControl from './ui/VolumeControl';
+import ImageModal from './ui/ImageModal';
 import { GameAlert } from './ui/GameAlert';
 import { NOTIFICATION_CONFIG } from '../constants/character';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import type { Ficha, Item } from '../types';
+import royalLendleImg from '../assets/images/locais/royal-lendle.png';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
+`;
+
+const fadeInImage = keyframes`
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
 `;
 
 const Container = styled(Box)({
@@ -92,6 +99,32 @@ const ChoiceButton = styled('button')({
   }
 });
 
+const HoverImage = styled(Box)({
+  position: 'fixed',
+  zIndex: 1500,
+  pointerEvents: 'none',
+  animation: `${fadeInImage} 0.3s ease-out`,
+  '& img': {
+    maxWidth: '400px',
+    maxHeight: '400px',
+    borderRadius: '12px',
+    border: '3px solid #8B4513',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+    backgroundColor: 'transparent'
+  }
+});
+
+const LocationLink = styled('span')({
+  color: '#8B4513',
+  textDecoration: 'underline',
+  cursor: 'pointer',
+  fontWeight: 600,
+  transition: 'color 0.2s ease',
+  '&:hover': {
+    color: '#A0522D'
+  }
+});
+
 interface Screen40Props {
   onGoToScreen: (screenId: number) => void;
   ficha: Ficha;
@@ -103,6 +136,33 @@ const Screen40: React.FC<Screen40Props> = ({ onGoToScreen, ficha, onUpdateFicha 
   const playClick = useClickSound(0.2);
   const [showItemAlert, setShowItemAlert] = useState(false);
   const [itemAdded, setItemAdded] = useState(false);
+  const [hoverImage, setHoverImage] = useState<{ src: string; x: number; y: number } | null>(null);
+  const [modalImage, setModalImage] = useState<{ src: string; alt: string } | null>(null);
+
+  const createHoverHandlers = useCallback((src: string) => ({
+    onMouseEnter: (event: React.MouseEvent) => {
+      setHoverImage({
+        src,
+        x: event.clientX + 20,
+        y: event.clientY - 20
+      });
+    },
+    onMouseLeave: () => setHoverImage(null),
+    onMouseMove: (event: React.MouseEvent) => {
+      setHoverImage(prev => prev ? {
+        ...prev,
+        x: event.clientX + 20,
+        y: event.clientY - 20
+      } : null);
+    },
+  }), []);
+
+  const handleImageClick = useCallback((src: string, alt: string) => {
+    playClick();
+    setModalImage({ src, alt });
+  }, [playClick]);
+
+  const royalLendleHandlers = createHoverHandlers(royalLendleImg);
 
   // Adicionar a Chave Preta quando a tela carregar
   useEffect(() => {
@@ -185,7 +245,14 @@ const Screen40: React.FC<Screen40Props> = ({ onGoToScreen, ficha, onUpdateFicha 
             <br/><br/>
             Você revira o corpo e encontra uma pequena chave preta, que decide guardar consigo.
             <br/><br/>
-            Logo em seguida, você deixa Royal Lendle pela Porta Sul, afastando-se do local da emboscada.
+            Logo em seguida, você deixa{' '}
+            <LocationLink
+              {...royalLendleHandlers}
+              onClick={() => handleImageClick(royalLendleImg, 'Royal Lendle')}
+            >
+              Royal Lendle
+            </LocationLink>
+            {' '}pela Porta Sul, afastando-se do local da emboscada.
           </NarrativeText>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
@@ -198,6 +265,24 @@ const Screen40: React.FC<Screen40Props> = ({ onGoToScreen, ficha, onUpdateFicha 
           </Box>
         </CardContent>
       </CardWrap>
+
+      {hoverImage && (
+        <HoverImage
+          sx={{
+            left: hoverImage.x,
+            top: hoverImage.y
+          }}
+        >
+          <img src={hoverImage.src} alt="" />
+        </HoverImage>
+      )}
+
+      <ImageModal
+        open={Boolean(modalImage)}
+        onClose={() => setModalImage(null)}
+        imageSrc={modalImage?.src || ''}
+        imageAlt={modalImage?.alt || ''}
+      />
     </Container>
   );
 };

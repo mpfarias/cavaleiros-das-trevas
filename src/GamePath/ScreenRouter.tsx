@@ -110,6 +110,7 @@ import Screen58 from '../components/Screen58';
 import Screen76 from '../components/Screen76';
 import Screen128 from '../components/Screen128';
 import Screen129 from '../components/Screen129';
+import Screen31 from '../components/Screen31';
 import Screen376 from '../components/Screen376';
 import Screen375 from '../components/Screen375';
 import Screen317 from '../components/Screen317';
@@ -285,6 +286,12 @@ const ScreenRouter: React.FC<ScreenRouterProps> = ({
   if (screenId === 129) {
     return (
       <Screen129 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
+    );
+  }
+
+  if (screenId === 31) {
+    return (
+      <Screen31 onGoToScreen={goToScreen} ficha={ficha} onUpdateFicha={onFichaChange} />
     );
   }
 

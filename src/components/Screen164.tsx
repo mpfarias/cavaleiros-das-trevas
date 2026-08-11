@@ -10,6 +10,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import type { Ficha } from '../types';
 import temploGeomagosImg from '../assets/images/locais/templo-geomagos.png';
+import royalLendleImg from '../assets/images/locais/royal-lendle.png';
 
 interface Screen164Props {
   onGoToScreen: (screenId: number) => void;
@@ -26,33 +27,33 @@ const Screen164: React.FC<Screen164Props> = ({ onGoToScreen, ficha, onUpdateFich
     [theme]
   );
   const [hoverImage, setHoverImage] = useState<{ src: string; x: number; y: number } | null>(null);
-  const [showImageModal, setShowImageModal] = useState(false);
+  const [modalImage, setModalImage] = useState<{ src: string; alt: string } | null>(null);
 
-  const handleLocationHover = useCallback((event: React.MouseEvent) => {
-    setHoverImage({
-      src: temploGeomagosImg,
-      x: event.clientX + 20,
-      y: event.clientY - 20
-    });
-  }, []);
+  const createHoverHandlers = useCallback((src: string) => ({
+    onMouseEnter: (event: React.MouseEvent) => {
+      setHoverImage({
+        src,
+        x: event.clientX + 20,
+        y: event.clientY - 20
+      });
+    },
+    onMouseLeave: () => setHoverImage(null),
+    onMouseMove: (event: React.MouseEvent) => {
+      setHoverImage(prev => prev ? {
+        ...prev,
+        x: event.clientX + 20,
+        y: event.clientY - 20
+      } : null);
+    },
+  }), []);
 
-  const handleLocationLeave = useCallback(() => {
-    setHoverImage(null);
-  }, []);
-
-  const handleLocationMove = useCallback((event: React.MouseEvent) => {
-    setHoverImage(prev => prev ? {
-      ...prev,
-      x: event.clientX + 20,
-      y: event.clientY - 20
-    } : null);
-  }, []);
-
-  const handleLocationClick = useCallback(() => {
+  const handleImageClick = useCallback((src: string, alt: string) => {
     playClick();
-    setShowImageModal(true);
+    setModalImage({ src, alt });
   }, [playClick]);
 
+  const temploHandlers = createHoverHandlers(temploGeomagosImg);
+  const royalLendleHandlers = createHoverHandlers(royalLendleImg);
   return (
     <Container data-screen="screen-164">
       <VolumeControl />
@@ -84,14 +85,19 @@ const Screen164: React.FC<Screen164Props> = ({ onGoToScreen, ficha, onUpdateFich
             <br/><br/>
             Diante de você há um edifício simples — o{' '}
             <LocationLink
-              onMouseEnter={handleLocationHover}
-              onMouseLeave={handleLocationLeave}
-              onMouseMove={handleLocationMove}
-              onClick={handleLocationClick}
+              {...temploHandlers}
+              onClick={() => handleImageClick(temploGeomagosImg, 'Templo dos Geomagos')}
             >
               Templo dos Geomagos
             </LocationLink>
-            {' '}— sacerdotes que veneram Titã e respeitam a natureza em todas as suas formas; constituem uma força misteriosa e poderosa em Royal Lendle, muito temida por não seguirem cegamente as leis da terra.
+            {' '}— sacerdotes que veneram Titã e respeitam a natureza em todas as suas formas; constituem uma força misteriosa e poderosa em{' '}
+            <LocationLink
+              {...royalLendleHandlers}
+              onClick={() => handleImageClick(royalLendleImg, 'Royal Lendle')}
+            >
+              Royal Lendle
+            </LocationLink>
+            , muito temida por não seguirem cegamente as leis da terra.
             <br/><br/>
             Sua intenção é alcançar a rua que fica para além do templo, mas o caminho está bloqueado por uma cerca viva alta, que divide a propriedade ao meio. A única passagem é através de outro portão, cujas maçanetas são duas placas: uma representando o Sol, a outra a Lua.
             <br/><br/>
@@ -119,16 +125,16 @@ const Screen164: React.FC<Screen164Props> = ({ onGoToScreen, ficha, onUpdateFich
             top: hoverImage.y
           }}
         >
-          <img src={hoverImage.src} alt="Templo dos Geomagos" />
+          <img src={hoverImage.src} alt="" />
         </HoverImage>
       )}
 
       {/* Image Modal */}
       <ImageModal
-        open={showImageModal}
-        onClose={() => setShowImageModal(false)}
-        imageSrc={temploGeomagosImg}
-        imageAlt="Templo dos Geomagos"
+        open={Boolean(modalImage)}
+        onClose={() => setModalImage(null)}
+        imageSrc={modalImage?.src || ''}
+        imageAlt={modalImage?.alt || ''}
       />
     </Container>
   );

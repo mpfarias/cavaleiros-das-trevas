@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Box, Card, CardContent, Typography, IconButton, Tooltip } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
@@ -6,12 +6,19 @@ import { useClickSound } from '../hooks/useClickSound';
 import { GameAlert } from './ui/GameAlert';
 import { NOTIFICATION_CONFIG } from '../constants/character';
 import VolumeControl from './ui/VolumeControl';
+import ImageModal from './ui/ImageModal';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
+import royalLendleImg from '../assets/images/locais/royal-lendle.png';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
+`;
+
+const fadeInImage = keyframes`
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
 `;
 
 const Container = styled(Box)({
@@ -91,6 +98,32 @@ const ChoiceButton = styled('button')({
   }
 });
 
+const HoverImage = styled(Box)({
+  position: 'fixed',
+  zIndex: 1500,
+  pointerEvents: 'none',
+  animation: `${fadeInImage} 0.3s ease-out`,
+  '& img': {
+    maxWidth: '400px',
+    maxHeight: '400px',
+    borderRadius: '12px',
+    border: '3px solid #8B4513',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+    backgroundColor: 'transparent'
+  }
+});
+
+const LocationLink = styled('span')({
+  color: '#8B4513',
+  textDecoration: 'underline',
+  cursor: 'pointer',
+  fontWeight: 600,
+  transition: 'color 0.2s ease',
+  '&:hover': {
+    color: '#A0522D'
+  }
+});
+
 interface Screen7Props {
   onGoToScreen: (screenId: number) => void;
   ficha: any;
@@ -104,9 +137,36 @@ const Screen7: React.FC<Screen7Props> = ({ onGoToScreen, ficha, onUpdateFicha })
   // Estado para controlar o alerta de uso da poção
   const [showPotionAlert, setShowPotionAlert] = useState(false);
   const [potionUsed, setPotionUsed] = useState<string | null>(null);
+  const [hoverImage, setHoverImage] = useState<{ src: string; x: number; y: number } | null>(null);
+  const [modalImage, setModalImage] = useState<{ src: string; alt: string } | null>(null);
   
   // Ref para garantir que a poção seja removida apenas uma vez
   const potionRemovedRef = useRef(false);
+
+  const createHoverHandlers = useCallback((src: string) => ({
+    onMouseEnter: (event: React.MouseEvent) => {
+      setHoverImage({
+        src,
+        x: event.clientX + 20,
+        y: event.clientY - 20
+      });
+    },
+    onMouseLeave: () => setHoverImage(null),
+    onMouseMove: (event: React.MouseEvent) => {
+      setHoverImage(prev => prev ? {
+        ...prev,
+        x: event.clientX + 20,
+        y: event.clientY - 20
+      } : null);
+    },
+  }), []);
+
+  const handleImageClick = useCallback((src: string, alt: string) => {
+    playClick();
+    setModalImage({ src, alt });
+  }, [playClick]);
+
+  const royalLendleHandlers = createHoverHandlers(royalLendleImg);
 
   // Função para remover a Poção Corrosiva da bolsa
   const removePotionCorrosiva = () => {
@@ -218,7 +278,14 @@ const Screen7: React.FC<Screen7Props> = ({ onGoToScreen, ficha, onUpdateFicha })
             <br/><br/>
             Sem perceber nada, o carcereiro continua distraído. É a sua chance. Você se aproxima silenciosamente e desfere um golpe certeiro, deixando-o desacordado. Pulando por cima de seu corpo volumoso, escapa rapidamente da prisão.
             <br/><br/>
-            Do lado de fora, você abandona Royal Lendle pela Porta Sul, que leva até a Estrada do Comércio Principal, ou pela Porta Leste, mais próxima dali.
+            Do lado de fora, você abandona{' '}
+            <LocationLink
+              {...royalLendleHandlers}
+              onClick={() => handleImageClick(royalLendleImg, 'Royal Lendle')}
+            >
+              Royal Lendle
+            </LocationLink>
+            {' '}pela Porta Sul, que leva até a Estrada do Comércio Principal, ou pela Porta Leste, mais próxima dali.
           </NarrativeText>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
@@ -238,6 +305,24 @@ const Screen7: React.FC<Screen7Props> = ({ onGoToScreen, ficha, onUpdateFicha })
           </Box>
         </CardContent>
       </CardWrap>
+
+      {hoverImage && (
+        <HoverImage
+          sx={{
+            left: hoverImage.x,
+            top: hoverImage.y
+          }}
+        >
+          <img src={hoverImage.src} alt="" />
+        </HoverImage>
+      )}
+
+      <ImageModal
+        open={Boolean(modalImage)}
+        onClose={() => setModalImage(null)}
+        imageSrc={modalImage?.src || ''}
+        imageAlt={modalImage?.alt || ''}
+      />
     </Container>
   );
 };

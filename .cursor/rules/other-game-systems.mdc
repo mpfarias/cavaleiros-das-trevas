@@ -24,9 +24,11 @@ alwaysApply: false
 
 ## Game Over
 
+Canônico completo em **`game-mechanics.mdc` §9**.
+
 - IDs: `DEATH_MESSAGES` no router — **131, 346, 365, 999**
 - Combate/falhas críticas → `onGoToScreen(999)`
-- Restart: `GameOverScreen` limpa LS + volta `/sheet`
+- Restart: `App.handleGameOverRestart` → ficha vazia + `/sheet`
 - `cavaleiro:checkpoint` só é limpo no reset — save real = ficha + `lastScreen`
 
 ## Save / mapa

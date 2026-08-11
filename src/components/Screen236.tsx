@@ -15,6 +15,7 @@ import type { Ficha } from '../types';
 import { NOTIFICATION_CONFIG } from '../constants/character';
 import bransellImg from '../assets/images/personagens/bransell.png';
 import rogmondoImg from '../assets/images/personagens/rogmondo.png';
+import royalLendleImg from '../assets/images/locais/royal-lendle.png';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -218,7 +219,16 @@ const Screen236: React.FC<Screen236Props> = ({ onGoToScreen, ficha, onUpdateFich
                   >
                     Rogmondo
                   </LocationLink>
-                  {' '}arregala os olhos. — Inspetor sanitário? Em Royal Lendle? Isso não existe!
+                  {' '}arregala os olhos. — Inspetor sanitário? Em{' '}
+                  <LocationLink
+                    onMouseEnter={handleCharacterHover(royalLendleImg)}
+                    onMouseLeave={handleCharacterLeave}
+                    onMouseMove={handleCharacterMove}
+                    onClick={() => handleImageClick(royalLendleImg, 'Royal Lendle')}
+                  >
+                    Royal Lendle
+                  </LocationLink>
+                  ? Isso não existe!
                   <br /><br />
                   Ele afasta a cortina que separa a sala dos fundos e grita:
                   <br /><br />

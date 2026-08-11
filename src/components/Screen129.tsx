@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Box, CardContent, Typography, IconButton, Tooltip, Button } from '@mui/material';
 import { keyframes } from '@mui/material/styles';
-import { useAudio } from '../hooks/useAudio';
+import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
 import { useScreenTheme } from '../hooks/useScreenTheme';
 import { createThemedComponents } from './common/ScreenThemedComponents';
@@ -34,7 +34,7 @@ interface Screen129Props {
 }
 
 const Screen129: React.FC<Screen129Props> = ({ onGoToScreen, ficha, onUpdateFicha }) => {
-  const { isPlaying, togglePlay, changeTrack, tryStartMusic } = useAudio();
+  const { isPlaying, togglePlay, forceGroupChange } = useAudioGroup(129);
   const playClick = useClickSound(0.2);
   const theme = useScreenTheme(129);
   const { Container, CardWrap, NarrativeText, ChoiceButton } = useMemo(
@@ -48,19 +48,12 @@ const Screen129: React.FC<Screen129Props> = ({ onGoToScreen, ficha, onUpdateFich
   const battleSystemRef = useRef<BattleSystemHandle | null>(null);
 
   useEffect(() => {
-    if (phase === 'choice') return;
-
-    const initializeBattleAudio = async () => {
-      try {
-        await changeTrack('/src/assets/sounds/bgm-battle.mp3');
-        tryStartMusic();
-      } catch (error) {
-        console.warn('🎵 [Screen129] Erro ao inicializar áudio de batalha:', error);
-      }
-    };
-
-    initializeBattleAudio();
-  }, [phase, changeTrack, tryStartMusic]);
+    if (phase === 'intro' || phase === 'battle') {
+      forceGroupChange('battle');
+    } else if (phase === 'victory') {
+      forceGroupChange('arabic');
+    }
+  }, [phase, forceGroupChange]);
 
   const stableOnUpdateFicha = useCallback((updatedFicha: Ficha) => {
     onUpdateFicha(updatedFicha);

@@ -10,6 +10,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import type { Ficha } from '../types';
 import joaoVerduraImg from '../assets/images/personagens/joao-verdura.png';
+import gorntImg from '../assets/images/locais/gornt.png';
 
 interface Screen11Props {
   onGoToScreen: (screenId: number) => void;
@@ -27,7 +28,7 @@ const Screen11: React.FC<Screen11Props> = ({ onGoToScreen, ficha, onUpdateFicha:
   );
 
   const [hoverImage, setHoverImage] = useState<{ src: string; x: number; y: number } | null>(null);
-  const [showImageModal, setShowImageModal] = useState(false);
+  const [modalImage, setModalImage] = useState<{ src: string; alt: string } | null>(null);
 
   const hasBrocheFolhaVerde = useMemo(() => {
     return ficha.bolsa.some((item) => (
@@ -37,30 +38,31 @@ const Screen11: React.FC<Screen11Props> = ({ onGoToScreen, ficha, onUpdateFicha:
     ));
   }, [ficha.bolsa]);
 
-  const handleJoaoHover = useCallback((event: React.MouseEvent) => {
-    setHoverImage({
-      src: joaoVerduraImg,
-      x: event.clientX + 20,
-      y: event.clientY - 20
-    });
-  }, []);
+  const createHoverHandlers = useCallback((src: string) => ({
+    onMouseEnter: (event: React.MouseEvent) => {
+      setHoverImage({
+        src,
+        x: event.clientX + 20,
+        y: event.clientY - 20
+      });
+    },
+    onMouseLeave: () => setHoverImage(null),
+    onMouseMove: (event: React.MouseEvent) => {
+      setHoverImage(prev => prev ? {
+        ...prev,
+        x: event.clientX + 20,
+        y: event.clientY - 20
+      } : null);
+    },
+  }), []);
 
-  const handleJoaoLeave = useCallback(() => {
-    setHoverImage(null);
-  }, []);
-
-  const handleJoaoMove = useCallback((event: React.MouseEvent) => {
-    setHoverImage(prev => prev ? {
-      ...prev,
-      x: event.clientX + 20,
-      y: event.clientY - 20
-    } : null);
-  }, []);
-
-  const handleJoaoClick = useCallback(() => {
+  const handleImageClick = useCallback((src: string, alt: string) => {
     playClick();
-    setShowImageModal(true);
+    setModalImage({ src, alt });
   }, [playClick]);
+
+  const joaoHandlers = createHoverHandlers(joaoVerduraImg);
+  const gorntHandlers = createHoverHandlers(gorntImg);
 
   return (
     <Container data-screen="screen-11">
@@ -105,15 +107,20 @@ const Screen11: React.FC<Screen11Props> = ({ onGoToScreen, ficha, onUpdateFicha:
       <CardWrap>
         <CardContent sx={{ padding: '40px' }}>
           <NarrativeText>
-            Embora ainda esteja longe de Gornt, você continua avançando a bom ritmo para o sul. De repente, para ao ver um rosto estranho e sorridente olhando para você do meio da grama à beira da estrada.
+            Embora ainda esteja longe de{' '}
+            <LocationLink
+              {...gorntHandlers}
+              onClick={() => handleImageClick(gorntImg, 'Gornt')}
+            >
+              Gornt
+            </LocationLink>
+            , você continua avançando a bom ritmo para o sul. De repente, para ao ver um rosto estranho e sorridente olhando para você do meio da grama à beira da estrada.
             <br/><br/>
             Só então percebe que é um rosto feito de folhas — parte viva da própria relva! Ele se move de um lado para o outro, como se fosse levado pelo vento, e sua voz é rápida e misteriosa:
             <br/><br/>
             “Aqui está <strong><LocationLink
-              onMouseEnter={handleJoaoHover}
-              onMouseLeave={handleJoaoLeave}
-              onMouseMove={handleJoaoMove}
-              onClick={handleJoaoClick}
+              {...joaoHandlers}
+              onClick={() => handleImageClick(joaoVerduraImg, 'João Verdesfolhas')}
             >João Verdesfolhas</LocationLink></strong>, um velho rei, para guiá-lo. O mundo está moribundo; o solo está corrompido e as árvores tremem diante da violência. Cinco guerreiros procuram seu senhor, que não será libertado. A Terra-Mãe pode curá-lo, mas você deve provar seu valor.”
             <br/><br/>
             João Verdesfolhas lhe dá uma chance de provar do que é capaz.
@@ -158,10 +165,10 @@ const Screen11: React.FC<Screen11Props> = ({ onGoToScreen, ficha, onUpdateFicha:
       )}
 
       <ImageModal
-        open={showImageModal}
-        onClose={() => setShowImageModal(false)}
-        imageSrc={joaoVerduraImg}
-        imageAlt="João Verdesfolhas"
+        open={Boolean(modalImage)}
+        onClose={() => setModalImage(null)}
+        imageSrc={modalImage?.src || ''}
+        imageAlt={modalImage?.alt || ''}
       />
     </Container>
   );

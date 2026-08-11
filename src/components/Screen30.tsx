@@ -1,16 +1,23 @@
 
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { Box, Card, CardContent, Typography, IconButton, Tooltip } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { useAudioGroup } from '../hooks/useAudioGroup';
 import { useClickSound } from '../hooks/useClickSound';
 import VolumeControl from './ui/VolumeControl';
+import ImageModal from './ui/ImageModal';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
+import royalLendleImg from '../assets/images/locais/royal-lendle.png';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
+`;
+
+const fadeInImage = keyframes`
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
 `;
 
 const Container = styled(Box)({
@@ -90,6 +97,32 @@ const ChoiceButton = styled('button')({
   }
 });
 
+const HoverImage = styled(Box)({
+  position: 'fixed',
+  zIndex: 1500,
+  pointerEvents: 'none',
+  animation: `${fadeInImage} 0.3s ease-out`,
+  '& img': {
+    maxWidth: '400px',
+    maxHeight: '400px',
+    borderRadius: '12px',
+    border: '3px solid #8B4513',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+    backgroundColor: 'transparent'
+  }
+});
+
+const LocationLink = styled('span')({
+  color: '#8B4513',
+  textDecoration: 'underline',
+  cursor: 'pointer',
+  fontWeight: 600,
+  transition: 'color 0.2s ease',
+  '&:hover': {
+    color: '#A0522D'
+  }
+});
+
 interface Screen30Props {
   onGoToScreen: (screenId: number) => void;
 }
@@ -97,6 +130,34 @@ interface Screen30Props {
 const Screen30: React.FC<Screen30Props> = ({ onGoToScreen }) => {
   // Usa o sistema de grupos de áudio - automaticamente gerencia música do grupo 'royal-lendle'
   const { currentGroup, isPlaying, togglePlay } = useAudioGroup(30);
+  const playClick = useClickSound(0.2);
+  const [hoverImage, setHoverImage] = useState<{ src: string; x: number; y: number } | null>(null);
+  const [modalImage, setModalImage] = useState<{ src: string; alt: string } | null>(null);
+
+  const createHoverHandlers = useCallback((src: string) => ({
+    onMouseEnter: (event: React.MouseEvent) => {
+      setHoverImage({
+        src,
+        x: event.clientX + 20,
+        y: event.clientY - 20
+      });
+    },
+    onMouseLeave: () => setHoverImage(null),
+    onMouseMove: (event: React.MouseEvent) => {
+      setHoverImage(prev => prev ? {
+        ...prev,
+        x: event.clientX + 20,
+        y: event.clientY - 20
+      } : null);
+    },
+  }), []);
+
+  const handleImageClick = useCallback((src: string, alt: string) => {
+    playClick();
+    setModalImage({ src, alt });
+  }, [playClick]);
+
+  const royalLendleHandlers = createHoverHandlers(royalLendleImg);
 
   return (
     <Container data-screen="screen-30">
@@ -144,7 +205,14 @@ const Screen30: React.FC<Screen30Props> = ({ onGoToScreen }) => {
         <CardContent sx={{ padding: '40px' }}>
           <NarrativeText>
             Você se afasta da taverna e segue para a área do mercado, no centro da cidade. 
-            Ironicamente, o mercado fica perto do bairro mais pobre de Royal Lendle — um 
+            Ironicamente, o mercado fica perto do bairro mais pobre de{' '}
+            <LocationLink
+              {...royalLendleHandlers}
+              onClick={() => handleImageClick(royalLendleImg, 'Royal Lendle')}
+            >
+              Royal Lendle
+            </LocationLink>
+            {' '}— um 
             amontoado de casas caindo aos pedaços, que abrigam ladrões e mendigos. 
             Enfim, um lugar nada recomendável.
             <br/><br/>
@@ -165,6 +233,24 @@ const Screen30: React.FC<Screen30Props> = ({ onGoToScreen }) => {
            </Box>
         </CardContent>
       </CardWrap>
+
+      {hoverImage && (
+        <HoverImage
+          sx={{
+            left: hoverImage.x,
+            top: hoverImage.y
+          }}
+        >
+          <img src={hoverImage.src} alt="" />
+        </HoverImage>
+      )}
+
+      <ImageModal
+        open={Boolean(modalImage)}
+        onClose={() => setModalImage(null)}
+        imageSrc={modalImage?.src || ''}
+        imageAlt={modalImage?.alt || ''}
+      />
     </Container>
   );
 };
